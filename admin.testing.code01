@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Silent Punishment — Test Build</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+body,html{margin:0;padding:0;width:100%;height:100%;background:#000;color:#0f0;font-family:'Share Tech Mono',monospace;overflow:hidden;}
+#testingLabel{position:fixed;top:10px;right:10px;font-size:.8rem;color:#0f0;opacity:0.5;z-index:9999;}
+#playButton{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:1rem 2rem;font-size:1.2rem;background:#000;border:2px solid #0f0;color:#0f0;cursor:pointer;z-index:999;animation: glow 1.5s infinite alternate;}
+@keyframes glow{from{box-shadow:0 0 5px #0f0;}to{box-shadow:0 0 20px #0f0;}}
+.crt{opacity:0;transition:opacity 2s ease;position:absolute;top:0;left:0;width:100%;height:100%;padding:2rem;box-sizing:border-box;overflow-y:auto;}
+.crt.visible{opacity:1;}
+#output{white-space:pre-wrap;line-height:1.4em;}
+.crt::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(to bottom, rgba(0,255,120,0.03) 0px, rgba(0,255,120,0.03) 1px, transparent 2px, transparent 3px);pointer-events:none;animation:flicker 0.15s infinite;}
+@keyframes flicker{0%,19%,21%,23%,25%,54%,56%,100%{opacity:0.1;}20%,24%,55%{opacity:0.25;}}
+#inputLine{display:flex;margin-top:0.5em;}
+#inputPrompt{flex:none;}
+#inputField{flex:1;background:transparent;border:none;color:#0f0;font-family:inherit;font-size:1rem;outline:none;}
+.shake{animation:shakeAnim 0.3s;}
+@keyframes shakeAnim{0%{transform:translate(0,0);}25%{transform:translate(3px,-2px);}50%{transform:translate(-2px,3px);}75%{transform:translate(2px,-3px);}100%{transform:translate(0,0);}}
+.glitchLine{position:relative;}
+.glitchLine::before,.glitchLine::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;pointer-events:none;color:#0f0;mix-blend-mode:screen;opacity:0.5;}
+.glitchLine::before{transform:translate(-1px,-1px);clip-path:polygon(0 0,100% 0,100% 45%,0 50%);animation:glitchTop 2s infinite linear;}
+.glitchLine::after{transform:translate(1px,1px);clip-path:polygon(0 55%,100% 50%,100% 100%,0 100%);animation:glitchBot 2.5s infinite linear;}
+@keyframes glitchTop{0%,50%,100%{transform:translate(-1px,-1px);}25%{transform:translate(-2px,0);}75%{transform:translate(-1px,-2px);}}
+@keyframes glitchBot{0%,50%,100%{transform:translate(1px,1px);}25%{transform:translate(2px,0);}75%{transform:translate(1px,2px);}}
+</style>
+</head>
+<body>
+
+<div id="testingLabel">TESTING</div>
+<button id="playButton">PLAY</button>
+
+<div class="crt" id="crt">
+  <div id="output"></div>
+  <div id="inputLine">
+    <span id="inputPrompt">></span>
+    <input type="text" id="inputField" autocomplete="off">
+  </div>
+</div>
+
+<script>
+const playButton=document.getElementById('playButton');
+const crt=document.getElementById('crt');
+const output=document.getElementById('output');
+const inputField=document.getElementById('inputField');
+
+let audioCtx;
+let ambientGain, droneOsc;
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  droneOsc=audioCtx.createOscillator();
+  droneOsc.type='sine';
+  droneOsc.frequency.value=40;
+  ambientGain=audioCtx.createGain();
+  ambientGain.gain.value=0.04;
+  droneOsc.connect(ambientGain);
+  ambientGain.connect(audioCtx.destination);
+  droneOsc.start();
+}
+function playBeep(freq=400,dur=0.08,vol=0.08){
+  if(!audioCtx)initAudio();
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  g.gain.value=vol;
+  o.frequency.value=freq;
+  o.type='square';
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime+dur);
+}
+
+function appendLine(text, glitch=false){
+  const line=document.createElement('div');
+  if(glitch){ line.classList.add('glitchLine'); line.setAttribute('data-text',text);}
+  line.textContent=text;
+  output.appendChild(line);
+  output.scrollTop=output.scrollHeight;
+}
+
+function screenShake(){ crt.classList.add('shake'); setTimeout(()=>crt.classList.remove('shake'),300); }
+
+function randomEffect(){
+  if(Math.random()<0.3){ screenShake(); playBeep(250+Math.random()*200,0.05,0.06);}
+}
+
+function handleCommand(cmd){
+  cmd=cmd.trim().toUpperCase();
+  if(cmd==='START'){
+    appendLine('SYSTEM INITIALIZING...',true);
+    randomEffect();
+  } else if(cmd==='HELP'){
+    appendLine('Available commands: START, HELP, REBOOT, STATUS',true);
+    randomEffect();
+  } else if(cmd==='REBOOT'){
+    appendLine('SYSTEM REBOOTING...',true);
+    output.innerHTML='';
+    randomEffect();
+  } else if(cmd==='STATUS'){
+    appendLine('SYSTEM STATUS: ONLINE',true);
+    randomEffect();
+  } else if(cmd===''){
+  } else{
+    appendLine('UNKNOWN COMMAND',true);
+    screenShake();
+    playBeep(150,0.08,0.08);
+  }
+}
+
+playButton.addEventListener('click',()=>{
+  playButton.style.display='none';
+  crt.classList.add('visible');
+  initAudio();
+  appendLine('Initializing...');
+  appendLine('Type START to begin');
+  inputField.focus();
+});
+
+inputField.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ handleCommand(inputField.value); inputField.value=''; }
+});
+</script>
+
+</body>
+</html>
