@@ -1,128 +1,557 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Silent Punishment — Test Build</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Silent Punishment — Test Puzzles</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-body,html{margin:0;padding:0;width:100%;height:100%;background:#000;color:#0f0;font-family:'Share Tech Mono',monospace;overflow:hidden;}
-#testingLabel{position:fixed;top:10px;right:10px;font-size:.8rem;color:#0f0;opacity:0.5;z-index:9999;}
-#playButton{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:1rem 2rem;font-size:1.2rem;background:#000;border:2px solid #0f0;color:#0f0;cursor:pointer;z-index:999;animation: glow 1.5s infinite alternate;}
-@keyframes glow{from{box-shadow:0 0 5px #0f0;}to{box-shadow:0 0 20px #0f0;}}
-.crt{opacity:0;transition:opacity 2s ease;position:absolute;top:0;left:0;width:100%;height:100%;padding:2rem;box-sizing:border-box;overflow-y:auto;}
-.crt.visible{opacity:1;}
-#output{white-space:pre-wrap;line-height:1.4em;}
-.crt::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(to bottom, rgba(0,255,120,0.03) 0px, rgba(0,255,120,0.03) 1px, transparent 2px, transparent 3px);pointer-events:none;animation:flicker 0.15s infinite;}
-@keyframes flicker{0%,19%,21%,23%,25%,54%,56%,100%{opacity:0.1;}20%,24%,55%{opacity:0.25;}}
-#inputLine{display:flex;margin-top:0.5em;}
-#inputPrompt{flex:none;}
-#inputField{flex:1;background:transparent;border:none;color:#0f0;font-family:inherit;font-size:1rem;outline:none;}
-.shake{animation:shakeAnim 0.3s;}
-@keyframes shakeAnim{0%{transform:translate(0,0);}25%{transform:translate(3px,-2px);}50%{transform:translate(-2px,3px);}75%{transform:translate(2px,-3px);}100%{transform:translate(0,0);}}
-.glitchLine{position:relative;}
-.glitchLine::before,.glitchLine::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;pointer-events:none;color:#0f0;mix-blend-mode:screen;opacity:0.5;}
-.glitchLine::before{transform:translate(-1px,-1px);clip-path:polygon(0 0,100% 0,100% 45%,0 50%);animation:glitchTop 2s infinite linear;}
-.glitchLine::after{transform:translate(1px,1px);clip-path:polygon(0 55%,100% 50%,100% 100%,0 100%);animation:glitchBot 2.5s infinite linear;}
-@keyframes glitchTop{0%,50%,100%{transform:translate(-1px,-1px);}25%{transform:translate(-2px,0);}75%{transform:translate(-1px,-2px);}}
-@keyframes glitchBot{0%,50%,100%{transform:translate(1px,1px);}25%{transform:translate(2px,0);}75%{transform:translate(1px,2px);}}
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  :root{
+    --bg:#000;
+    --green:#00ff77;
+    --muted:rgba(0,255,119,0.12);
+    --glass: rgba(255,255,255,0.02);
+  }
+  html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--green);font-family:'Share Tech Mono', monospace;overflow:hidden;}
+  /* Testing label */
+  #testingLabel{position:fixed;top:12px;right:16px;color:var(--green);opacity:0.55;font-size:0.85rem;z-index:50}
+  /* Play button */
+  #playButton{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:1rem 1.6rem;border:2px solid var(--green);background:transparent;color:var(--green);cursor:pointer;font-size:1.1rem;border-radius:6px;z-index:40;box-shadow:0 0 30px rgba(0,255,119,0.05);animation:glow 1.6s infinite alternate}
+  @keyframes glow{from{box-shadow:0 0 6px rgba(0,255,119,0.08)} to{box-shadow:0 0 24px rgba(0,255,119,0.18)}}
+  /* Main CRT shell */
+  #shell{position:fixed;inset:0;padding:2rem;box-sizing:border-box;opacity:0;transition:opacity 1.6s ease;overflow:auto}
+  #shell.visible{opacity:1}
+  #frame{max-width:1100px;margin:40px auto;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));border-radius:12px;padding:1.2rem 1.4rem;border:1px solid rgba(0,255,119,0.03);box-shadow:0 30px 120px rgba(0,0,0,0.8)}
+  header.appTitle{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+  .title{font-size:1.6rem;letter-spacing:2px;font-weight:600;color:var(--green);text-shadow:0 0 8px rgba(0,255,119,0.12)}
+  .subtitle{font-size:0.85rem;color:rgba(0,255,119,0.6)}
+  /* main terminal area */
+  #terminal{background:linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.98));border-radius:8px;padding:1rem;min-height:420px;border:1px solid var(--glass);position:relative;overflow:hidden}
+  #output{white-space:pre-wrap;line-height:1.45;font-size:0.98rem;max-height:320px;overflow:auto;padding-right:6px}
+  /* scanlines overlay */
+  #terminal::after{content:"";position:absolute;inset:0;pointer-events:none;background:
+    repeating-linear-gradient( to bottom, rgba(0,255,119,0.015) 0px, rgba(0,255,119,0.015) 1px, transparent 2px, transparent 3px);
+    mix-blend-mode:screen;opacity:0.9}
+  /* input */
+  #inputBar{display:flex;gap:.6rem;align-items:center;margin-top:0.9rem}
+  #prompt{flex:none}
+  #cmd{flex:1;background:transparent;border:1px solid rgba(0,255,119,0.05);padding:.48rem;border-radius:6px;color:var(--green);outline:none;font-family:inherit}
+  /* progress / fake loading */
+  #loaderWrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s}
+  #loaderWrap.show{opacity:1;pointer-events:auto}
+  .loaderBox{width:70%;max-width:700px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.03);padding:1rem;border-radius:8px;backdrop-filter: blur(4px)}
+  .progress{height:12px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden}
+  .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg, rgba(0,255,119,0.16), rgba(0,255,119,0.6));transition:width .25s ease}
+  /* little UI panels for puzzles */
+  .panel{display:flex;gap:1rem;align-items:center;margin-top:1rem;flex-wrap:wrap}
+  .panel .box{background:rgba(0,0,0,0.6);border:1px solid rgba(0,255,119,0.03);padding:.8rem;border-radius:8px;min-width:180px;flex:1}
+  .buttonsRow{display:flex;gap:.6rem;justify-content:center;margin-top:.6rem}
+  .btnSmall{padding:.45rem .7rem;border-radius:6px;border:1px solid rgba(0,255,119,0.08);background:transparent;color:var(--green);cursor:pointer}
+  /* dials UI */
+  .dials{display:flex;gap:1rem;justify-content:center;align-items:center}
+  .dial{width:80px;height:80px;border-radius:10px;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid rgba(0,255,119,0.05)}
+  /* shake */
+  .shake{animation:shakeAnim .35s}
+  @keyframes shakeAnim{0%{transform:translate(0,0)}25%{transform:translate(4px,-3px)}50%{transform:translate(-3px,4px)}75%{transform:translate(2px,-2px)}100%{transform:translate(0,0)}}
+  /* glitch text */
+  .glitch{position:relative}
+  .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;pointer-events:none;mix-blend-mode:screen;opacity:0.7}
+  .glitch::before{color:#9f0;transform:translate(-2px,-1px);clip-path:polygon(0 0,100% 0,100% 45%,0 50%);animation:gtop 2.1s infinite linear}
+  .glitch::after{color:#0ff;transform:translate(2px,1px);clip-path:polygon(0 55%,100% 50%,100% 100%,0 100%);animation:gbot 2.5s infinite linear}
+  @keyframes gtop{0%,50%,100%{transform:translate(-2px,-1px)}25%{transform:translate(-6px,-2px)}75%{transform:translate(-1px,-4px)}}
+  @keyframes gbot{0%,50%,100%{transform:translate(2px,1px)}25%{transform:translate(6px,2px)}75%{transform:translate(1px,4px)}}
+  /* footer small */
+  footer{margin-top:1rem;text-align:center;color:rgba(0,255,119,0.45);font-size:0.85rem}
+  /* responsive */
+  @media (max-width:720px){
+    .dials{flex-direction:row}
+    .dial{width:66px;height:66px;font-size:1.2rem}
+    .loaderBox{width:92%}
+  }
 </style>
 </head>
 <body>
+  <div id="testingLabel">TESTING</div>
+  <button id="playButton">PLAY</button>
 
-<div id="testingLabel">TESTING</div>
-<button id="playButton">PLAY</button>
+  <div id="shell" aria-hidden="true">
+    <div id="frame">
+      <header class="appTitle">
+        <div>
+          <div class="title glitch" data-text="SILENT PUNISHMENT">SILENT PUNISHMENT</div>
+          <div class="subtitle">Test build • Terminal puzzles</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.9rem;color:rgba(0,255,119,0.6)">Build: TEST-LAYER-1</div>
+          <div style="font-size:0.75rem;color:rgba(0,255,119,0.32)">v0.2 — puzzles demo</div>
+        </div>
+      </header>
 
-<div class="crt" id="crt">
-  <div id="output"></div>
-  <div id="inputLine">
-    <span id="inputPrompt">></span>
-    <input type="text" id="inputField" autocomplete="off">
+      <main id="terminal" role="main" aria-live="polite">
+        <div id="output"></div>
+
+        <!-- puzzle panels -->
+        <div id="panelArea" style="margin-top:12px"></div>
+
+        <!-- input -->
+        <div id="inputBar">
+          <div id="prompt">&gt;</div>
+          <input id="cmd" autocomplete="off" spellcheck="false" placeholder="Type commands (type HELP for commands)">
+        </div>
+
+        <div class="panel" style="margin-top:6px">
+          <div class="box" style="flex:0 0 220px">
+            <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Puzzle</div>
+            <div id="puzzleState" style="font-weight:600;margin-top:6px">Idle</div>
+          </div>
+          <div class="box" style="flex:1">
+            <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Hints / Logs</div>
+            <div id="hintBox" style="margin-top:8px;color:rgba(0,255,119,0.95);min-height:36px;font-size:0.95rem">Play to begin. Use <strong>START</strong> to start puzzles.</div>
+          </div>
+        </div>
+
+        <footer>
+          <div>Tip: After solving a puzzle type <strong>CONTINUE</strong> to proceed (loading will run)</div>
+        </footer>
+      </main>
+    </div>
   </div>
-</div>
+
+  <!-- loader overlay -->
+  <div id="loaderWrap" aria-hidden="true">
+    <div class="loaderBox">
+      <div style="margin-bottom:.6rem">LOADING — Please wait...</div>
+      <div class="progress" aria-hidden="false"><i id="progressBar"></i></div>
+      <div style="margin-top:.6rem;color:rgba(0,255,119,0.5);font-size:0.9rem" id="progressText">0%</div>
+    </div>
+  </div>
 
 <script>
-const playButton=document.getElementById('playButton');
-const crt=document.getElementById('crt');
-const output=document.getElementById('output');
-const inputField=document.getElementById('inputField');
-
-let audioCtx;
-let ambientGain, droneOsc;
+/* ========= AUDIO: WebAudio ambient + sfx ========== */
+let audioCtx, master, drone, droneGain;
+let sfxGain;
 function initAudio(){
   if(audioCtx) return;
-  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  droneOsc=audioCtx.createOscillator();
-  droneOsc.type='sine';
-  droneOsc.frequency.value=40;
-  ambientGain=audioCtx.createGain();
-  ambientGain.gain.value=0.04;
-  droneOsc.connect(ambientGain);
-  ambientGain.connect(audioCtx.destination);
-  droneOsc.start();
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  master = audioCtx.createGain(); master.gain.value = 0.9;
+  sfxGain = audioCtx.createGain(); sfxGain.gain.value = 0.9;
+  master.connect(audioCtx.destination);
+  sfxGain.connect(master);
+
+  // ambient drone (two oscillators detuned)
+  drone = audioCtx.createOscillator();
+  let droneB = audioCtx.createOscillator();
+  drone.type = 'sine'; drone.frequency.value = 36;
+  droneB.type = 'sine'; droneB.frequency.value = 55;
+  droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02;
+  let droneGainB = audioCtx.createGain(); droneGainB.gain.value = 0.015;
+
+  drone.connect(droneGain); droneB.connect(droneGainB);
+  droneGain.connect(master); droneGainB.connect(master);
+  drone.start(); droneB.start();
+
+  // subtle LFO to mod drone frequency
+  let lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.06;
+  let lfoGain = audioCtx.createGain(); lfoGain.gain.value = 6;
+  lfo.start();
+  lfo.connect(lfoGain);
+  lfoGain.connect(drone.frequency);
+  lfoGain.connect(droneB.frequency);
 }
-function playBeep(freq=400,dur=0.08,vol=0.08){
-  if(!audioCtx)initAudio();
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  g.gain.value=vol;
-  o.frequency.value=freq;
-  o.type='square';
-  o.connect(g); g.connect(audioCtx.destination);
+
+function sfxBeep(freq=440, type='sine', dur=0.08, amp=0.06){
+  if(!audioCtx) initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = amp;
+  o.connect(g); g.connect(sfxGain);
   o.start();
-  o.stop(audioCtx.currentTime+dur);
+  g.gain.setValueAtTime(amp, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+  o.stop(audioCtx.currentTime + dur + 0.02);
 }
 
-function appendLine(text, glitch=false){
-  const line=document.createElement('div');
-  if(glitch){ line.classList.add('glitchLine'); line.setAttribute('data-text',text);}
-  line.textContent=text;
-  output.appendChild(line);
-  output.scrollTop=output.scrollHeight;
+function sfxGlitch(){
+  // short noise burst
+  if(!audioCtx) initAudio();
+  const bufferSize = audioCtx.sampleRate * 0.05;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1) * 0.25;
+  const src = audioCtx.createBufferSource(); src.buffer = buffer;
+  const g = audioCtx.createGain(); g.gain.value = 0.08;
+  src.connect(g); g.connect(sfxGain);
+  src.start();
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
 }
 
-function screenShake(){ crt.classList.add('shake'); setTimeout(()=>crt.classList.remove('shake'),300); }
+/* ========= UI refs ========== */
+const playBtn = document.getElementById('playButton');
+const shell = document.getElementById('shell');
+const output = document.getElementById('output');
+const cmd = document.getElementById('cmd');
+const hintBox = document.getElementById('hintBox');
+const puzzleState = document.getElementById('puzzleState');
+const panelArea = document.getElementById('panelArea');
+const loaderWrap = document.getElementById('loaderWrap');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
 
-function randomEffect(){
-  if(Math.random()<0.3){ screenShake(); playBeep(250+Math.random()*200,0.05,0.06);}
+/* ========= State & flow ========== */
+let stage = 'idle'; // idle, puzzle1, waitingContinue, puzzle2, complete
+let targetSeq = '';
+let attemptsP1 = 0;
+let dials = [0,0,0];
+let targetCode = '';
+let scanUsed = false;
+
+/* ========= Helpers ========= */
+function log(text, opts={glitch:false}){
+  const el = document.createElement('div');
+  el.textContent = text;
+  if(opts.glitch) {
+    el.classList.add('glitch');
+    el.setAttribute('data-text', text);
+  }
+  output.appendChild(el);
+  output.scrollTop = output.scrollHeight;
 }
 
-function handleCommand(cmd){
-  cmd=cmd.trim().toUpperCase();
-  if(cmd==='START'){
-    appendLine('SYSTEM INITIALIZING...',true);
-    randomEffect();
-  } else if(cmd==='HELP'){
-    appendLine('Available commands: START, HELP, REBOOT, STATUS',true);
-    randomEffect();
-  } else if(cmd==='REBOOT'){
-    appendLine('SYSTEM REBOOTING...',true);
-    output.innerHTML='';
-    randomEffect();
-  } else if(cmd==='STATUS'){
-    appendLine('SYSTEM STATUS: ONLINE',true);
-    randomEffect();
-  } else if(cmd===''){
-  } else{
-    appendLine('UNKNOWN COMMAND',true);
-    screenShake();
-    playBeep(150,0.08,0.08);
+function shakeTerminal(){
+  const term = document.getElementById('terminal');
+  term.classList.add('shake');
+  setTimeout(()=>term.classList.remove('shake'),360);
+  sfxBeep(180,'square',0.08,0.08);
+  sfxGlitch();
+}
+
+function pickSequence(){
+  const letters = ['A','B','C','D'];
+  let seq = '';
+  for(let i=0;i<4;i++) seq += letters[Math.floor(Math.random()*letters.length)];
+  return seq;
+}
+function pickCode(){
+  let s='';
+  for(let i=0;i<3;i++) s+=Math.floor(Math.random()*10).toString();
+  return s;
+}
+
+/* ========= Puzzle 1 logic: Button sequence (Mastermind-like) ========= */
+function startPuzzle1(){
+  stage = 'puzzle1';
+  targetSeq = pickSequence();
+  attemptsP1 = 0;
+  puzzleState.textContent = 'PUZZLE 1 — BUTTON SEQUENCE';
+  panelArea.innerHTML = `
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">
+      <div class="box" style="flex:0 0 320px">
+        <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Instructions</div>
+        <div style="margin-top:.6rem">Enter a 4-letter sequence using A B C D (example: <code>ABCD</code>).
+        We'll respond with feedback: <em>Correct letters</em> and <em>Correct positions</em>.</div>
+        <div style="margin-top:.6rem;color:rgba(0,255,119,0.5)">Type your guess in the prompt below.</div>
+      </div>
+      <div class="box" style="flex:1">
+        <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Panel</div>
+        <div style="margin-top:.6rem" id="p1Panel">Sequence locked. Awaiting guesses...</div>
+        <div class="buttonsRow" style="margin-top:.8rem">
+          <button class="btnSmall" onclick="revealHintP1()">HINT</button>
+          <button class="btnSmall" onclick="forceRevealP1()">REVEAL (dev)</button>
+        </div>
+      </div>
+    </div>
+  `;
+  log('PUZZLE 1 — BUTTON SEQUENCE TEST', {glitch:true});
+  log('Enter a 4-letter sequence (A B C D). Type HELP for commands.');
+  sfxBeep(420,'sine',0.08,0.06);
+}
+
+function revealHintP1(){
+  // give a partial hint: one letter in random position
+  const pos = Math.floor(Math.random()*4);
+  const letter = targetSeq[pos];
+  const panel = document.getElementById('p1Panel');
+  panel.textContent = `HINT: Position ${pos+1} is ${letter}`;
+  sfxBeep(720,'sine',0.06,0.04);
+}
+
+function forceRevealP1(){
+  const panel = document.getElementById('p1Panel');
+  panel.textContent = `DEV: target = ${targetSeq}`;
+  sfxBeep(1200,'sine',0.06,0.05);
+}
+
+function handleP1Guess(guess){
+  attemptsP1++;
+  const up = (guess||'').trim().toUpperCase();
+  if(!/^[ABCD]{4}$/.test(up)){
+    log('INVALID SEQUENCE — use 4 letters from A,B,C,D');
+    shakeTerminal();
+    return;
+  }
+  // compute Mastermind-style feedback
+  let correctPos = 0;
+  let correctLetters = 0;
+  const tgtArr = targetSeq.split('');
+  const guessArr = up.split('');
+  const usedT = [false, false, false, false];
+  const usedG = [false, false, false, false];
+  // correct positions
+  for(let i=0;i<4;i++){
+    if(guessArr[i] === tgtArr[i]){ correctPos++; usedT[i]=true; usedG[i]=true; }
+  }
+  // correct letters (wrong pos)
+  for(let i=0;i<4;i++){
+    if(usedG[i]) continue;
+    for(let j=0;j<4;j++){
+      if(usedT[j]) continue;
+      if(guessArr[i] === tgtArr[j]){ correctLetters++; usedT[j]=true; usedG[i]=true; break; }
+    }
+  }
+  log(`GUESS ${up} → ${correctLetters} match (wrong pos), ${correctPos} correct pos`);
+  sfxBeep(260 + correctPos*80, 'sine', 0.06, 0.04);
+  if(correctPos === 4){
+    // success
+    log('ACCESS GRANTED — SEQUENCE ACCEPTED', {glitch:true});
+    sfxBeep(1000,'sine',0.14,0.08);
+    sfxGlitch();
+    puzzleState.textContent = 'PUZZLE 1 — COMPLETE';
+    // mark waiting for continue
+    stage = 'waitingContinue';
+    hintBox.textContent = 'Puzzle 1 solved. Type CONTINUE to proceed.';
+  } else {
+    hintBox.textContent = `Attempt ${attemptsP1}: ${correctPos} exact, ${correctLetters} partial.`;
   }
 }
 
-playButton.addEventListener('click',()=>{
-  playButton.style.display='none';
-  crt.classList.add('visible');
+/* ========= Puzzle 2 logic: 3 dials (INC / DEC / SCAN / SUBMIT) ========= */
+function startPuzzle2(){
+  stage = 'puzzle2';
+  scanUsed = false;
+  dials = [Math.floor(Math.random()*10), Math.floor(Math.random()*10), Math.floor(Math.random()*10)];
+  targetCode = pickCode(); // e.g. "427"
+  // reset dials to random (different)
+  dials = [Math.floor(Math.random()*10), Math.floor(Math.random()*10), Math.floor(Math.random()*10)];
+  puzzleState.textContent = 'PUZZLE 2 — ALIGNMENT DIALS';
+  panelArea.innerHTML = `
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:center">
+      <div class="box" style="flex:0 0 320px">
+        <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Instructions</div>
+        <div style="margin-top:.6rem">There are three dials (1..3). Use <code>INC n</code> or <code>DEC n</code> to change dial n.
+        Use <code>SCAN</code> to reveal one correct digit (once). When ready, submit with <code>SUBMIT 123</code>.</div>
+        <div style="margin-top:.6rem;color:rgba(0,255,119,0.5)">Example: <code>INC 2</code></div>
+      </div>
+      <div class="box" style="flex:1">
+        <div style="font-size:0.85rem;color:rgba(0,255,119,0.6)">Dials</div>
+        <div style="margin-top:.6rem" id="dialsPanel" class="dials">
+          <div class="dial" id="dial1">–</div>
+          <div class="dial" id="dial2">–</div>
+          <div class="dial" id="dial3">–</div>
+        </div>
+        <div style="margin-top:.6rem" id="p2Panel">Target unknown. Use SCAN for a hint.</div>
+      </div>
+    </div>
+  `;
+  updateDialsUI();
+  log('PUZZLE 2 — ALIGNMENT DIALS', {glitch:true});
+  log('Adjust dials and submit the correct 3-digit code. Use SCAN for a hint (once).');
+  sfxBeep(460,'sine',0.09,0.06);
+}
+
+function updateDialsUI(){
+  document.getElementById('dial1').textContent = dials[0];
+  document.getElementById('dial2').textContent = dials[1];
+  document.getElementById('dial3').textContent = dials[2];
+}
+
+function handleIncDec(n, dir){
+  const idx = n-1;
+  if(idx <0 || idx >2){ log('Invalid dial number (use 1,2,3)'); shakeTerminal(); return; }
+  if(dir === 'INC') dials[idx] = (dials[idx]+1)%10;
+  else dials[idx] = (dials[idx]+9)%10; // dec
+  updateDialsUI();
+  log(`${dir} ${n} → ${dials.join('')}`);
+  sfxBeep(300 + idx*80, 'square', 0.05, 0.05);
+}
+
+function handleScan(){
+  if(scanUsed) { log('SCAN already used.'); shakeTerminal(); return; }
+  scanUsed = true;
+  // reveal one digit of target
+  const pos = Math.floor(Math.random()*3);
+  const revealed = targetCode[pos];
+  document.getElementById('p2Panel').textContent = `SCAN: Digit ${pos+1} = ${revealed}`;
+  log(`SCAN RESULT: position ${pos+1} = ${revealed}`);
+  sfxBeep(880,'sine',0.08,0.06);
+}
+
+function handleSubmit(code){
+  if(!/^\d{3}$/.test(code)){
+    log('SUBMIT requires 3 digits (e.g. SUBMIT 427)');
+    shakeTerminal();
+    return;
+  }
+  log(`SUBMIT ${code}`);
+  if(code === targetCode){
+    log('ALIGNMENT SUCCESS — CODE ACCEPTED', {glitch:true});
+    sfxBeep(1200,'sine',0.14,0.08);
+    sfxGlitch();
+    puzzleState.textContent = 'PUZZLE 2 — COMPLETE';
+    stage = 'complete';
+    hintBox.textContent = 'All puzzles solved. TEST COMPLETE.';
+    // final message
+    log('SYSTEM UNLOCKED — TEST COMPLETE');
+  } else {
+    // partial feedback: correct digits count
+    let correct=0;
+    for(let i=0;i<3;i++) if(code[i]===targetCode[i]) correct++;
+    log(`ALIGNMENT FAILED — ${correct} digits correct (position)`);
+    shakeTerminal();
+  }
+}
+
+/* ========= Loading flow (fake) ========= */
+function showLoader(duration=2400, cb){
+  loaderWrap.classList.add('show');
+  let start = Date.now();
+  const tick = setInterval(()=>{
+    const p = Math.min(1, (Date.now()-start)/duration);
+    progressBar.style.width = (p*100)+'%';
+    progressText.textContent = Math.round(p*100)+'%';
+    // small sfx pops
+    if(Math.random()<0.05) sfxBeep(300 + Math.random()*120, 'square', 0.03, 0.02);
+    if(p>=1){ clearInterval(tick); setTimeout(()=>{ loaderWrap.classList.remove('show'); progressBar.style.width='0%'; progressText.textContent='0%'; if(cb) cb(); }, 350); }
+  }, 80);
+}
+
+/* ========= Command parser ========= */
+function handleCommand(raw){
+  const text = (raw||'').trim();
+  if(!text) return;
+  const parts = text.split(/\s+/);
+  const cmd0 = parts[0].toUpperCase();
+  log('> ' + text);
+  // global commands
+  if(cmd0 === 'HELP'){
+    log('Commands: START, HELP, REBOOT, STATUS, CONTINUE, HINT, (puzzle-specific: e.g. INC 1, DEC 2, SUBMIT 123, SCAN)');
+    return;
+  }
+  if(cmd0 === 'REBOOT'){
+    // reset everything
+    log('SYSTEM REBOOTING...');
+    stage = 'idle';
+    panelArea.innerHTML = '';
+    puzzleState.textContent = 'Idle';
+    hintBox.textContent = 'System rebooted. Type START to begin.';
+    sfxBeep(140,'sine',0.09,0.06);
+    return;
+  }
+  if(cmd0 === 'STATUS'){
+    log(`SYSTEM STATUS: stage=${stage.toUpperCase()}`);
+    return;
+  }
+
+  // Starting
+  if(stage === 'idle'){
+    if(cmd0 === 'START'){
+      // start puzzle1
+      startPuzzle1();
+      return;
+    } else {
+      log('Type START to begin.');
+      return;
+    }
+  }
+
+  // waiting for continue between puzzles
+  if(stage === 'waitingContinue'){
+    if(cmd0 === 'CONTINUE'){
+      log('CONTINUE acknowledged — preparing next test.');
+      sfxBeep(620,'sine',0.08,0.06);
+      showLoader(2200, ()=> {
+        // start puzzle 2
+        startPuzzle2();
+      });
+      return;
+    } else {
+      log('Type CONTINUE to proceed to the next puzzle.');
+      shakeTerminal();
+      return;
+    }
+  }
+
+  // puzzle1 active input
+  if(stage === 'puzzle1'){
+    // allowed: 4-letter sequences, HINT
+    if(cmd0 === 'HINT'){
+      revealHintP1(); return;
+    }
+    if(cmd0 === 'REVEAL' || cmd0 === 'REVEALSEQ'){ forceRevealP1(); return; }
+    // treat input as guess
+    if(/^[A-Za-z]{1,10}$/.test(parts[0]) && parts[0].length === 4){
+      handleP1Guess(parts[0]); return;
+    } else {
+      log('Invalid input for puzzle 1. Enter 4 letters A-D (e.g. ABCD) or HINT.');
+      shakeTerminal(); return;
+    }
+  }
+
+  // puzzle2 active input
+  if(stage === 'puzzle2'){
+    if(cmd0 === 'INC' || cmd0 === 'DEC'){
+      const n = parseInt(parts[1]);
+      if(Number.isInteger(n)) { handleIncDec(n, cmd0); } else { log('Usage: INC n or DEC n (n=1..3)'); shakeTerminal(); }
+      return;
+    }
+    if(cmd0 === 'SCAN'){ handleScan(); return; }
+    if(cmd0 === 'SUBMIT'){
+      const code = (parts[1]||'').trim();
+      handleSubmit(code); return;
+    }
+    log('Puzzle 2 commands: INC n, DEC n, SCAN, SUBMIT 123');
+    shakeTerminal();
+    return;
+  }
+
+  // final / complete
+  if(stage === 'complete'){
+    log('All tests complete. Thank you.');
+    return;
+  }
+
+}
+
+/* ========= input wiring & play button ========= */
+playBtn.addEventListener('click', ()=>{
+  playBtn.style.display = 'none';
+  shell.classList.add('visible');
+  document.getElementById('shell').removeAttribute('aria-hidden');
   initAudio();
-  appendLine('Initializing...');
-  appendLine('Type START to begin');
-  inputField.focus();
+  log('SYSTEM BOOT — Test environment loaded.');
+  log('Type START to begin puzzles.');
+  hintBox.textContent = 'Type START to begin. Use HELP for available commands.';
+  // unlock keyboard focus
+  cmd.focus();
+  sfxBeep(480,'sine',0.08,0.06);
 });
 
-inputField.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){ handleCommand(inputField.value); inputField.value=''; }
+cmd.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const val = cmd.value;
+    cmd.value = '';
+    handleCommand(val);
+  }
 });
+
+/* small accessibility: allow backtick to focus cmd */
+window.addEventListener('keydown', e=>{
+  if(e.key === '`'){ cmd.focus(); e.preventDefault(); }
+});
+
+/* initial focus trap */
+document.addEventListener('click', ()=>{ if(shell.classList.contains('visible')) cmd.focus(); });
+
 </script>
-
 </body>
 </html>
