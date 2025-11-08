@@ -1,1 +1,516 @@
-probiha upload updatu..
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Silent Studio — Test Game (Web)</title>
+<style>
+  :root{
+    --bg:#060608; --card:#0b0b0d; --muted:#9aa; --accent:#9bf; --danger:#ff6b6b;
+    --glass: rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#020204 0%, #07060a 100%);color:#ddd;font-family:Inter,system-ui,Segoe UI,Roboto,monospace}
+  #container{max-width:980px;margin:28px auto;padding:20px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{font-family: 'Orbitron', sans-serif;font-size:20px;letter-spacing:1px;margin:0}
+  .room{margin-top:18px;display:grid;grid-template-columns:1fr 320px;gap:14px}
+  .room-left{background:var(--card);padding:18px;border-radius:10px;min-height:420px;position:relative;overflow:hidden}
+  .room-right{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:10px;height:fit-content}
+  /* PC area */
+  #pc{
+    width:320px;height:200px;background:#020202;border-radius:6px;border:1px solid rgba(255,255,255,0.04);
+    margin:0 auto;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;
+  }
+  #pcScreen{width:92%;height:70%;background:#071017;border-radius:6px;border:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;color:#8affff;font-family:monospace;padding:6px;text-align:center}
+  .controls{display:flex;gap:8px;justify-content:center;margin-top:12px}
+  .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent);padding:8px 12px;border-radius:6px;cursor:pointer}
+  .pill{display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.012), transparent);border:1px solid rgba(255,255,255,0.02)}
+  .pill .count{font-weight:600;color:#fff}
+  #power.on{border-color:#6fefb5}
+  #power.off{border-color:#ff8b8b}
+  #msg{position:absolute;right:10px;top:10px;background:rgba(0,0,0,0.5);padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);font-size:13px}
+  /* overlay task */
+  #taskOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:9999}
+  #taskBox{width:min(820px,94%);max-width:900px;background:#06080a;padding:18px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+  #taskHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  #breathAlert{position:fixed;left:20px;bottom:22px;background:rgba(0,0,0,0.6);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);display:none}
+  #status{font-size:13px;color:var(--muted)}
+  .small{font-size:13px;color:var(--muted)}
+  /* memory grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .card{background:#0b1112;height:64px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,0.03);font-weight:700}
+  .hidden{background:#071015;color:transparent}
+  /* dot eater canvas */
+  #eatCanvas{background:#001217;border-radius:6px;border:1px solid rgba(255,255,255,0.02);display:block;margin:8px auto}
+  /* typing */
+  #codeBox{background:#021012;padding:12px;border-radius:6px;border:1px solid rgba(0,255,255,0.03);font-family:monospace;color:#9ff;white-space:pre-wrap;max-height:280px;overflow:auto}
+  #typeInput{width:100%;padding:8px;margin-top:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);background:#020408;color:#fff;font-family:monospace}
+  /* footer status */
+  footer {margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
+  #timer{font-weight:700;color:#fff}
+</style>
+</head>
+<body>
+  <div id="container">
+    <header>
+      <h1>Silent Studio — Test Game</h1>
+      <div id="status" class="small">Prototype — first playtest</div>
+    </header>
+
+    <div class="room">
+      <div class="room-left">
+        <div id="msg">You don't remember. A girl follows you. Survive. (10 min max)</div>
+
+        <!-- visual-ish room: PC and pills -->
+        <div style="position:relative; top:60px;">
+          <div id="pc" aria-hidden="false">
+            <div id="pcScreen">Press <strong>Start Task</strong> to open a mini-game.</div>
+            <div class="controls">
+              <button id="startTask" class="btn">Start Task</button>
+              <button id="power" class="btn off">POWER OFF</button>
+              <button id="takePill" class="btn">Take Pill</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:absolute; left:18px; bottom:18px;">
+          <div class="pill">
+            <div style="font-size:13px;color:var(--muted)">Pills left</div>
+            <div class="count" id="pillCount">5</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="room-right">
+        <h3 style="margin:0 0 8px 0">Game Info</h3>
+        <p class="small">You play as a man who can't remember. A little girl haunts him — later you learn she's his daughter and he murdered her. The daughter scares him to force memory. In this prototype: complete tasks on the PC. If you hear breathing, turn the PC off to abort the task quickly. Breath frequency increases with time since last pill.</p>
+
+        <hr>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div><div class="small">Game timer</div><div id="timer">10:00</div></div>
+          <div><div class="small">Active task</div><div id="activeTask">None</div></div>
+        </div>
+
+        <hr>
+        <div class="small" style="margin-top:8px">Tasks available: simplified childlike games (memory, dot-eater, typing). Start a task, finish it to gain progress. If breathing triggers, power off to abort (task failed).</div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="small">This is a test build — play, test, report weirdness.</div>
+    </footer>
+  </div>
+
+  <!-- task overlay -->
+  <div id="taskOverlay" role="dialog" aria-modal="true">
+    <div id="taskBox">
+      <div id="taskHeader">
+        <div><strong id="taskTitle">Task</strong><div class="small" id="taskHint"></div></div>
+        <div><button id="closeTask" class="btn">Abort (Close)</button></div>
+      </div>
+      <div id="taskBody">
+        <!-- dynamic content -->
+      </div>
+      <div style="margin-top:12px;text-align:right"><span id="taskTimer" class="small">Time left: --</span></div>
+    </div>
+  </div>
+
+  <div id="breathAlert">You hear breathing — TURN OFF THE PC!</div>
+
+<script>
+/* ---------- State ---------- */
+let pills = 5;
+let lastPillAt = Date.now();
+let audioCtx = null;
+let breathingIntervalId = null;
+let breathTimeout = null;
+let activeTask = null; // 'memory' | 'eat' | 'typing' or null
+let taskEndCallback = null;
+let gameStart = Date.now();
+let gameDuration = 10 * 60 * 1000; // 10 minutes
+let gameTimerId = null;
+let progress = 0; // number of completed tasks
+const TASKS_TO_WIN = 3;
+
+/* ---------- DOM ---------- */
+const pillCountEl = document.getElementById('pillCount');
+const startBtn = document.getElementById('startTask');
+const powerBtn = document.getElementById('power');
+const takePillBtn = document.getElementById('takePill');
+const pcScreen = document.getElementById('pcScreen');
+const overlay = document.getElementById('taskOverlay');
+const taskBox = document.getElementById('taskBody');
+const taskTitle = document.getElementById('taskTitle');
+const taskHint = document.getElementById('taskHint');
+const closeTask = document.getElementById('closeTask');
+const activeTaskEl = document.getElementById('activeTask');
+const timerEl = document.getElementById('timer');
+const breathAlert = document.getElementById('breathAlert');
+const taskTimerEl = document.getElementById('taskTimer');
+
+/* ---------- Audio helpers ---------- */
+function ensureAudio(){
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playBeep(freq=440,dur=0.08,vol=0.04,type='square'){
+  ensureAudio();
+  const g = audioCtx.createGain(); g.gain.value = vol; g.connect(audioCtx.destination);
+  const o = audioCtx.createOscillator(); o.type = type; o.frequency.value = freq;
+  o.connect(g); o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+/* breathing sound + logic
+   - frequency depends on time since last pill
+   - when breath event triggers, show alert and start a short timer.
+   - player must press POWER OFF within gracePeriod to stop it.
+*/
+function scheduleBreathing(){
+  if (breathingIntervalId) clearInterval(breathingIntervalId);
+  // schedule a repeating check: compute interval each time
+  breathingIntervalId = setInterval(()=>{
+    const elapsed = Date.now() - lastPillAt; // ms
+    // base interval decreases as elapsed increases: clamp between 1200ms and 9000ms
+    const interval = Math.max(1200, 9000 - Math.floor(elapsed/1000) * 300); // when long without pill -> faster
+    triggerBreathEvent(interval);
+  }, 800); // light heartbeat checks
+}
+let lastBreathEvent = 0;
+function triggerBreathEvent(intervalEstimate){
+  const now = Date.now();
+  // throttle: only trigger if enough time since last breath
+  if (now - lastBreathEvent < 600) return;
+  // probability to spawn breath scales with time since last pill
+  const elapsedS = (Date.now() - lastPillAt)/1000;
+  const chance = Math.min(0.85, 0.05 + elapsedS*0.02); // 2% per sec since last pill
+  if (Math.random() > chance) return;
+  lastBreathEvent = now;
+  playBreathingSequence();
+}
+
+function playBreathingSequence(){
+  // show alert
+  breathAlert.style.display = 'block';
+  // breathing audio loop short
+  ensureAudio();
+  const breathOsc = audioCtx.createOscillator();
+  const breathGain = audioCtx.createGain();
+  breathOsc.type = 'sine';
+  breathOsc.frequency.value = 120;
+  breathGain.gain.value = 0.0;
+  breathOsc.connect(breathGain); breathGain.connect(audioCtx.destination);
+  breathOsc.start();
+  // ramp up a gentle inhale sound
+  breathGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.6);
+  // hold then ramp down
+  setTimeout(()=> { breathGain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.6); breathOsc.stop(audioCtx.currentTime + 0.8); }, 1200);
+
+  // set a short window in which player must press power to "abort" (prevent consequences)
+  let grace = 1600; // ms to click power
+  // if many seconds passed since last pill, make grace smaller
+  const elapsedS = (Date.now() - lastPillAt)/1000;
+  grace = Math.max(700, 2000 - Math.floor(elapsedS/6)*300);
+
+  // highlight power btn
+  powerBtn.classList.add('dangerPulse');
+  powerBtn.style.boxShadow = '0 0 18px rgba(255,80,80,0.12)';
+
+  let handled = false;
+  const onPowerTemporary = ()=>{
+    handled = true;
+    cleanup();
+    // effect: turning off PC during breath will abort active task (as per rules)
+    powerOffDuringBreath();
+  };
+  powerBtn.addEventListener('click', onPowerTemporary, {once:true});
+  // after grace ms, if not handled -> failure effect
+  breathTimeout = setTimeout(()=>{
+    if (!handled){
+      cleanup();
+      onBreathFail();
+    }
+  }, grace);
+
+  function cleanup(){
+    breathAlert.style.display = 'none';
+    powerBtn.classList.remove('dangerPulse');
+    powerBtn.style.boxShadow = '';
+    if (breathTimeout) { clearTimeout(breathTimeout); breathTimeout = null; }
+  }
+}
+
+function powerOffDuringBreath(){
+  // if active task -> it's aborted (failed)
+  if (activeTask){
+    appendToScreen('Power off! Task aborted.');
+    finishActiveTask(false);
+  } else {
+    appendToScreen('Power toggled. Nothing active.');
+  }
+  // produce click sound
+  playBeep(660,0.06,0.04);
+}
+
+/* consequence if player fails to power off in time */
+function onBreathFail(){
+  appendToScreen('You froze. Something gets closer... Task failed if active.');
+  // failure: if task active -> fail
+  if (activeTask){
+    finishActiveTask(false);
+  }
+  // small penalty: reduce pills by 1 if any (panic), but don't go negative
+  if (pills > 0){
+    pills = Math.max(0, pills - 1);
+    updatePills();
+    appendToScreen('You dropped a pill in panic. (lost 1)');
+  }
+  playBeep(120,0.5,0.06,'sine');
+}
+
+/* ---------- UI helpers ---------- */
+function appendToScreen(text){
+  pcScreen.textContent = text;
+}
+
+function updatePills(){
+  pillCountEl.textContent = pills;
+  lastPillAt = Date.now(); // update so breathing schedule relates
+  scheduleBreathing();
+}
+
+/* ---------- Game timer ---------- */
+function startGameTimer(){
+  if (gameTimerId) clearInterval(gameTimerId);
+  const start = Date.now();
+  gameTimerId = setInterval(()=>{
+    const elapsed = Date.now() - gameStart;
+    const rem = Math.max(0, gameDuration - (Date.now() - gameStart));
+    const mm = Math.floor(rem/60000);
+    const ss = Math.floor((rem%60000)/1000).toString().padStart(2,'0');
+    timerEl.textContent = mm + ':' + ss;
+    if (rem <= 0){
+      clearInterval(gameTimerId);
+      endGame(false);
+    }
+  }, 500);
+}
+
+/* ---------- Task flow ---------- */
+startBtn.addEventListener('click', ()=>{
+  if (activeTask) { alert('A task is already active. Close it or wait.'); return; }
+  // choose a random task
+  const choices = ['memory','typing','eat'];
+  const t = choices[Math.floor(Math.random()*choices.length)];
+  openTask(t);
+});
+
+closeTask.addEventListener('click', ()=>{
+  // abort from UI -> counts as failure
+  if (confirm('Abort task? This will fail the current task.')) {
+    finishActiveTask(false);
+  }
+});
+
+/* open task overlay and init specific mini-game */
+function openTask(kind){
+  activeTask = kind;
+  activeTaskEl.textContent = kind;
+  overlay.style.display = 'flex';
+  taskBox.innerHTML = ''; // clear
+  taskTitle.textContent = kind === 'memory' ? 'Memory Match' : (kind === 'typing' ? 'Type It Exactly' : 'Dot Snack');
+  taskHint.textContent = kind === 'memory' ? 'Find all pairs' : (kind === 'typing' ? 'Copy the snippet exactly' : 'Collect all dots');
+  // start task timer (per task)
+  let perTaskTime = 60; // seconds default
+  if (kind === 'typing') perTaskTime = 75;
+  if (kind === 'eat') perTaskTime = 45;
+  let timeLeft = perTaskTime;
+  taskTimerEl.textContent = `Time left: ${timeLeft}s`;
+  const tt = setInterval(()=>{ timeLeft--; taskTimerEl.textContent = `Time left: ${timeLeft}s`; if (timeLeft<=0){ clearInterval(tt); finishActiveTask(false); } },1000);
+
+  if (kind === 'memory') initMemory(taskBox, ()=>{ clearInterval(tt); finishActiveTask(true); }, ()=>{ /* fail callback*/ clearInterval(tt); finishActiveTask(false);} );
+  if (kind === 'typing') initTyping(taskBox, ()=>{ clearInterval(tt); finishActiveTask(true); }, ()=>{ clearInterval(tt); finishActiveTask(false);} );
+  if (kind === 'eat') initEat(taskBox, ()=>{ clearInterval(tt); finishActiveTask(true); }, ()=>{ clearInterval(tt); finishActiveTask(false);} );
+
+  // store a callback for forced abort by breathing
+  taskEndCallback = ()=>{ clearInterval(tt); finishActiveTask(false); };
+}
+
+/* finish active task: success boolean */
+function finishActiveTask(success){
+  if (!activeTask){ overlay.style.display='none'; return; }
+  if (success){
+    appendToScreen('Task completed — progress +1');
+    progress++;
+    playBeep(880,0.08,0.06,'sine');
+    if (progress >= TASKS_TO_WIN) {
+      endGame(true);
+      return;
+    }
+  } else {
+    appendToScreen('Task failed.');
+    playBeep(160,0.25,0.05,'sine');
+  }
+  // reset
+  activeTask = null;
+  activeTaskEl.textContent = 'None';
+  overlay.style.display = 'none';
+  taskBox.innerHTML = '';
+  taskTitle.textContent = '';
+  taskHint.textContent = '';
+  taskTimerEl.textContent = '--';
+  taskEndCallback = null;
+}
+
+/* power button logic: toggles power; if powering off while task active, it aborts it (per spec) */
+let powerOn = true;
+powerBtn.addEventListener('click', ()=>{
+  powerOn = !powerOn;
+  powerBtn.classList.remove('on','off');
+  powerBtn.classList.add(powerOn ? 'on' : 'off');
+  powerBtn.textContent = powerOn ? 'POWER ON' : 'POWER OFF';
+  playBeep(powerOn?660:220,0.08,0.05);
+  if (!powerOn && activeTask){
+    // abort active task on power off
+    finishActiveTask(false);
+  }
+});
+
+/* take pill logic */
+takePillBtn.addEventListener('click', ()=>{
+  if (pills <= 0){ alert('No pills left'); return; }
+  pills--; updatePills();
+  playBeep(1200,0.08,0.06,'sine');
+  appendToScreen('You took a pill. Breathing calms a bit.');
+});
+
+/* ---------- Mini-games ---------- */
+
+/* 1) Memory match — 3 pairs (simple) */
+function initMemory(container, onSuccess, onFail){
+  const pairs = ['★','♠','☾'];
+  const deck = [...pairs, ...pairs].sort(()=>Math.random()-0.5);
+  container.innerHTML = '<div class="grid" id="memGrid"></div>';
+  const grid = container.querySelector('#memGrid');
+  deck.forEach((v,i)=>{
+    const d = document.createElement('div');
+    d.className = 'card hidden';
+    d.dataset.val = v;
+    d.textContent = v;
+    d.addEventListener('click', onCardClick);
+    grid.appendChild(d);
+  });
+  let first = null, second = null, matches = 0;
+  function onCardClick(e){
+    const el = e.currentTarget;
+    if (el === first || el.classList.contains('matched')) return;
+    el.classList.remove('hidden');
+    if (!first) { first = el; return; }
+    second = el;
+    if (first.dataset.val === second.dataset.val){
+      first.classList.add('matched'); second.classList.add('matched');
+      matches += 1;
+      first = null; second = null;
+      if (matches === pairs.length) setTimeout(()=> onSuccess(), 400);
+    } else {
+      setTimeout(()=>{ first.classList.add('hidden'); second.classList.add('hidden'); first=null; second=null; }, 600);
+    }
+  }
+}
+
+/* 2) Typing exact code snippet */
+function initTyping(container, onSuccess, onFail){
+  const snippet = `function ghost() {
+  // remember the night
+  let breath = "soft";
+  return breath;
+}`;
+  container.innerHTML = `<div id="codeBox">${escapeHtml(snippet)}</div>
+    <input id="typeInput" placeholder="Type the snippet exactly here..." autocomplete="off">`;
+  const input = container.querySelector('#typeInput');
+  input.focus();
+  let lastValue='';
+  input.addEventListener('input', ()=>{
+    const val = input.value;
+    // naive exact match
+    if (val === snippet){
+      onSuccess();
+    }
+  });
+}
+/* escape helper */
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+/* 3) Dot eater simple canvas -- collect all pellets */
+function initEat(container, onSuccess, onFail){
+  container.innerHTML = `<canvas id="eatCanvas" width="520" height="240"></canvas>
+  <div class="small">Use arrow keys to move. Collect all dots (10).</div>`;
+  const c = container.querySelector('#eatCanvas');
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  let px = 40, py = 40, r = 8;
+  const dots = [];
+  for (let i=0;i<10;i++){ dots.push({x:40+Math.random()*(w-80), y:40+Math.random()*(h-80), got:false}); }
+  let keys = {};
+  function draw(){
+    ctx.fillStyle = '#001217'; ctx.fillRect(0,0,w,h);
+    // pellets
+    ctx.fillStyle = '#ffdd88';
+    let remain = 0;
+    for (const d of dots){ if (!d.got){ ctx.beginPath(); ctx.arc(d.x,d.y,4,0,Math.PI*2); ctx.fill(); remain++; } }
+    // player
+    ctx.fillStyle = '#9ff'; ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2); ctx.fill();
+    // move
+    if (keys.ArrowUp) py -= 2.4;
+    if (keys.ArrowDown) py += 2.4;
+    if (keys.ArrowLeft) px -= 2.4;
+    if (keys.ArrowRight) px += 2.4;
+    px = Math.max(r, Math.min(w-r, px)); py = Math.max(r, Math.min(h-r, py));
+    // collision
+    for (const d of dots){ if (!d.got){ const dx=px-d.x, dy=py-d.y; if (Math.hypot(dx,dy) < r+4){ d.got=true; playBeep(900,0.04,0.04); } } }
+    if (remain === 0){ // win
+      document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku);
+      onSuccess();
+      return;
+    } else {
+      requestAnimationFrame(draw);
+    }
+  }
+  function kd(e){ keys[e.key]=true; }
+  function ku(e){ keys[e.key]=false; }
+  document.addEventListener('keydown', kd); document.addEventListener('keyup', ku);
+  requestAnimationFrame(draw);
+}
+
+/* ---------- Endgame ---------- */
+function endGame(won){
+  // stop breathing, timers
+  if (breathingIntervalId) clearInterval(breathingIntervalId);
+  if (gameTimerId) clearInterval(gameTimerId);
+  overlay.style.display = 'none';
+  const title = won ? 'You completed enough tasks. Memory flickers...' : 'Time ran out — you couldn\\'t hold on.';
+  alert(title + '\\n(Prototype end)');
+  // reset minimal state for restart
+  location.reload();
+}
+
+/* ---------- init ---------- */
+function init(){
+  pillCountEl.textContent = pills;
+  scheduleBreathing();
+  startGameTimer();
+  appendToScreen('You wake up. The room is quiet. Start a task when ready.');
+
+  // make PC screen clickable too
+  pcScreen.addEventListener('dblclick', ()=> startBtn.click());
+
+  // for safety: if breathing happens and there's an active task, we also allow forced abort via ESC
+  window.addEventListener('keydown', (e)=> {
+    if (e.key === 'Escape' && activeTask) finishActiveTask(false);
+  });
+}
+init();
+
+</script>
+</body>
+</html>
