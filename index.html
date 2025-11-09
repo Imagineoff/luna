@@ -143,7 +143,7 @@
       color:var(--white); cursor:pointer;
     }
 
-    /* games box - only static text under terminal */
+    /* games box - now with slideshow */
     .games{
       margin-top:12px;
       width:100%;
@@ -151,6 +151,58 @@
       border:1px solid rgba(255,255,255,0.02);
       padding:12px; border-radius:10px; text-align:center;
       color:var(--muted);
+    }
+    .game-slideshow {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9; /* Common aspect ratio for game art */
+      margin-top: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #000; /* Fallback */
+    }
+    .game-slideshow .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1.0s ease-in-out; /* Fade effect */
+      cursor: pointer;
+    }
+    .game-slideshow .slide.active {
+      opacity: 1;
+    }
+    .game-slideshow .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* 'contain' ensures the whole image is visible */
+    }
+
+    /* NEW: Easy Links section */
+    .easy-links {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap; /* Allows wrapping on small screens */
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px; /* Space above links */
+    }
+    .easy-links a {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--accent);
+      text-decoration: none;
+      background: var(--panel);
+      border: 1px solid var(--glass);
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: background .2s ease, color .2s ease;
+    }
+    .easy-links a:hover,
+    .easy-links a:focus {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+      outline: none;
     }
 
     /* horror/glitch effects when active */
@@ -178,6 +230,8 @@
     @media (max-width:720px){
       .terminal{ min-height:220px; }
       .logo{ font-size:22px }
+      .easy-links { gap: 8px; }
+      .easy-links a { font-size: 13px; padding: 7px 10px; }
     }
   </style>
 </head>
@@ -185,14 +239,12 @@
   <div class="bg" aria-hidden="true"></div>
   <div class="overlay" aria-hidden="true"></div>
 
-  <!-- glitch overlay -->
   <div class="glitch-overlay" aria-hidden="true">
     <div class="glitch-slice s1" style="top:10%"></div>
     <div class="glitch-slice s2"></div>
     <div class="glitch-slice s3"></div>
   </div>
 
-  <!-- entry gate -->
   <div class="gate" id="gate" aria-hidden="false">
     <div class="enter-card" role="dialog" aria-label="Enter to Silent Studio">
       <div style="font-family:Orbitron, monospace; font-size:20px; letter-spacing:2px">SILENT STUDIO</div>
@@ -202,7 +254,6 @@
     </div>
   </div>
 
-  <!-- main content (blurred until ENTER) -->
   <main class="stage content" aria-live="polite">
     <div class="content">
       <div class="brand">
@@ -212,17 +263,31 @@
 
       <div class="terminal-wrap" role="application" aria-label="Silent terminal">
         <div id="terminal" class="terminal" role="log" aria-live="polite" aria-atomic="false">
-          <!-- dynamic lines appended here -->
-        </div>
+          </div>
 
         <div class="cmdline" role="form" aria-label="Command line">
-          <input id="cmdInput" type="text" placeholder="Type command (help, contact, support, games, about, special, clear, exit)" aria-label="Command input" autocomplete="off" />
+          <input id="cmdInput" type="text" placeholder="Type command (help, contact, support, games, about, special, fun, clear, exit)" aria-label="Command input" autocomplete="off" />
           <button id="cmdSend" aria-label="Send command">→</button>
         </div>
 
         <div class="games" aria-hidden="false">
-          <strong>Games:</strong> No games available yet. Something stirs beneath the surface…
+          <strong>Games:</strong>
+          <div class="game-slideshow">
+            <a href="https://silentstudio.vercel.app/soon.html" target="_blank" rel="noopener noreferrer" class="slide active">
+              <img src="https://i.imgur.com/bH7JYlb.jpeg" alt="Game Teaser 1">
+            </a>
+            <a href="https://silentstudio.vercel.app/soon1.html" target="_blank" rel="noopener noreferrer" class="slide">
+              <img src="https://i.imgur.com/tgB92Fc.png" alt="Game Teaser 2">
+            </a>
+          </div>
         </div>
+        
+        <div class="easy-links">
+          <a href="mailto:assist.silent.studio@gmail.com" target="_blank">Email</a>
+          <a href="https://www.patreon.com/Silent_Studio" target="_blank">Patreon</a>
+          <a href="https://x.com/YOUR_USERNAME_HERE" target="_blank" title="Link to X (Twitter) profile">X (Twitter)</a>
+        </div>
+
       </div>
     </div>
   </main>
@@ -290,6 +355,16 @@
       terminal.scrollTop = terminal.scrollHeight;
       log.push(text);
     }
+    
+    // NEW: Utility to append raw HTML (for links)
+    function appendLineHTML(html, cls='') {
+      const div = document.createElement('div');
+      div.className = 'line ' + cls;
+      div.innerHTML = html; // Use innerHTML to render links
+      terminal.appendChild(div);
+      terminal.scrollTop = terminal.scrollHeight;
+      // We skip adding this to the 'log' array as it's not plain text
+    }
 
     // initial messages (typewriter)
     function bootMessages(){
@@ -301,16 +376,24 @@
     const COMMANDS = {
       help() {
         appendTypedLine('Available commands: help, contact, support, games, about, special, fun, clear, exit', {speed:8});
+        // NEW: Tip about the easy links
+        appendLine('Tip: You can also use the quick links below.', 'muted');
       },
       contact() {
-        appendTypedLine('Contact: assist.silent.studio@gmail.com', {speed:10});
+        // UPDATED: Now prints a clickable link
+        appendLineHTML(
+          'Contact: <a href="mailto:assist.silent.studio@gmail.com" target="_blank">assist.silent.studio@gmail.com</a>'
+        );
       },
       support() {
-        appendTypedLine('Support: Patreon — https://www.patreon.com/Silent_Studio', {speed:10});
-        appendTypedLine('Tip: Open link in your browser to support (copy/paste).', {speed:10, className:'muted'});
+        // UPDATED: Now prints a clickable link
+        appendLineHTML(
+          'Support: <a href="https://www.patreon.com/Silent_Studio" target="_blank" rel="noopener noreferrer">patreon.com/Silent_Studio</a>'
+        );
+        appendLine('Link will open in a new tab.', 'muted');
       },
       games() {
-        appendTypedLine('No releases yet. Join the community to follow incubations.', {speed:10});
+        appendTypedLine('No releases yet. Teasers are available below. Join the community to follow incubations.', {speed:10});
       },
       about() {
         appendTypedLine('Silent Studio — psycho-horror experiments using procedural audio and subtle visuals.', {speed:8});
@@ -513,6 +596,26 @@
     });
 
     // Bootstrap: nothing else — terminal only after ENTER
+
+    /*************************************************************************
+     * NEW: Slideshow logic
+     * (Runs immediately on script load)
+     *************************************************************************/
+    (function initSlideshow() {
+      const slides = document.querySelectorAll('.game-slideshow .slide');
+      if (slides.length < 2) return; // No slideshow needed for 0 or 1 slide
+
+      let currentSlide = 0;
+      
+      setInterval(() => {
+        if (document.body.classList.contains('locked')) return; // Pause if gate is visible
+        
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+      }, 5000); // 5 second loop (1s fade out/in + 4s hold)
+    })();
+    
   </script>
 </body>
 </html>
