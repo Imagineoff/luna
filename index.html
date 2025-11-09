@@ -615,7 +615,10 @@
         slides[currentSlide].classList.add('active');
       }, 5000); // 5 second loop (1s fade out/in + 4s hold)
     })();
-    
+    document.querySelectorAll('a').forEach(a => {
+  a.setAttribute('target', '_blank');
+  a.setAttribute('rel', 'noopener noreferrer');
+});
   </script>
 </body>
 </html>
