@@ -191,9 +191,9 @@
         }
 
         #pc-desktop {
-            width: 95vw;
+            width: 85vw;
             height: 90vh;
-            max-width: 1400px;
+            max-width: 1100px;
             background: var(--pc-monitor-bg);
             border: 10px solid #111;
             border-radius: 5px;
@@ -392,7 +392,7 @@
         #pills-container {
             position: absolute;
             left: 40%;
-            top: 40%;
+            top: 45%;
             transform: translate(-50%, -50%);
             z-index: 25;
             display: flex;
@@ -543,7 +543,7 @@
             }
             #pills-container {
                 left: 35%;
-                top: 35%;
+                top: 40%;
             }
             #pill-image {
                 width: 40px;
@@ -1077,10 +1077,9 @@
                     Game.pcOn = false;
                     TaskManager.clearTask();
                     TaskManager.currentTask = null;
-                    UIManager.showTip("PC shutting down. Things feel... quieter.");
-                    AudioManager.playPowerOffSound();
-                    AudioManager.updateRoomState();
                     this.leavePCView();
+                    AudioManager.updateRoomState();
+                    UIManager.showTip("PC shutting down. Things feel... quieter.");
                 },
 
                 runRebootSequence() {
