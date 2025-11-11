@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-CS">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>he will never forget</title>
     <link rel="icon" href="https://i.imgur.com/nfdTlfO.jpeg" />
@@ -134,6 +134,13 @@
             to { width: 100%; }
         }
 
+        #intro-video {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         #device-select {
             margin-top: 30px;
             opacity: 0;
@@ -179,11 +186,24 @@
             background-color: rgba(255, 0, 0, 0.1);
         }
 
+        #power-strip-hotspot {
+            position: absolute;
+            bottom: 1%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15%;
+            height: 6%;
+            /* background-color: rgba(255, 0, 0, 0.2); */ /* Pro ladění */
+            cursor: pointer;
+            z-index: 10;
+        }
+
         #pc-screen {
             background: var(--pc-bg);
             z-index: 20;
             transform: scale(1.1);
-            padding-top: 1vh;
+            /* padding-top: 1vh; */ /* ODEBRÁNO */
+            justify-content: center; /* PŘIDÁNO */
         }
 
         #pc-screen.active {
@@ -273,6 +293,7 @@
             color: white;
             border-color: var(--highlight-color);
             font-size: 0.9rem;
+            display: none; /* PŘIDÁNO - skryje staré tlačítko */
         }
         #pc-power-off:hover {
             background: #ff0000;
@@ -603,6 +624,7 @@
             <div id="loading-bar-container">
                 <div id="loading-bar-fill"></div>
             </div>
+            <video id="intro-video" src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Intro.mp4" playsinline muted preload="auto"></video>
             <div id="device-select" style="display: none;">
                 <h1>Choose your device:</h1>
                 <button id="btn-pc">PC</button> | <button id="btn-mobile">Mobile</button>
@@ -611,6 +633,7 @@
 
         <div id="room-screen" class="screen">
             <div id="computer-hotspot"></div>
+            <div id="power-strip-hotspot"></div>
             <div id="pills-container">
                 <div id="pill-image"></div>
                 <div id="pill-counter">5</div>
@@ -686,10 +709,12 @@
                 },
                 studioLogo: $('studio-logo'),
                 loadingBar: $('loading-bar-container'),
+                introVideo: $('intro-video'), // PŘIDÁNO
                 deviceSelect: $('device-select'),
                 btnPC: $('btn-pc'),
                 btnMobile: $('btn-mobile'),
                 computerHotspot: $('computer-hotspot'),
+                powerStripHotspot: $('power-strip-hotspot'), // PŘIDÁNO
                 pillsContainer: $('pills-container'),
                 pillCounter: $('pill-counter'),
                 mobileBackBtn: $('mobile-back-btn'),
@@ -729,7 +754,8 @@
                     "You must complete the tasks.",
                     "Turning off the PC helps... but wastes time.",
                     "She's still watching...",
-                    "The room feels colder."
+                    "The room feels colder.",
+                    "You can turn off the PC by clicking the power strip." // PŘIDÁNO
                 ],
                 
                 start() {
@@ -802,7 +828,6 @@
                 },
                 
                 startBreathing() {
-                    DOM.audioBreathing.volume = this.breathingVolume;
                     DOM.audioBreathing.play().catch(e => console.log('Audio play failed:', e));
                 },
                 
@@ -1000,7 +1025,11 @@
                         }
                     });
                     
-                    DOM.pcPowerOff.addEventListener('click', this.turnOffPC.bind(this));
+                    // ODEBRÁNO: Původní listener pro tlačítko
+                    // DOM.pcPowerOff.addEventListener('click', this.turnOffPC.bind(this));
+                    
+                    // PŘIDÁNO: Nový listener pro prodlužovačku
+                    DOM.powerStripHotspot.addEventListener('click', this.turnOffPC.bind(this));
                     
                     DOM.pcSidebar.addEventListener('click', (e) => {
                         if (e.target.classList.contains('pc-icon')) {
@@ -1072,8 +1101,9 @@
                     TaskManager.clearTask();
                 },
 
+                // Tato funkce se nyní volá kliknutím na prodlužovačku
                 turnOffPC() {
-                    if (!Game.pcOn) return;
+                    if (!Game.pcOn) return; // Dělá nic, pokud je PC již vypnuté
                     Game.pcOn = false;
                     TaskManager.clearTask();
                     TaskManager.currentTask = null;
@@ -1440,11 +1470,33 @@
                 DOM.screens[screenName].classList.add('active');
             }
 
+            // UPRAVENO: Přidána logika pro přehrání videa
             function initDeviceSelection() {
-                setTimeout(() => {
+                const showDeviceSelect = () => {
+                    DOM.introVideo.style.display = 'none'; // Skryj video
                     DOM.deviceSelect.style.opacity = 1;
                     DOM.deviceSelect.style.display = 'block';
-                }, 5500);
+                };
+
+                setTimeout(() => {
+                    // Skryj logo a loading bar
+                    DOM.studioLogo.style.display = 'none';
+                    DOM.loadingBar.style.display = 'none';
+                    
+                    // Ukaž a přehraj video
+                    DOM.introVideo.style.display = 'block';
+                    DOM.introVideo.play().then(() => {
+                        // Video se přehrává
+                    }).catch(e => {
+                        // Autoplay selhal, přeskoč rovnou na výběr
+                        console.log('Intro video autoplay failed:', e);
+                        showDeviceSelect();
+                    });
+
+                    // Po skončení videa ukaž výběr zařízení
+                    DOM.introVideo.addEventListener('ended', showDeviceSelect, { once: true });
+
+                }, 5500); // Původní časování, kdy se má ukázat výběr
                 
                 DOM.btnPC.addEventListener('click', () => {
                     Game.device = 'pc';
