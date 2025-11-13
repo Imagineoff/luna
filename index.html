@@ -1,536 +1,264 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Silent Studio | Horror game development</title>
-    <meta name="description" content="Silent Studio - Indie horror game development. Creators of Price of Pain.">
-    
-    <meta property="og:title" content="Silent Studio">
-    <meta property="og:description" content="Horror game development. Prepare for the psycho horror experience.">
-    <meta property="og:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true">
-    <meta property="og:url" content="https://silentstudio.vercel.app">
-    <meta property="og:type" content="website">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Space+Mono&family=Rubik+Glitch&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  <title>Silent Studio | Psychological Horror Redefined</title>
+  <meta name="description" content="Silent Studio - creators of psychological horror experiences that blur reality. Developers of Price of Pain." />
 
-    <style>
-        /* Custom CSS for Horror Atmosphere */
-        :root {
-            --bg-color: #050505;
-            --text-color: #f5f5f5;
-            --accent-glow: rgba(255, 255, 255, 0.2);
-        }
+  <meta property="og:title" content="Silent Studio" />
+  <meta property="og:description" content="Psychological Horror Redefined." />
+  <meta property="og:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" />
+  <meta property="og:url" content="https://silentstudio.vercel.app" />
+  <meta property="og:type" content="website" />
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Montserrat', sans-serif;
-            overflow-x: hidden;
-        }
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" />
 
-        /* Font overrides */
-        .font-horror {
-            /* Změna: Nový font pro "glitch" hororový vzhled */
-            font-family: 'Rubik Glitch', sans-serif;
-            letter-spacing: 0.1em;
-        }
-        .font-tech {
-            font-family: 'Space Mono', monospace;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
 
-        /* Canvas Background */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            /* Změna: Zvýšená viditelnost, aby byl paralax vidět */
-            opacity: 0.5; 
-            pointer-events: none;
-        }
+  <style>
+    :root {
+      --bg-dark: #0a0a0a;
+      --text-light: #f2f2f2;
+      --accent: #e50914;
+    }
 
-        /* Glitch Effect for Titles */
-        .glitch-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-light);
+      font-family: 'IBM Plex Sans', sans-serif;
+      overflow-x: hidden;
+    }
 
-        /* Nav Link Hover Glow */
-        .nav-link {
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background-color: white;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px white;
-        }
-        .nav-link:hover {
-            text-shadow: 0 0 8px rgba(255,255,255,0.8);
-            color: #fff;
-        }
-        .nav-link:hover::after {
-            width: 100%;
-        }
+    h1, h2, h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.05em;
+    }
 
-        /* Widget Container styling */
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* Fade In Animation */
-        .fade-in-section {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .fade-in-section.is-visible {
-            opacity: 1;
-            transform: none;
-        }
+    /* Navigation hover underline */
+    .nav-link {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after { width: 100%; }
 
-        /* Mobile fix for iframe */
-        .discord-widget {
-            width: 100%;
-            height: 400px;
-        }
-        
-        /* Hero typing text - minimální výška, aby neskákal layout */
-        .typing-effect {
-            min-height: 1.75rem; /* Uprav podle velikosti fontu (text-lg) */
-        }
-    </style>
+    /* Background canvas */
+    #bg-canvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Fade in on scroll */
+    .fade-section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s ease-out;
+    }
+    .fade-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Hero gradient overlay */
+    .hero-overlay {
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(10,10,10,1));
+    }
+
+    /* Button style */
+    .btn {
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Glass panel */
+    .glass {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+  </style>
 </head>
+
 <body class="antialiased selection:bg-white selection:text-black">
+  <canvas id="bg-canvas"></canvas>
 
-    <canvas id="bg-canvas"></canvas>
+  <!-- Navbar -->
+  <nav class="fixed top-0 w-full bg-black/70 backdrop-blur-md border-b border-white/10 z-50">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="cursor-pointer" onclick="window.scrollTo(0,0)">
+        <span class="text-2xl text-white tracking-wider font-bold">SILENT STUDIO</span>
+      </div>
+      <div class="hidden md:flex space-x-8 text-sm uppercase tracking-wide text-gray-300">
+        <a href="#about" class="nav-link">About</a>
+        <a href="#games" class="nav-link">Games</a>
+        <a href="#community" class="nav-link">Community</a>
+        <a href="#support" class="nav-link">Support</a>
+      </div>
+      <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden bg-black border-t border-white/10 px-4 pb-4">
+      <a href="#about" class="block py-2 text-gray-300 hover:text-white">About</a>
+      <a href="#games" class="block py-2 text-gray-300 hover:text-white">Games</a>
+      <a href="#community" class="block py-2 text-gray-300 hover:text-white">Community</a>
+      <a href="#support" class="block py-2 text-gray-300 hover:text-white">Support</a>
+    </div>
+  </nav>
 
-    <nav class="fixed w-full top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex-shrink-0 cursor-pointer" onclick="window.scrollTo(0,0)">
-                    <span class="font-horror text-2xl tracking-widest text-white hover:text-gray-300 transition">SILENT STUDIO</span>
-                </div>
-                
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8 font-tech text-sm">
-                        <a href="#about" class="nav-link px-3 py-2 rounded-md font-medium">ABOUT US</a>
-                        <a href="#games" class="nav-link px-3 py-2 rounded-md font-medium">GAMES</a>
-                        <a href="#community" class="nav-link px-3 py-2 rounded-md font-medium">COMMUNITY</a>
-                        <a href="#partners" class="nav-link px-3 py-2 rounded-md font-medium">PARTNERS</a>
-                        <a href="#support" class="nav-link px-3 py-2 rounded-md font-medium">SUPPORT</a>
-                    </div>
-                </div>
+  <!-- Hero Section -->
+  <section class="relative h-screen flex items-center justify-center text-center hero-overlay">
+    <div class="z-10 px-4">
+      <img src="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" alt="Silent Studio Logo" class="w-32 h-32 mx-auto mb-6 opacity-90">
+      <h1 class="text-7xl md:text-8xl mb-4 text-white">SILENT STUDIO</h1>
+      <p class="text-gray-400 text-lg max-w-xl mx-auto italic">We craft nightmares that breathe.</p>
+      <a href="#games" class="mt-10 inline-block border border-white/30 px-8 py-3 text-sm uppercase btn hover:bg-white hover:text-black">Enter</a>
+    </div>
+  </section>
 
-                <div class="-mr-2 flex md:hidden">
-                    <button id="mobile-menu-btn" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
+  <!-- About -->
+  <section id="about" class="py-24 px-6 fade-section border-t border-white/10">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-5xl mb-6">About Us</h2>
+      <p class="text-gray-400 leading-relaxed">
+        Silent Studio is a collective of independent developers bound by a single obsession:
+        to distort perception and evoke fear through atmosphere, sound, and storytelling.
+        We don’t just make games — we construct psychological labyrinths.
+      </p>
+    </div>
+  </section>
+
+  <!-- Games -->
+  <section id="games" class="py-24 px-6 bg-white/5 fade-section">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-5xl text-center mb-12">Our Games</h2>
+      <div class="grid md:grid-cols-2 gap-10">
+        <a href="https://silentstudio.vercel.app/soon.html" target="_blank" class="group relative glass h-80 overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
+          <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=60" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700">
+          <div class="absolute bottom-0 left-0 p-8 z-20">
+            <h3 class="text-3xl text-white group-hover:text-[var(--accent)] transition">Price of Pain</h3>
+            <p class="text-sm text-gray-400">Psychological Horror | Coming Soon</p>
+          </div>
+        </a>
+        <div class="glass h-80 flex items-center justify-center text-center border border-white/10">
+          <div>
+            <i data-lucide="ghost" class="w-10 h-10 text-gray-600 mx-auto mb-3"></i>
+            <h3 class="text-gray-500 uppercase tracking-wider">More horrors in the dark...</h3>
+          </div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="md:hidden hidden bg-black border-b border-white/10" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 font-tech">
-                <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">ABOUT US</a>
-                <a href="#games" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">GAMES</a>
-                <a href="#community" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">COMMUNITY</a>
-                <a href="#support" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">SUPPORT</a>
-            </div>
-        </div>
-    </nav>
+  <!-- Community -->
+  <section id="community" class="py-24 px-6 fade-section">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-5xl mb-8">Join Our Community</h2>
+      <p class="text-gray-400 mb-10">Don’t wander the dark alone. Step into the Discord realm.</p>
+      <div class="glass p-2 rounded-lg">
+        <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" class="w-full h-[400px]" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-same-origin allow-scripts"></iframe>
+      </div>
+    </div>
+  </section>
 
-    <section class="relative h-screen flex items-center justify-center overflow-hidden">
-        <div class="text-center z-10 px-4">
-            <img src="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" alt="Silent Studio Logo" class="w-32 h-32 mx-auto mb-8 opacity-90 animate-pulse rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-            <h1 class="font-horror text-6xl md:text-8xl mb-4 text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                SILENT STUDIO
-            </h1>
-            <p class="font-tech text-lg md:text-xl text-gray-400 max-w-2xl mx-auto typing-effect">
-                </p>
-            <div class="mt-10">
-                <a href="#games" class="inline-block border border-white/30 px-8 py-3 font-tech text-sm hover:bg-white hover:text-black transition-all duration-300 hover:scale-105">
-                    ENTER THE VOID
-                </a>
-            </div>
-        </div>
-    </section>
+  <!-- Support -->
+  <section id="support" class="py-24 px-6 bg-black border-t border-white/10 fade-section">
+    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+      <div class="glass p-8 text-center">
+        <i data-lucide="heart" class="w-10 h-10 text-white mx-auto mb-4"></i>
+        <h3 class="text-3xl mb-2">Support Us</h3>
+        <p class="text-gray-400 mb-6 text-sm">
+          Help us create deeper horrors. Get exclusive behind-the-scenes content and early access.
+        </p>
+        <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="border border-white text-white px-6 py-2 rounded hover:bg-white hover:text-black transition">Patreon</a>
+      </div>
+      <div class="glass p-8 text-center">
+        <i data-lucide="twitter" class="w-10 h-10 text-white mx-auto mb-4"></i>
+        <h3 class="text-3xl mb-2">Stay Updated</h3>
+        <p class="text-gray-400 mb-6 text-sm">Follow development updates and project reveals.</p>
+        <a href="https://x.com/_silent_studio" target="_blank" class="border border-white text-white px-6 py-2 rounded hover:bg-white hover:text-black transition">Follow on X</a>
+      </div>
+    </div>
+  </section>
 
-    <section id="about" class="py-24 px-4 relative border-t border-white/5 fade-in-section">
-        <div class="max-w-4xl mx-auto text-center">
-            <h2 class="font-horror text-4xl mb-8 text-gray-200">About Us</h2>
-            <p class="text-lg text-gray-400 leading-relaxed mb-6">
-                We are a nascent collective of developers. 
-            </p>
-            <p class="text-lg text-gray-400 leading-relaxed">
-                Our mission is simple yet terrifying: to craft psychological horror experiences that distort reality and linger in the depths of your mind. We don't just build games; we build nightmares.
-            </p>
-        </div>
-    </section>
+  <!-- Footer -->
+  <footer class="py-10 border-t border-white/10 text-center text-gray-500 text-sm">
+    <p>&copy; <span id="year"></span> Silent Studio. All rights reserved.</p>
+  </footer>
 
-    <section id="games" class="py-24 px-4 bg-white/5 fade-in-section">
-        <div class="max-w-6xl mx-auto">
-            <h2 class="font-horror text-4xl mb-12 text-center">Our Games</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <a href="https://silentstudio.vercel.app/soon.html" target="_blank" rel="noopener noreferrer" class="group block relative h-80 glass-panel overflow-hidden hover:border-white/40 transition-colors">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-gray-900 group-hover:scale-105 transition-transform duration-700"></div>
-                    
-                    <div class="absolute bottom-0 left-0 p-8 z-20 w-full">
-                        <h3 class="font-horror text-3xl mb-2 text-white group-hover:text-red-500 transition-colors">Price of Pain</h3>
-                        <p class="font-tech text-sm text-gray-400 mb-4">Psychological Horror | Coming Soon</p>
-                        <span class="inline-flex items-center text-xs font-bold uppercase tracking-wider text-white border border-white px-3 py-1 group-hover:bg-white group-hover:text-black transition-all">
-                            View Project <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
-                        </span>
-                    </div>
-                </a>
+  <script>
+    lucide.createIcons();
+    document.getElementById("year").textContent = new Date().getFullYear();
 
-                <div class="relative h-80 border border-white/10 bg-black flex items-center justify-center">
-                    <div class="text-center">
-                        <i data-lucide="ghost" class="w-12 h-12 mx-auto mb-4 text-gray-700"></i>
-                        <h3 class="font-tech text-xl text-gray-600">Under Development</h3>
-                        <p class="text-sm text-gray-800 mt-2">More horrors await...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    // Parallax grid background
+    const canvas = document.getElementById("bg-canvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
 
-    <section id="community" class="py-24 px-4 fade-in-section">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-horror text-4xl mb-8 text-center">Join Our Community</h2>
-            <p class="text-center text-gray-400 mb-10 font-tech">Don't wander alone in the dark.</p>
-            
-            <div class="glass-panel p-1 rounded-lg max-w-2xl mx-auto">
-                <iframe 
-                    src="https://discord.com/widget?id=1433738890421997600&theme=dark" 
-                    class="discord-widget" 
-                    allowtransparency="true" 
-                    frameborder="0" 
-                    sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
-                </iframe>
-            </div>
-        </div>
-    </section>
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-    <section id="partners" class="py-24 px-4 border-y border-white/5 bg-black fade-in-section">
-        <div class="max-w-6xl mx-auto text-center">
-            <h2 class="font-horror text-3xl mb-12 text-gray-300">Our Partners & Sources</h2>
-            
-            <div class="flex flex-wrap justify-center items-center gap-16 md:gap-24">
-                <div class="group text-center">
-                    <div class="h-24 flex items-center justify-center mb-4">
-                        <img src="https://github.com/Imagineoff/Imagineweb/blob/main/NeP.PNG?raw=true" alt="NeP Logo" class="max-h-full max-w-[150px] object-contain filter grayscale group-hover:grayscale-0 transition duration-500">
-                    </div>
-                    <p class="font-tech text-xs text-gray-500">NeP</p>
-                </div>
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < width; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += 60) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
 
-                <div class="group text-center">
-                    <div class="h-24 flex items-center justify-center mb-4">
-                        <img src="https://github.com/Imagineoff/Imagineweb/blob/main/KladneskeDilny.WEBP?raw=true" alt="Kladenské Dílny Logo" class="max-h-12 object-contain filter grayscale group-hover:grayscale-0 transition duration-500">
-                    </div>
-                    <p class="font-tech text-xs text-gray-500">Kladenské Dílny</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    // Fade-in observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("visible");
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll(".fade-section").forEach((el) => observer.observe(el));
 
-    <section id="support" class="py-24 px-4 relative fade-in-section">
-        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="glass-panel p-8 text-center hover:bg-white/5 transition duration-300">
-                <i data-lucide="heart" class="w-10 h-10 mx-auto mb-4 text-white"></i>
-                <h3 class="font-horror text-2xl mb-2">Support Us</h3>
-                <p class="text-sm text-gray-400 mb-6 font-tech">
-                    Help us keep the lights on (or off). Get exclusive perks, behind-the-scenes content, and early access.
-                </p>
-                <a href="https://www.patreon.com/Silent_Studio" target="_blank" rel="noopener noreferrer" class="inline-block bg-white text-black font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
-                    Visit Patreon
-                </a>
-            </div>
-
-            <div class="glass-panel p-8 text-center hover:bg-white/5 transition duration-300">
-                <i data-lucide="twitter" class="w-10 h-10 mx-auto mb-4 text-white"></i>
-                <h3 class="font-horror text-2xl mb-2">Follow Us</h3>
-                <p class="text-sm text-gray-400 mb-6 font-tech">
-                    Stay updated on development progress and announcements.
-                </p>
-                <a href="https://x.com/_silent_studio" target="_blank" rel="noopener noreferrer" class="inline-block border border-white text-white font-bold py-2 px-6 rounded hover:bg-white hover:text-black transition">
-                    Follow on X
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-12 border-t border-white/10 bg-black relative z-10">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            
-            <div class="mb-8">
-                <h4 class="font-tech text-sm uppercase tracking-widest text-gray-500 mb-4">Contact</h4>
-                
-                <button id="copy-email-btn" class="group flex items-center justify-center gap-2 mx-auto bg-transparent hover:bg-white/10 border border-white/20 py-2 px-4 rounded transition-all duration-300">
-                    <i data-lucide="mail" class="w-4 h-4"></i>
-                    <span class="font-mono text-sm" id="email-text">assist.silent.studio@gmail.com</span>
-                    <i data-lucide="copy" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                </button>
-                <p id="copy-feedback" class="text-xs text-green-500 mt-2 opacity-0 transition-opacity">Copied to clipboard!</p>
-            </div>
-
-            <div class="text-gray-600 text-xs font-tech">
-                &copy; <span id="year"></span> Silent Studio. All rights reserved.
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
-        document.getElementById('year').textContent = new Date().getFullYear();
-
-        // --- 1. Typewriter Title Effect ---
-        const baseTitle = "Silent Studio | ";
-        const messages = ["Horror game development", "Join the void", "Price of Pain"];
-        let msgIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-        let typeSpeed = 100;
-
-        function typeWriterTitle() {
-            const currentMsg = messages[msgIndex];
-            let displayTitle = baseTitle;
-
-            if (isDeleting) {
-                displayTitle += currentMsg.substring(0, charIndex - 1);
-                charIndex--;
-                typeSpeed = 50;
-            } else {
-                displayTitle += currentMsg.substring(0, charIndex + 1);
-                charIndex++;
-                typeSpeed = 150;
-            }
-
-            document.title = displayTitle;
-
-            if (!isDeleting && charIndex === currentMsg.length) {
-                isDeleting = true;
-                typeSpeed = 2000; // Pause at end
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                msgIndex = (msgIndex + 1) % messages.length;
-                typeSpeed = 500;
-            }
-
-            setTimeout(typeWriterTitle, typeSpeed);
-        }
-
-        // --- 1b. [NOVÝ SKRIPT] Hero Typing Effect ---
-        // Zde si můžeš upravit texty, které se budou střídat
-        const typingMessages = ["Horror Game Development", "We build nightmares.", "Creators of Price of Pain."];
-        let typingMsgIndex = 0;
-        let typingCharIndex = 0;
-        let typingIsDeleting = false;
-        let typingElement = null; // Bude nastaveno v DOMContentLoaded
-
-        function typeHeroText() {
-            if (!typingElement) return; // Pojistka
-            const currentMsg = typingMessages[typingMsgIndex];
-            let heroTypeSpeed = 100;
-
-            if (typingIsDeleting) {
-                // Mazání
-                typingElement.textContent = currentMsg.substring(0, typingCharIndex - 1);
-                typingCharIndex--;
-                heroTypeSpeed = 50;
-            } else {
-                // Psaní
-                typingElement.textContent = currentMsg.substring(0, typingCharIndex + 1);
-                typingCharIndex++;
-                heroTypeSpeed = 150;
-            }
-
-            if (!typingIsDeleting && typingCharIndex === currentMsg.length) {
-                // Pauza na konci
-                typingIsDeleting = true;
-                heroTypeSpeed = 2000;
-            } else if (typingIsDeleting && typingCharIndex === 0) {
-                // Přechod na další zprávu
-                typingIsDeleting = false;
-                typingMsgIndex = (typingMsgIndex + 1) % typingMessages.length;
-                heroTypeSpeed = 500;
-            }
-            setTimeout(typeHeroText, heroTypeSpeed);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Spustí psaní v titulku
-            typeWriterTitle();
-
-            // [NOVÉ] Spustí psaní v "hero" sekci
-            typingElement = document.querySelector('.typing-effect');
-            if (typingElement) {
-                typingElement.textContent = ""; // Vymaže původní statický text
-                typeHeroText();
-            }
-        });
-
-
-        // --- 2. Parallax Lines Background (Apple Style) ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-
-        let width, height;
-        let lines = [];
-        const scrollSpeed = 0.5; // How much lines move relative to scroll
-
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            initLines();
-        }
-
-        function initLines() {
-            lines = [];
-            const gap = 40; // Distance between lines
-            // Create vertical lines
-            for (let x = 0; x < width; x += gap) {
-                lines.push({ x: x, y: 0, type: 'v', length: height, offset: Math.random() * 100 });
-            }
-        }
-
-        function draw() {
-            // Clear with very slight fade for trail effect (optional, disabled for cleaner look)
-            ctx.clearRect(0, 0, width, height);
-            
-            const scrollY = window.scrollY;
-            
-            ctx.beginPath();
-            /* Změna: Zvýšená viditelnost čar pro lepší paralax efekt */
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'; 
-            ctx.lineWidth = 1;
-
-            lines.forEach(line => {
-                // Create a parallax movement based on scroll
-                // We create a "wave" effect based on scroll position
-                let moveY = (scrollY * scrollSpeed) + line.offset;
-                
-                // Draw Vertical Lines
-                if(line.type === 'v') {
-                    ctx.moveTo(line.x, 0);
-                    // Create a dashed effect that moves
-                    let dashSize = 100;
-                    let gapSize = 100;
-                    let currentY = (moveY % (dashSize + gapSize)) - (dashSize + gapSize);
-                    
-                    while(currentY < height) {
-                        ctx.moveTo(line.x, currentY);
-                        ctx.lineTo(line.x, currentY + dashSize);
-                        currentY += dashSize + gapSize;
-                    }
-                }
-            });
-            
-            ctx.stroke();
-            requestAnimationFrame(draw);
-        }
-
-        window.addEventListener('resize', resize);
-        resize();
-        draw();
-
-
-        // --- 3. Copy to Clipboard Logic ---
-        const emailBtn = document.getElementById('copy-email-btn');
-        const emailText = document.getElementById('email-text').innerText;
-        const feedback = document.getElementById('copy-feedback');
-
-        emailBtn.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(emailText);
-                showFeedback();
-            } catch (err) {
-                // Fallback for browsers blocking clipboard API
-                const textArea = document.createElement("textarea");
-                textArea.value = emailText;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textArea);
-                showFeedback();
-            }
-        });
-
-        function showFeedback() {
-            feedback.style.opacity = '1';
-            setTimeout(() => {
-                feedback.style.opacity = '0';
-            }, 2000);
-        }
-
-
-        // --- 4. Fade In on Scroll Observer ---
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px"
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in-section').forEach(section => {
-            observer.observe(section);
-        });
-
-        // --- 5. Mobile Menu Toggle ---
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-
-    </script>
+    // Mobile menu toggle
+    document.getElementById("mobile-menu-btn").addEventListener("click", () => {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    });
+  </script>
 </body>
 </html>
