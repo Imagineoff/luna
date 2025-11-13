@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-CS">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Price of Pain</title>
     <link rel="icon" href="https://i.imgur.com/nfdTlfO.jpeg" />
     <style>
@@ -810,8 +809,8 @@
                     DOM.pillCounter.textContent = this.pills;
                     
                     PanicManager.panic = 30;
-                    PanicManager.highPanicActive = true;
-                    PanicManager.extremePanicActive = true;
+                    PanicManager.highPanicActive = false;
+                    PanicManager.extremePanicActive = false;
                     DOM.gameContainer.classList.remove('high-panic-blur', 'high-panic-shake', 'extreme-panic-filter');
                     DOM.panicOverlay.style.opacity = 0;
                     
@@ -886,11 +885,13 @@
                             DOM.audioKnock.play().catch(e => console.log('Knock audio failed:', e));
                         }
                         
-                        const nextInterval = 60000 + Math.random() * 120000;
+                        // ZMĚNA: Interval zkrácen na 30-60 sekund (bylo 60-180 sekund)
+                        const nextInterval = 30000 + Math.random() * 30000;
                         Game.timers.knock = setTimeout(playKnock, nextInterval);
                     };
                     
-                    const firstInterval = 60000 + Math.random() * 120000;
+                    // ZMĚNA: První interval také zkrácen
+                    const firstInterval = 30000 + Math.random() * 30000;
                     Game.timers.knock = setTimeout(playKnock, firstInterval);
                 },
                 
@@ -1412,7 +1413,7 @@
                         `;
                         
                         const bar = $('task-stabilize-bar');
-                        const container = $('task-stabilize-container');
+                        // const container = $('task-stabilize-container'); // Ponecháno pro referenci, ale nepoužívá se pro listenery
                         let pos = 50;
                         let velocity = 0;
                         let gravity = 0.08;
@@ -1457,14 +1458,16 @@
                         }, 20);
                         
                         document.addEventListener('keydown', keyHandler);
-                        container.addEventListener('touchstart', touchHandler);
-                        container.addEventListener('click', applyThrust);
+                        // ZMĚNA: Listenery přesunuty na DOM.taskContainer pro lepší mobilní odezvu
+                        DOM.taskContainer.addEventListener('touchstart', touchHandler);
+                        DOM.taskContainer.addEventListener('click', applyThrust);
                         
                         TaskManager.currentTaskCleanup = () => {
                             clearInterval(interval);
                             document.removeEventListener('keydown', keyHandler);
-                            container.removeEventListener('touchstart', touchHandler);
-                            container.removeEventListener('click', applyThrust);
+                            // ZMĚNA: Odstranění listenerů z DOM.taskContainer
+                            DOM.taskContainer.removeEventListener('touchstart', touchHandler);
+                            DOM.taskContainer.removeEventListener('click', applyThrust);
                         };
                     }
                 }
