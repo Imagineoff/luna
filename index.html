@@ -1,5 +1,6 @@
+```html
 <!DOCTYPE html>
-<html lang="cs" class="scroll-smooth">
+<html lang=en" class="scroll-smooth">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -29,7 +30,7 @@
 
   <style>
     /* ===========================================================
-       Silent Studio — Cinematic Black (DNA spirals + flying 𐕣)
+       Silent Studio — Cinematic Black (DNA spirals + title flicker)
        =========================================================== */
 
     :root{
@@ -150,6 +151,7 @@
       display:inline-block;
       white-space:nowrap;
       -webkit-font-smoothing:antialiased;
+      position:relative;
     }
 
     .hero-sub{
@@ -189,9 +191,9 @@
 
     .sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
 
-    /* Glitch (we keep a small reactive flicker class but we DO NOT swap letters) */
-    .glitch { display:inline-block; position:relative; isolation:isolate; }
-    .glitch .normal { display:inline-block; transition: opacity .08s ease; }
+    /* Title flicker specifics */
+    .title-char { display:inline-block; transition:opacity .06s linear, transform .06s linear; }
+    .title-char.cursed { color: #ffffff; opacity:1; transform:scale(1.02); text-shadow:0 0 8px rgba(255,255,255,0.85); }
 
     @media (max-width:768px){
       .hero-h1{ font-size:40px; }
@@ -259,7 +261,10 @@
 
     <div class="hero-content" role="presentation">
       <img class="hero-logo" src="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" alt="Silent Studio logo" />
-      <h1 id="heroTitle" class="hero-h1"><span class="glitch normal">SILENT STUDIO</span></h1>
+      <!-- build title as spans so we can swap individual letters -->
+      <h1 id="heroTitle" class="hero-h1" aria-label="Silent Studio">
+        <!-- JS will populate spans here -->
+      </h1>
       <div class="hero-sub mb24">Psychological Horror Redefined</div>
       <div class="hero-deco" aria-hidden="true"></div>
     </div>
@@ -438,10 +443,10 @@
   </script>
 
   <!-- ----------------------------------------------------------------
-       Canvas: DNA-like 2-arm spiral + flying inverted crosses (𐕣)
+       Canvas: DNA-like 2-arm spiral (responsive, mouse parallax)
        - ARM_COUNT = 2
-       - crosses fly along spiral lanes and blink rapidly/randomly
-       - reacts to mouse + scroll
+       - minimal dots + highlights for cinematic feel
+       - NO flying crosses in background (crosses blink IN THE TITLE instead)
   ---------------------------------------------------------------- -->
   <script>
   (function(){
@@ -449,7 +454,6 @@
     if(!canvas) return;
     const ctx = canvas.getContext('2d', { alpha:true });
 
-    // use CSS pixels for math; DPR only for crisp size
     let DPR = Math.max(1, window.devicePixelRatio || 1);
     let W = 0, H = 0;
 
@@ -472,9 +476,9 @@
 
     // spiral params — TWO ARMS for DNA effect
     const ARM_COUNT = 2;
-    const POINTS = 1600;   // reduced to keep perf reasonable
+    const POINTS = 1400;   // balanced for perf
     const R_STEP = 0.36;
-    const ANGLE_MULT = 0.068;
+    const ANGLE_MULT = 0.075;
 
     // precompute base spiral points for each arm
     const basePoints = new Array(ARM_COUNT);
@@ -488,97 +492,65 @@
       basePoints[a] = arm;
     }
 
-    // flying crosses 𐕣
-    const CROSS_COUNT = 96;
-    const crosses = [];
-    for(let i=0;i<CROSS_COUNT;i++){
-      const arm = i % ARM_COUNT;
-      crosses.push({
-        arm,
-        t: Math.random() * POINTS,
-        speed: 0.4 + Math.random()*1.1,   // speed variation
-        blinkFreq: 60 + Math.random()*120, // base blink frequency (lower = faster)
-        blinkOffset: Math.random()*200,
-        size: 8 + Math.random()*12,
-        alpha: 0.55 + Math.random()*0.5,
-        sway: (Math.random()*2-1) * 0.6 // lateral sway amount
+    // particle-ish dots on spirals for depth
+    const DOTS = [];
+    for(let i=0;i<120;i++){
+      DOTS.push({
+        arm: i % ARM_COUNT,
+        pos: Math.random() * POINTS,
+        speed: 0.08 + Math.random()*0.18,
+        size: 0.8 + Math.random()*1.8,
+        alpha: 0.04 + Math.random()*0.12
       });
     }
 
-    // helper: draw one 𐕣 character at (x,y)
-    function drawCrossGlyph(x,y,size,alpha,rot=0){
-      ctx.save();
-      ctx.translate(x,y);
-      if(rot) ctx.rotate(rot);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.fillStyle = 'rgba(255,255,255,1)';
-      // choose font size that fits
-      ctx.font = `bold ${Math.max(6,size|0)}px "Space Mono", monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      // glyph 𐕣 (inverted cross) — font must support it; fallback to dagger
-      const glyph = '𐕣';
-      ctx.fillText(glyph, 0, 0);
-      ctx.restore();
-    }
-
-    // subtle circular guides/background lines (very faint)
-    function drawGuides(cx,cy,offsetX,offsetY){
-      ctx.save();
-      ctx.globalAlpha = 0.032;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      const maxR = Math.max(W,H) * 0.6;
-      for(let r=120;r<maxR;r+=120){
-        ctx.beginPath();
-        ctx.arc(cx + offsetX*0.12, cy + offsetY*0.09, r, 0, Math.PI*2);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // main draw loop
     function draw(){
       S.t += 1;
       // clear
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      // base black background
+      // base fill
       ctx.save();
       ctx.fillStyle = '#000';
       ctx.fillRect(0,0,W,H);
       ctx.restore();
 
       const cx = W/2, cy = H/2;
-      // mouse influenced offsets for parallax
       const offsetX = S.mouseX * 40;
-      const offsetY = S.mouseY * 28;
+      const offsetY = S.mouseY * 30;
       const scrollInfluence = (S.scrollY || 0) * 0.0016;
 
-      // faint guides
-      drawGuides(cx,cy,offsetX,offsetY);
+      // faint circular guides
+      ctx.save();
+      ctx.globalAlpha = 0.03;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      for(let r=120;r<Math.max(W,H); r+=120){
+        ctx.beginPath();
+        ctx.arc(cx + offsetX*0.12, cy + offsetY*0.09, r, 0, Math.PI*2);
+        ctx.stroke();
+      }
+      ctx.restore();
 
-      // draw DNA-like two spirals
+      // draw two spiral arms
       ctx.save();
       ctx.lineWidth = 0.7;
       ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       for(let a=0;a<ARM_COUNT;a++){
         const arm = basePoints[a];
         ctx.beginPath();
-        // sample every 2 points for perf
         for(let i=0;i<arm.length;i+=2){
           const p = arm[i];
-          const angle = p.angle + (S.t * 0.0009) + (a * 0.45) + scrollInfluence + Math.sin(i*0.0012 + S.t*0.002)*0.002;
-          // radius scaled to fit viewport
-          const r = p.radius * 0.43;
-          const x = cx + Math.cos(angle) * r + offsetX * (i/POINTS) * 0.95 + Math.sin(i*0.002 + a)* (a===0?1:-1) * 0.6;
-          const y = cy + Math.sin(angle) * r + offsetY * (i/POINTS) * 0.95 + Math.cos(i*0.002 + a)* (a===0?1:-1) * 0.6;
+          const angle = p.angle + (S.t * 0.0009) + (a * 0.45) + scrollInfluence + Math.sin(i*0.0016 + S.t*0.002)*0.002;
+          const r = p.radius * 0.45;
+          const x = cx + Math.cos(angle) * r + offsetX * (i/POINTS) * 0.95 + Math.sin(i*0.002 + a) * (a===0?1:-1) * 0.6;
+          const y = cy + Math.sin(angle) * r + offsetY * (i/POINTS) * 0.95 + Math.cos(i*0.002 + a) * (a===0?1:-1) * 0.6;
           if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
         }
         ctx.stroke();
       }
       ctx.restore();
 
-      // small highlights along spirals for depth
+      // small highlights along spirals
       ctx.save();
       for(let a=0;a<ARM_COUNT;a++){
         ctx.beginPath();
@@ -588,7 +560,7 @@
         for(let i=40;i<arm.length;i+=22){
           const p = arm[i];
           const angle = p.angle + (S.t * 0.0016) + (a*0.4) + scrollInfluence;
-          const r = p.radius * 0.43;
+          const r = p.radius * 0.45;
           const x = cx + Math.cos(angle) * r + offsetX * (i/POINTS) * 0.95;
           const y = cy + Math.sin(angle) * r + offsetY * (i/POINTS) * 0.95;
           ctx.moveTo(x,y);
@@ -600,50 +572,37 @@
       }
       ctx.restore();
 
-      // draw moving crosses that blink
+      // dots moving along spirals
       ctx.save();
-      for(let i=0;i<crosses.length;i++){
-        const c = crosses[i];
-        // progress along spiral
-        c.t += c.speed * (0.7 + Math.sin((S.t + i*7)*0.008)*0.18);
-        if(c.t > POINTS) c.t -= POINTS;
-
-        // blinking: fast random flicker — use noise + sin to vary quickly
-        const flick = Math.sin((S.t + c.blinkOffset)*0.6) * 0.5 + Math.random()*0.6;
-        // flick value in ~[-1..1], use threshold for visible
-        const visible = flick > 0.05; // threshold: tune for faster/more flickers
-        // also random short bursts
-        const burst = (Math.random() < 0.015) ? (0.5 + Math.random()*1.2) : 0;
-
-        if(!visible && !burst) continue;
-
-        const p = basePoints[c.arm][(Math.floor(c.t)) % POINTS];
+      for(let i=0;i<DOTS.length;i++){
+        const d = DOTS[i];
+        d.pos += d.speed;
+        if(d.pos >= POINTS) d.pos -= POINTS;
+        const p = basePoints[d.arm][Math.floor(d.pos) % POINTS];
         if(!p) continue;
-        const angle = p.angle + (S.t * 0.0012) + (c.arm * 0.32) + scrollInfluence;
-        const r = p.radius * 0.43;
-        // lateral offset to make them swirl around the arm slightly
-        const lateral = Math.sin(c.t*0.02 + i) * 6 * c.sway;
-        const x = cx + Math.cos(angle) * r + offsetX * (c.t/POINTS) * 0.95 + lateral;
-        const y = cy + Math.sin(angle) * r + offsetY * (c.t/POINTS) * 0.95 + Math.cos(c.t*0.013 + i)*2*c.sway;
-
-        const alpha = Math.min(1, Math.max(0, (c.alpha * (0.6 + 0.6*(flick+0.2))) + burst*0.6));
-        const rot = Math.sin(c.t*0.02 + i)*0.6;
-        drawCrossGlyph(x, y, c.size, alpha, rot);
+        const angle = p.angle + (S.t * 0.0012) + (d.arm*0.32) + scrollInfluence;
+        const r = p.radius * 0.45;
+        const x = cx + Math.cos(angle) * r + offsetX * (d.pos/POINTS) * 0.95;
+        const y = cy + Math.sin(angle) * r + offsetY * (d.pos/POINTS) * 0.95;
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255,255,255,'+ (d.alpha + Math.abs(Math.sin(d.pos*0.02))*0.06) +')';
+        ctx.arc(x, y, d.size, 0, Math.PI*2);
+        ctx.fill();
       }
       ctx.restore();
 
-      // micrograin
+      // micro grain
       ctx.save();
       ctx.globalAlpha = 0.02;
       ctx.fillStyle = '#ffffff';
-      for(let i=0;i<100;i++){
+      for(let i=0;i<90;i++){
         const x = Math.random()*W;
         const y = Math.random()*H;
         ctx.fillRect(x,y,1,1);
       }
       ctx.restore();
 
-      // vignette radial (soft)
+      // vignette
       ctx.save();
       const g = ctx.createRadialGradient(cx + offsetX*0.08, cy + offsetY*0.05, Math.min(W,H)*0.05, cx, cy, Math.max(W,H)*0.7);
       g.addColorStop(0, 'rgba(0,0,0,0)');
@@ -656,46 +615,104 @@
       requestAnimationFrame(draw);
     }
 
-    // helper drawCrossGlyph using canvas text to render 𐕣
-    function drawCrossGlyph(x,y,size,alpha,rot){
-      ctx.save();
-      ctx.translate(x*DPR, y*DPR);
-      ctx.rotate(rot);
-      ctx.globalAlpha = alpha;
-      // choose glyph size in device pixels
-      const fontPx = Math.round(size * DPR);
-      ctx.font = `bold ${fontPx}px "Space Mono", monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      // glyph — U+10123 (𐔣) ???; we use U+10323 (𐌣) is different — using 𐕣 (U+16923) — availability depends on fonts
-      // We'll use the requested symbol 𐕣; if not available the browser will fallback.
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText('𐕣', 0, 0);
-      ctx.restore();
-    }
-
-    // start
     requestAnimationFrame(draw);
-
   })();
   </script>
 
   <!-- ----------------------------------------------------------------
-       End of Canvas Script
+       Title cursed flicker: replace random letters with inverted crosses (𐕣)
+       - uses per-character spans so replacement is smooth
+       - fast random flickers, also bursts occasionally
   ---------------------------------------------------------------- -->
+  <script>
+  (function(){
+    const TARGET = document.getElementById('heroTitle');
+    const BASE = 'SILENT STUDIO';
+    const GLYPH = '𐕣'; // inverted cross symbol; browser fallback if missing
+    const CHARS = BASE.split('');
+    // build spans
+    TARGET.innerHTML = '';
+    const spans = [];
+    CHARS.forEach((ch, idx) => {
+      const sp = document.createElement('span');
+      sp.className = 'title-char';
+      sp.setAttribute('data-idx', idx);
+      sp.textContent = ch;
+      TARGET.appendChild(sp);
+      spans.push(sp);
+    });
+
+    function randomFlick() {
+      // number of letters to flick this burst (1..3)
+      const count = 1 + Math.floor(Math.random()*3);
+      const indices = [];
+      // choose random non-space indices
+      const available = spans.map((s,i)=> ({s,i})).filter(x=> x.s.textContent !== ' ');
+      for(let i=0;i<count;i++){
+        const pick = available[Math.floor(Math.random()*available.length)];
+        indices.push(pick.i);
+      }
+      // apply flick: replace characters temporarily
+      indices.forEach((i)=>{
+        const el = spans[i];
+        if(!el) return;
+        const original = el.textContent;
+        el.classList.add('cursed');
+        el.textContent = GLYPH;
+        // restore after short random duration
+        const dur = 80 + Math.random()*260; // short flash
+        setTimeout(()=>{
+          // small secondary blink possibility
+          if(Math.random() < 0.08){
+            el.textContent = GLYPH;
+            setTimeout(()=>{ el.textContent = original; el.classList.remove('cursed'); }, 60 + Math.random()*160);
+          } else {
+            el.textContent = original;
+            el.classList.remove('cursed');
+          }
+        }, dur);
+      });
+    }
+
+    // schedule flicker bursts with variable cadence
+    function scheduleFlick(){
+      // base delay between bursts
+      const delay = 300 + Math.random()*1200;
+      setTimeout(()=>{
+        // sometimes do a rapid flurry
+        if(Math.random() < 0.12){
+          // rapid series
+          for(let k=0;k<3;k++){
+            setTimeout(randomFlick, k*80 + Math.random()*40);
+          }
+        } else {
+          randomFlick();
+        }
+        scheduleFlick();
+      }, delay);
+    }
+    // start after small delay
+    setTimeout(scheduleFlick, 600);
+
+    // also on hover, more intense flick
+    TARGET.addEventListener('mouseenter', ()=>{
+      for(let i=0;i<6;i++){
+        setTimeout(randomFlick, i*60 + Math.random()*60);
+      }
+    });
+  })();
+  </script>
 
   <!-- lots of comments to keep the file verbose but useful -->
   <!--
     NOTES:
-     - This file implements the corrected behavior:
-       * Two DNA-like spiral curves (ARM_COUNT = 2)
-       * Flying inverted-cross glyphs (𐕣) that move along the spirals and blink randomly/quickly
-       * Hero headline stays stable (no text-swapping), typewriter remains for tab title
-       * All original links, Discord widget, and footer preserved
-     - Tuning:
-       * To reduce CPU on low-end devices reduce POINTS and CROSS_COUNT
-       * To make crosses blink even faster decrease blink threshold or add more random bursts
+     - Title letters are replaced briefly with inverted-cross glyph 𐕣 to produce cursed flicker
+     - Background is DNA-like 2-arm spiral with subtle particles and parallax
+     - Discord widget and all links from your previous file are preserved
+     - Copy-to-clipboard, mobile menu, intersection observer and document.title typewriter retained
+     - Tune flicker speed by editing durations in the "Title cursed flicker" script
   -->
 
 </body>
 </html>
+```
