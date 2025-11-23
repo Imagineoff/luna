@@ -1,3 +1,10 @@
+Jasně, tady je finální verze, která zapracovává všechny tvoje nové požadavky.
+Co jsem upravil:
+ * Responzivní design: Text (nadpisy, časovač) se teď bude plynule zvětšovat a zmenšovat podle velikosti obrazovky (PC vs. mobil).
+ * Sněhové vločky: Změněno z ❄️ na . (tečka). Zároveň jsem zvětšil písmo tečky, aby byla dobře vidět.
+ * Transformace na kříž: Čas proměny jsem změnil z 80 % cesty na 50 % (v půlce stránky).
+Zde je kompletní kód v jednom souboru.
+📝 Kompletní kód (finální verze)
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +27,7 @@
             background-color: #000;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden; /* Skryje scrollbary a zabrání přetékání sněhu */
+            overflow: hidden; 
             text-align: center;
         }
 
@@ -38,10 +45,11 @@
 
         /* --- ROTUJÍCÍ ZÁHLAVÍ --- */
         .header-text {
-            font-size: 1.5rem;
+            /* RESPONZIVNÍ FONT */
+            font-size: clamp(1.1rem, 3vw, 1.5rem); 
             font-weight: bold;
             margin-bottom: 2rem;
-            height: 2rem; /* Pevná výška, aby text neskákal */
+            height: 2rem; 
         }
 
         #rotating-text {
@@ -55,7 +63,8 @@
 
         /* Režim 1: Časovač */
         #timer-mode h2 {
-            font-size: 1.8rem;
+            /* RESPONZIVNÍ FONT */
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
             margin-bottom: 1rem;
             font-weight: normal;
         }
@@ -64,22 +73,25 @@
             font-size: 2.5rem;
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
+            gap: 1rem; /* Zmenšená mezera pro mobily */
         }
         #countdown span {
+            /* RESPONZIVNÍ FONT */
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
             display: block;
-            font-size: 0.8rem;
             font-weight: normal;
             margin-top: 0.5rem;
         }
         #countdown div {
-            font-size: 3rem;
+            /* RESPONZIVNÍ FONT */
+            font-size: clamp(2rem, 8vw, 3rem);
             font-weight: bold;
         }
 
         /* Režim 2: Hádanka */
         #puzzle-mode {
-            font-size: 1.2rem;
+            /* RESPONZIVNÍ FONT */
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
         }
         
         .puzzle-image {
@@ -96,26 +108,28 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Sníh je za obsahem */
-            pointer-events: none; /* Umožní klikat "skrz" sníh */
+            z-index: 1; 
+            pointer-events: none; 
         }
 
         .snowflake {
             position: absolute;
             top: -10%;
             color: #fff;
-            font-size: 1.5rem;
+            /* ZVĚTŠENÍ TEČKY */
+            font-size: 2.5rem; 
+            font-weight: bold;
             user-select: none;
             animation: fall linear; 
         }
-
-        /* --- ZMĚNA PRO PŘEKLOPENÝ KŘÍŽ --- */
-        /* Toto je nový styl, který otočí symbol kříže o 180 stupňů */
+        
+        /* Styl pro otočený kříž */
         .snowflake .cross {
-            display: inline-block; /* Nutné, aby fungoval transform */
+            display: inline-block;
             transform: rotate(180deg);
+            /* Změna velikosti, aby kříž nebyl tak velký jako tečka */
+            font-size: 1.8rem; 
         }
-        /* ------------------------------------- */
 
         @keyframes fall {
             from {
@@ -125,6 +139,13 @@
             to {
                 transform: translateY(110vh) rotate(360deg); 
                 opacity: 0.8;
+            }
+        }
+        
+        /* RESPONZIVITA PRO PC (Větší mezery u časovače) */
+        @media (min-width: 768px) {
+            #countdown {
+                gap: 1.5rem;
             }
         }
 
@@ -260,10 +281,8 @@
                 const flake = document.createElement('div');
                 flake.classList.add('snowflake');
                 
-                const startChar = '❄️'; // Vločka
-                
-                // --- ZMĚNA PRO PŘEKLOPENÝ KŘÍŽ ---
-                // Použijeme symbol kříže, který pak otočíme v CSS
+                // --- UPRAVENO: Začíná jako tečka ---
+                const startChar = '.'; 
                 const endChar = '✝'; 
                 // ---------------------------------
 
@@ -273,15 +292,15 @@
                 const duration = Math.random() * 5 + 5; 
                 flake.style.animationDuration = `${duration}s`;
                 
-                const changeTime = duration * 0.8 * 1000; 
+                // --- UPRAVENO: Mění se v 50 % (v půlce) ---
+                const changeTime = duration * 0.5 * 1000; 
+                // --------------------------------------
 
                 snowContainer.appendChild(flake);
 
                 setTimeout(() => {
-                    // --- ZMĚNA PRO PŘEKLOPENÝ KŘÍŽ ---
-                    // Zabalíme kříž do <span class="cross">, aby na něj mohl cílit CSS styl
+                    // Zabalí kříž do spanu, aby ho CSS mohlo otočit
                     flake.innerHTML = `<span class="cross">${endChar}</span>`;
-                    // ---------------------------------
                 }, changeTime);
 
                 setTimeout(() => {
@@ -295,3 +314,4 @@
     </script>
 </body>
 </html>
+
