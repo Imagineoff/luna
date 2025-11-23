@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Christmas Event</title>
+
+  <!-- Meta & favicon (uses your provided Imgur image) -->
+  <meta name="description" content="Solve the puzzle and win lifetime access to our Patreon." />
+  <meta property="og:title" content="Christmas Event" />
+  <meta property="og:description" content="Solve the puzzle and win lifetime access to our Patreon." />
+  <meta property="og:image" content="https://i.imgur.com/7vBilCJ.jpeg" />
+  <link rel="icon" href="https://i.imgur.com/7vBilCJ.jpeg" />
+
+  <style>
+    /* Basic layout */
+    :root {
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,0.08);
+      --accent: #fff;
+      --maxWidth: 1000px;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    /* Canvas covers full screen */
+    #scene {
+      position:fixed;
+      inset:0;
+      z-index:0;
+    }
+
+    /* Central UI */
+    .ui {
+      position:relative;
+      z-index:5;
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none; /* keep pointer to page for future */
+    }
+    .card {
+      width:min(92%, var(--maxWidth));
+      max-width:var(--maxWidth);
+      background: transparent;
+      text-align:center;
+      padding:28px;
+      box-sizing:border-box;
+      pointer-events:auto;
+    }
+
+    /* Rotating small banner text at top-left */
+    .banner {
+      position: absolute;
+      top:18px;
+      left:18px;
+      font-size:14px;
+      letter-spacing:0.06em;
+      color:var(--fg);
+      background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      padding:8px 12px;
+      border-radius:6px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,0.6);
+    }
+    .rotator {
+      font-weight:600;
+    }
+    .dot { opacity:0.6; font-weight:400; }
+
+    /* Title block */
+    .title {
+      margin-top:40px;
+      margin-bottom:14px;
+      font-size:44px;
+      line-height:1;
+      letter-spacing:0.02em;
+      font-weight:700;
+      color:var(--fg);
+      text-shadow: 0 2px 30px rgba(255,255,255,0.02);
+    }
+    .subtitle {
+      margin-bottom:24px;
+      color: rgba(255,255,255,0.85);
+      font-size:16px;
+      font-weight:500;
+    }
+
+    /* Countdown / placeholder area styles */
+    .content {
+      margin-top:18px;
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+
+    .countdown {
+      font-size:28px;
+      font-weight:700;
+      letter-spacing:0.02em;
+      background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      padding:14px 20px;
+      border-radius:10px;
+      min-width:320px;
+    }
+
+    .placeholder-text {
+      font-size:18px;
+      color:var(--fg);
+      background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      padding:12px 16px;
+      border-radius:8px;
+      max-width:680px;
+    }
+
+    .placeholder-photo {
+      width:320px;
+      height:200px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.06);
+      margin-top:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+
+    /* small footer hint */
+    .hint {
+      margin-top:16px;
+      color:rgba(255,255,255,0.6);
+      font-size:13px;
+    }
+
+    /* fade animation for rotator */
+    .rotator-anim {
+      display:inline-block;
+      opacity:0;
+      transform: translateY(6px);
+      animation:rotFade 1s ease-in-out forwards;
+    }
+    @keyframes rotFade {
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    /* responsive tweaks */
+    @media (max-width:560px){
+      .title { font-size:28px; }
+      .countdown { font-size:20px; min-width:240px; }
+      .placeholder-photo { width:260px; height:160px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas for snow / crosses -->
+  <canvas id="scene"></canvas>
+
+  <!-- UI layer -->
+  <div class="ui">
+    <div class="card">
+      <div class="banner">
+        <div id="rotator" class="rotator">win lifetime patreon</div>
+        <div class="dot">|</div>
+        <div style="opacity:0.9">solve the puzzle</div>
+        <div class="dot">|</div>
+        <div style="opacity:0.9">use <code style="background:transparent;color:var(--fg);font-weight:700">/open</code> on our Discord to submit the password</div>
+      </div>
+
+      <div style="text-align:center">
+        <div class="title" id="pageTitle">Christmas Event</div>
+        <div class="subtitle">Solve the puzzle and win lifetime access to our Patreon</div>
+
+        <div class="content" id="modeContent">
+          <!-- JS will toggle countdown vs placeholder -->
+        </div>
+
+        <div class="hint">Appearance: black background, white details.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* --------- CONFIG: change MODE here to true/false ---------
+      true  -> countdown mode (global countdown to 1 Dec 2025)
+      false -> placeholder mode (text + photo.jpeg)
+    ----------------------------------------------------------- */
+    const MODE = true; // <-- set to false to test the other view
+
+    /* ------------------- ROTATOR TEXTS ------------------ */
+    const rotatorEl = document.getElementById('rotator');
+    const rotTexts = [
+      'win lifetime patreon',
+      'solve the puzzle',
+      'use /open on our Discord to submit the password'
+    ];
+    let rotIdx = 0;
+    function showRotText(i){
+      rotatorEl.innerHTML = '';
+      const span = document.createElement('span');
+      span.className = 'rotator-anim';
+      span.textContent = rotTexts[i];
+      rotatorEl.appendChild(span);
+    }
+    showRotText(rotIdx);
+    setInterval(()=>{
+      rotIdx = (rotIdx+1) % rotTexts.length;
+      showRotText(rotIdx);
+    }, 3500);
+
+    /* ------------------ TAB (title) TYPEWRITER ------------------ */
+    const tabText = 'Christmas Event';
+    let tpos = 0, forward = true;
+    const cursor = '|';
+    function typeInTab(){
+      if(forward){
+        tpos++;
+        if(tpos >= tabText.length + 1) {
+          forward = false;
+          setTimeout(typeInTab, 800);
+          document.title = tabText + ' ' + cursor;
+          return;
+        }
+      } else {
+        tpos--;
+        if(tpos <= 0){
+          forward = true;
+        }
+      }
+      document.title = tabText.slice(0,tpos) + (tpos>0 ? cursor : '');
+      setTimeout(typeInTab, forward ? 100 : 40);
+    }
+    typeInTab();
+
+    /* ------------------ MODE CONTENT ------------------ */
+    const content = document.getElementById('modeContent');
+    if(MODE){
+      // Countdown to 1 December 2025 (UTC)
+      const target = new Date('2025-12-01T00:00:00Z').getTime();
+      const info = document.createElement('div');
+      info.className = 'countdown';
+      info.id = 'countdownBox';
+      content.appendChild(info);
+
+      function updateCountdown(){
+        const now = Date.now();
+        let diff = target - now;
+        if(diff < 0){
+          info.textContent = 'The event has started!';
+          return;
+        }
+        const days = Math.floor(diff / (1000*60*60*24));
+        diff -= days*(1000*60*60*24);
+        const hours = Math.floor(diff / (1000*60*60));
+        diff -= hours*(1000*60*60);
+        const minutes = Math.floor(diff / (1000*60));
+        diff -= minutes*(1000*60);
+        const seconds = Math.floor(diff/1000);
+
+        info.textContent = `${String(days).padStart(2,'0')}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s — Countdown to Dec 1, 2025 (UTC)`;
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+    } else {
+      // Placeholder mode: show text + photo.jpeg
+      const pText = document.createElement('div');
+      pText.className = 'placeholder-text';
+      pText.textContent = 'Placeholder puzzle description — replace this text with the final copy.';
+
+      const pPhoto = document.createElement('img');
+      pPhoto.className = 'placeholder-photo';
+      pPhoto.alt = 'photo placeholder';
+      pPhoto.src = 'photo.jpeg'; // you will replace this file
+
+      content.appendChild(pText);
+      content.appendChild(pPhoto);
+    }
+
+    /* ------------------ CANVAS SNOW -> inverted cross ------------------ */
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
+
+    let DPR = Math.max(1, window.devicePixelRatio || 1);
+    function resize(){
+      DPR = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(window.innerWidth * DPR);
+      canvas.height = Math.floor(window.innerHeight * DPR);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Particles
+    const particles = [];
+    const MAX = Math.min(200, Math.floor(window.innerWidth / 6)); // density scaling
+    function rand(min,max) { return Math.random()*(max-min)+min; }
+
+    class Snow {
+      constructor(){
+        this.reset(true);
+        this.transformed = false;
+      }
+      reset(top=false){
+        this.x = rand(0, window.innerWidth);
+        this.y = top ? rand(-window.innerHeight,0) : rand(-80, -10);
+        this.vy = rand(0.4, 1.4);
+        this.vx = rand(-0.3,0.3);
+        this.size = rand(2,6);
+        this.rotation = rand(0, Math.PI*2);
+        this.rotSpeed = rand(-0.02,0.02);
+        this.opacity = rand(0.6, 1);
+        this.transformed = false;
+      }
+      update(){
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+
+        // Slight horizontal wrap
+        if(this.x < -20) this.x = window.innerWidth + 20;
+        if(this.x > window.innerWidth + 20) this.x = -20;
+
+        // transform into inverted cross before hitting bottom of viewport
+        const threshold = window.innerHeight - Math.min(90, window.innerHeight*0.09); // ~80px or 9% of height
+        if(!this.transformed && this.y >= threshold){
+          this.transformed = true;
+          // slow down a bit for dramatic effect
+          this.vx *= 0.2;
+          this.vy *= 0.1;
+        }
+
+        // if utterly below viewport, reset
+        if(this.y > window.innerHeight + 40){
+          this.reset();
+        }
+      }
+      draw(ctx){
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        if(!this.transformed){
+          // draw snow blob (circle with faint texture)
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+        } else {
+          // draw inverted cross centered at (x,y)
+          // We'll draw a vertical bar extending downward, with a small horizontal bar near the top (inverted)
+          const w = Math.max(2, this.size * 0.9);
+          const verticalH = Math.max(10, this.size * 6);
+          const horizW = Math.max(10, this.size * 3);
+          const horizH = Math.max(2, this.size * 0.6);
+
+          // vertical bar (from y - small offset downwards)
+          const vy = this.y - verticalH * 0.2;
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.rect(this.x - w/2, vy, w, verticalH);
+          ctx.fill();
+
+          // horizontal bar placed near top -> inverted cross look
+          const hy = vy + Math.max(2, this.size * 0.6);
+          ctx.beginPath();
+          ctx.rect(this.x - horizW/2, hy, horizW, horizH);
+          ctx.fill();
+
+          // small glow
+          ctx.globalAlpha = 0.06;
+          ctx.beginPath();
+          ctx.rect(this.x - horizW, vy - verticalH*0.2, horizW*2, verticalH*1.6);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    // populate
+    for(let i=0;i<MAX;i++){
+      particles.push(new Snow());
+    }
+
+    // Animation loop
+    let last = performance.now();
+    function loop(now){
+      const dt = now - last;
+      last = now;
+      ctx.clearRect(0,0, canvas.width, canvas.height);
+
+      // subtle background texture (white speck lines)
+      // draw faint vertical gradient noise
+      // (kept minimal because UI is mostly overlay)
+      ctx.fillStyle = 'transparent';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // update/draw particles
+      for(let p of particles){
+        p.update();
+        p.draw(ctx);
+      }
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // Ensure new particles if window resized bigger
+    window.addEventListener('resize', ()=>{
+      const want = Math.min(300, Math.floor(window.innerWidth / 6));
+      while(particles.length < want){
+        particles.push(new Snow());
+      }
+      while(particles.length > want){
+        particles.pop();
+      }
+    });
+
+    /* ------------------ small accessibility / escape: allow background pointer events if needed ------------------ */
+    // (left intentionally simple; pointer-events on UI can be changed when adding interactions)
+  </script>
+</body>
+</html>
