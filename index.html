@@ -1,39 +1,38 @@
 <!DOCTYPE html>
-<html lang=en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>Silent Studio | Horror game development</title>
-  <meta name="description" content="Silent Studio - Indie horror game development. Creators of Price of Pain." />
+  <title>LUNA | Game Development Studio</title>
+  <meta name="description" content="LUNA - Independent game development studio. Creators of innovative games." />
 
-  <meta property="og:title" content="Silent Studio" />
-  <meta property="og:description" content="Horror game development. Prepare for the psycho horror experience." />
-  <meta property="og:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" />
-  <meta property="og:url" content="https://silentstudio.vercel.app" />
-  <meta property="og:type" content="website" />
+  <meta property="og:title" content="LUNA" />
+  <meta property="og:description" content="Independent game development studio. Building new worlds." />
+  <meta property="og:image" content="https://i.imgur.com/xucLQsY.jpeg" />
+  <meta property="og:url" content="https://luna.dev" /> <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" />
+  <meta name="twitter:image" content="https://i.imgur.com/xucLQsY.jpeg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
 
   <style>
     /* ===========================================================
-       Silent Studio — Cinematic Black (DNA spirals + title flicker)
+       ZMĚNĚNO: LUNA — Clean Dark Theme
        =========================================================== */
 
     :root{
-      --bg: #030303;
-      --panel: rgba(255,255,255,0.03);
+      /* ZMĚNĚNO: Barevné schéma */
+      --bg: #111827; /* Tmavě modro-šedá */
+      --panel: rgba(255,255,255,0.06);
       --muted: #9aa0a6;
       --white: #f7f7f7;
-      --accent: #ffffff;
+      --accent: #3b82f6; /* Modrý akcent */
     }
 
     html,body{
@@ -60,7 +59,7 @@
       width:100%;
       top:0;
       z-index:60;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.65), rgba(0,0,0,0.25));
+      background: linear-gradient(to bottom, rgba(17, 24, 39, 0.65), rgba(17, 24, 39, 0.25)); /* ZMĚNĚNO: Barva pozadí */
       border-bottom: 1px solid rgba(255,255,255,0.03);
       backdrop-filter: blur(4px);
     }
@@ -74,7 +73,8 @@
       gap:12px;
     }
     .brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
-    .brand img { width:44px; height:44px; object-fit:cover; border-radius:999px; box-shadow:0 0 18px rgba(255,255,255,0.03); }
+    /* ZMĚNĚNO: Logo již není kulaté */
+    .brand img { width:44px; height:44px; object-fit:cover; box-shadow:0 0 18px rgba(255,255,255,0.03); }
     .brand .title { font-weight:700; letter-spacing:0.12em; font-size:1.05rem; color:var(--white); }
     .nav-links{ display:flex; gap:18px; align-items:center; font-size:0.92rem; color:rgba(255,255,255,0.78); }
     .nav-links a{ position:relative; padding:6px 8px; text-decoration:none; color:inherit; border-radius:6px; transition:all .18s ease; }
@@ -102,14 +102,15 @@
       user-select:none;
     }
 
-    /* Canvas sits under content */
+    /* Plátno je pod obsahem, ale již bez JS animace */
     #hero-canvas{
       position: absolute;
       inset:0;
       width:100%;
       height:100%;
       z-index:0;
-      background: radial-gradient(ellipse at center, rgba(20,20,20,0.4) 0%, rgba(0,0,0,1) 60%);
+      /* ZMĚNĚNO: Jemnější gradient */
+      background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.4) 0%, rgba(17, 24, 39, 1) 60%);
       pointer-events:none;
     }
 
@@ -131,7 +132,8 @@
       width:120px;
       height:120px;
       object-fit:cover;
-      border-radius:999px;
+      /* ZMĚNĚNO: Logo již není kulaté */
+      /* border-radius:999px; */
       box-shadow: 0 0 40px rgba(255,255,255,0.03);
       opacity:0.95;
     }
@@ -186,9 +188,7 @@
 
     .sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
 
-    /* Title flicker specifics */
-    .title-char { display:inline-block; transition:opacity .06s linear, transform .06s linear; }
-    .title-char.cursed { color: #ffffff; opacity:1; transform:scale(1.02); text-shadow:0 0 8px rgba(255,255,255,0.85); }
+    /* ODSTRANĚNO: Styly pro blikání titulků */
 
     @media (max-width:768px){
       .hero-h1{ font-size:40px; }
@@ -203,7 +203,7 @@
     }
 
     .muted{ color:var(--muted); }
-    .link{ color:rgba(255,255,255,0.85); text-decoration:underline; text-underline-offset:4px; }
+    .link{ color:var(--accent); text-decoration:underline; text-underline-offset:4px; } /* ZMĚNĚNO: Používá akcentní barvu */
     .center{ text-align:center; }
     .mb24{ margin-bottom:24px; }
 
@@ -215,8 +215,6 @@
       border-bottom:1px solid rgba(255,255,255,0.02);
       background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       backdrop-filter: blur(4px);
-      /* z-index:65; */ /* <-- ZMĚNA: Odstraněno */
-      /* position:relative; */ /* <-- ZMĚNA: Odstraněno */
       font-family: 'Space Mono', monospace;
     }
 
@@ -229,36 +227,31 @@
     }
 
     .marquee {
-      display: flex; /* <-- ZMĚNA: Změněno na flex pro plynulé řazení */
+      display: flex;
       white-space:nowrap;
       will-change:transform;
-      /* padding-left:100%; */ /* <-- ZMĚNA: Odstraněno */
-      /* animation: marquee 18s linear infinite; */ /* <-- ZMĚNA: Přesunuto na span */
       font-size:14px;
       letter-spacing:0.06em;
     }
 
     .marquee span {
-      /* padding-right:100%; */ /* <-- ZMĚNA: Odstraněno */
-      padding-right: 4em; /* <-- ZMĚNA: Přidána mezera mezi texty */
-      animation: marquee 36s linear infinite; /* <-- ZMĚNA: Přidána animace a zdvojnásoben čas */
+      padding-right: 4em;
+      animation: marquee 36s linear infinite;
     }
 
     @keyframes marquee {
       0%   { transform: translateX(0); }
-      100% { transform: translateX(-100%); } /* Cíl zůstává, ale nyní animuje span o jeho vlastní šířku */
+      100% { transform: translateX(-100%); }
     }
 
-    /* pause on hover for accessibility */
-    .nav-announcement a:hover .marquee span, /* <-- ZMĚNA: Cílíme na span */
-    .nav-announcement a:focus .marquee span { /* <-- ZMĚNA: Cílíme na span */
+    .nav-announcement a:hover .marquee span,
+    .nav-announcement a:focus .marquee span {
       animation-play-state:paused;
     }
 
-    /* smaller on tiny screens */
     @media (max-width:480px){
       .marquee { font-size:13px; }
-      .marquee span { animation-duration: 28s; } /* <-- ZMĚNA: Cílíme na span a zdvojnásobujeme čas (14s*2) */
+      .marquee span { animation-duration: 28s; }
       .nav-announcement a { padding:10px 12px; }
     }
 
@@ -274,10 +267,10 @@
   <nav aria-label="Primary navigation">
     <div class="nav-inner">
       <div class="brand" onclick="scrollToTop()">
-        <img src="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" alt="Silent Studio logo" />
+        <img src="https://i.imgur.com/xucLQsY.jpeg" alt="LUNA logo" />
         <div>
-          <div class="title">SILENT STUDIO</div>
-          <div class="muted" style="font-size:11px; margin-top:2px;">Psychological horror • Developers</div>
+          <div class="title">LUNA</div>
+          <div class="muted" style="font-size:11px; margin-top:2px;">Independent Game Studio</div>
         </div>
       </div>
 
@@ -294,8 +287,7 @@
       </button>
     </div>
 
-    <div id="mobileMenu" style="display:none; padding:12px 18px; border-top:1px solid rgba(255,255,255,0.02); background:linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.4));">
-      <a href="#about" style="display:block; padding:8px 0; color:var(--white);">ABOUT</a>
+    <div id="mobileMenu" style="display:none; padding:12px 18px; border-top:1px solid rgba(255,255,255,0.02); background:linear-gradient(to bottom, rgba(17, 24, 39, 0.6), rgba(17, 24, 39, 0.4));"> <a href="#about" style="display:block; padding:8px 0; color:var(--white);">ABOUT</a>
       <a href="#games" style="display:block; padding:8px 0; color:var(--white);">GAMES</a>
       <a href="#community" style="display:block; padding:8px 0; color:var(--white);">COMMUNITY</a>
       <a href="#partners" style="display:block; padding:8px 0; color:var(--white);">PARTNERS</a>
@@ -303,10 +295,10 @@
     </div>
 
     <div class="nav-announcement" role="region" aria-label="Site announcement">
-      <a href="https://silentstudio.vercel.app/ch25.html" target="_blank" rel="noopener noreferrer">
+      <a href="#support" rel="noopener noreferrer">
         <div class="marquee" aria-hidden="false">
-          <span>🎖️ A special in-game lore event is live! Unlock the Lifetime Patreon tier and become part of the story — Click here to join the event.</span>
-          <span>🎖️ A special in-game lore event is live! Unlock the Lifetime Patreon tier and become part of the story — Click here to join the event.</span>
+          <span>🚀 We're growing! Check out our careers page and join the LUNA team — Click here to learn more.</span>
+          <span>🚀 We're growing! Check out our careers page and join the LUNA team — Click here to learn more.</span>
         </div>
       </a>
     </div>
@@ -317,10 +309,9 @@
     <div class="vignette" aria-hidden="true"></div>
 
     <div class="hero-content" role="presentation">
-      <img class="hero-logo" src="https://github.com/Imagineoff/Imagineweb/blob/main/IMG_4254.png?raw=true" alt="Silent Studio logo" />
-      <h1 id="heroTitle" class="hero-h1" aria-label="Silent Studio">
-        </h1>
-      <div class="hero-sub mb24">Psychological Horror Redefined</div>
+      <img class="hero-logo" src="https://i.imgur.com/xucLQsY.jpeg" alt="LUNA logo" />
+      <h1 id="heroTitle" class="hero-h1" aria-label="LUNA">LUNA</h1>
+      <div class="hero-sub mb24">Building New Worlds</div>
       <div class="hero-deco" aria-hidden="true"></div>
     </div>
   </header>
@@ -332,11 +323,11 @@
       <div class="panel">
         <p class="muted">
           We are a small independent collective of designers, coders and storytellers. Our goal:
-          craft tightly-layered psychological horror — atmospheric, intimate, and cinematic.
+          craft tightly-layered, engaging games — atmospheric, intimate, and cinematic.
         </p>
         <p style="margin-top:12px;">
-          Silent Studio builds experiences that linger. We focus on sound, pacing and the human mind.
-          This website is a cinematic port of our presence — see the games below and join our community.
+          LUNA builds experiences that linger. We focus on design, pacing and player experience.
+          This website is a port of our presence — see the games below and join our community.
         </p>
       </div>
     </section>
@@ -344,17 +335,17 @@
     <section id="games" class="section" data-observe>
       <h2>Our Games</h2>
       <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:stretch;">
-        <a class="panel" href="https://silentstudio.vercel.app/soon.html" target="_blank" rel="noopener noreferrer">
-          <strong>Price of Pain</strong>
-          <div style="margin-top:8px;" class="muted">Psychological horror • Coming soon</div>
+        <a class="panel" href="#" target="_blank" rel="noopener noreferrer">
+          <strong>Project 'Odyssey'</strong>
+          <div style="margin-top:8px;" class="muted">Adventure • Coming soon</div>
           <div style="margin-top:12px; color:rgba(255,255,255,0.78); font-size:13px;">
-            A descent into memory and consequence. Choices shape the haunt.
+            A journey through a vibrant, forgotten world. Choices shape your path.
           </div>
         </a>
 
         <div class="panel center">
-          <div style="font-size:20px; margin-bottom:6px;">Under Development</div>
-          <div class="muted">More projects are being brewed in the dark.</div>
+          <div style="font-size:20px; margin-bottom:6px;">More in the Pipeline</div>
+          <div class="muted">More projects are being brewed.</div>
         </div>
       </div>
     </section>
@@ -363,13 +354,13 @@
       <h2>Community</h2>
       <div class="panel">
         <p class="muted">
-          Jump into our Discord to chat about design, test builds, and lore. We appreciate respectful players
+          Jump into our Discord to chat about design, test builds, and see sneak peeks. We appreciate respectful players
           and creative collaborators.
         </p>
 
         <div style="margin-top:16px;">
           <div class="panel" style="padding:6px;">
-            <iframe class="discord-iframe" src="https://discord.com/widget?id=1433738890421997600&theme=dark" title="Silent Studio Discord" style="width:100%; height:360px; border:0; border-radius:8px;" allowtransparency="true" sandbox="allow-popups allow-same-origin allow-scripts"></iframe>
+            <iframe class="discord-iframe" src="https://discord.com/widget?id=1433738890421997600&theme=dark" title="LUNA Discord" style="width:100%; height:360px; border:0; border-radius:8px;" allowtransparency="true" sandbox="allow-popups allow-same-origin allow-scripts"></iframe>
           </div>
         </div>
       </div>
@@ -398,8 +389,8 @@
           <div class="muted" style="margin-top:8px;">Exclusive perks, dev updates and early access.</div>
         </div>
         <div style="display:flex; gap:12px;">
-          <a class="link" href="https://www.patreon.com/Silent_Studio" target="_blank" rel="noopener noreferrer">Patreon</a>
-          <a class="link" href="https://x.com/_silent_studio" target="_blank" rel="noopener noreferrer">Follow on X</a>
+          <a class="link" href="https://www.patreon.com/LUNA_Studio" target="_blank" rel="noopener noreferrer">Patreon</a>
+          <a class="link" href="https://x.com/LUNA_Studio" target="_blank" rel="noopener noreferrer">Follow on X</a>
         </div>
       </div>
     </section>
@@ -409,13 +400,13 @@
   <footer>
     <div style="max-width:1100px; margin:0 auto;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-        <div class="muted">Contact: <button id="copyEmail" style="background:transparent; border:0; color:var(--white); text-decoration:underline; cursor:pointer;">assist.silent.studio@gmail.com</button></div>
-        <div style="font-size:14px;">© <span id="copyrightYear"></span> Silent Studio. All rights reserved.</div>
+        <div class="muted">Contact: <button id="copyEmail" style="background:transparent; border:0; color:var(--white); text-decoration:underline; cursor:pointer;">contact@luna.dev</button></div>
+        <div style="font-size:14px;">© <span id="copyrightYear"></span> LUNA. All rights reserved.</div>
       </div>
     </div>
   </footer>
 
-  <div class="sr-only" aria-hidden="true" id="accessHints">Cinematic intro. Use navigation to jump to sections.</div>
+  <div class="sr-only" aria-hidden="true" id="accessHints">Use navigation to jump to sections.</div>
 
   <script>
   /* ----------------------------------------------------------------
@@ -429,7 +420,7 @@
     const copyEmailBtn = document.getElementById('copyEmail');
     if(copyEmailBtn){
       copyEmailBtn.addEventListener('click', async () => {
-        const txt = 'assist.silent.studio@gmail.com';
+        const txt = 'contact@luna.dev'; // ZMĚNĚNO: Email
         try { await navigator.clipboard.writeText(txt); flashMessage('Email copied to clipboard'); }
         catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); flashMessage('Email copied (fallback)'); }
       });
@@ -446,28 +437,7 @@
   </script>
 
   <script>
-  (function(){
-    const base = 'Silent Studio | ';
-    const titleMessages = ['Horror game development','We build nightmares','Price of Pain'];
-    let tiIndex=0, chIdx=0, deleting=false;
-    function tick(){
-      const current = titleMessages[tiIndex];
-      let out = base;
-      if(!deleting){ chIdx++; out += current.substring(0,chIdx); }
-      else { chIdx--; out += current.substring(0,chIdx); }
-      document.title = out;
-      let timeout = 120;
-      if(!deleting && chIdx === current.length) timeout = 1800;
-      if(deleting && chIdx === 0){ deleting=false; tiIndex=(tiIndex+1)%titleMessages.length; timeout=400; }
-      if(!deleting && chIdx < current.length) timeout = 120;
-      if(!deleting && chIdx === current.length) deleting = true;
-      setTimeout(tick, timeout);
-    }
-    setTimeout(tick, 800);
-  })();
-  </script>
-
-  <script>
+  /* Skript pro fade-in sekcí při scrollu (ponecháno) */
   (function(){
     const obs = new IntersectionObserver((entries)=>{
       for(const e of entries){
@@ -479,259 +449,10 @@
   </script>
 
   <script>
+  /* Utility skripty (ponecháno) */
   (function(){
     window.addEventListener('keydown', (e)=>{ if(e.key === 'm' || e.key === 'M'){ const mm = document.getElementById('mobileMenu'); if(mm) mm.style.display = mm.style.display === 'block' ? 'none' : 'block'; }});
-    window.addEventListener('error', (ev)=>{ console.warn('Silent Studio script error', ev.error); });
-  })();
-  </script>
-
-  <script>
-  (function(){
-    const canvas = document.getElementById('hero-canvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d', { alpha:true });
-
-    let DPR = Math.max(1, window.devicePixelRatio || 1);
-    let W = 0, H = 0;
-
-    function resize(){
-      W = Math.floor(window.innerWidth);
-      H = Math.floor(window.innerHeight);
-      canvas.width = Math.floor(W * DPR);
-      canvas.height = Math.floor(H * DPR);
-      canvas.style.width = W + 'px';
-      canvas.style.height = H + 'px';
-      ctx.setTransform(DPR,0,0,DPR,0,0);
-    }
-    window.addEventListener('resize', resize, { passive:true });
-    resize();
-
-    // interactive state
-    const S = { mouseX:0, mouseY:0, scrollY:0, t:0 };
-    window.addEventListener('mousemove', (e)=>{ S.mouseX = (e.clientX / W - 0.5) * 2; S.mouseY = (e.clientY / H - 0.5) * 2; }, { passive:true });
-    window.addEventListener('scroll', ()=>{ S.scrollY = window.scrollY || window.pageYOffset || 0; }, { passive:true });
-
-    // spiral params — TWO ARMS for DNA effect
-    const ARM_COUNT = 2;
-    const POINTS = 1400;   // balanced for perf
-    const R_STEP = 0.36;
-    const ANGLE_MULT = 0.075;
-
-    // precompute base spiral points for each arm
-    const basePoints = new Array(ARM_COUNT);
-    for(let a=0;a<ARM_COUNT;a++){
-      const arm = new Array(POINTS);
-      for(let i=0;i<POINTS;i++){
-        const angle = i * ANGLE_MULT + (a * Math.PI); // offset half-turn for second arm
-        const radius = i * R_STEP;
-        arm[i] = { angle, radius };
-      }
-      basePoints[a] = arm;
-    }
-
-    // particle-ish dots on spirals for depth
-    const DOTS = [];
-    for(let i=0;i<120;i++){
-      DOTS.push({
-        arm: i % ARM_COUNT,
-        pos: Math.random() * POINTS,
-        speed: 0.08 + Math.random()*0.18,
-        size: 0.8 + Math.random()*1.8,
-        alpha: 0.04 + Math.random()*0.12
-      });
-    }
-
-    function draw(){
-      S.t += 1;
-      // clear
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // base fill
-      ctx.save();
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0,0,W,H);
-      ctx.restore();
-
-      const cx = W/2, cy = H/2;
-      const offsetX = S.mouseX * 40;
-      const offsetY = S.mouseY * 30;
-      const scrollInfluence = (S.scrollY || 0) * 0.0016;
-
-      // faint circular guides
-      ctx.save();
-      ctx.globalAlpha = 0.03;
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      for(let r=120;r<Math.max(W,H); r+=120){
-        ctx.beginPath();
-        ctx.arc(cx + offsetX*0.12, cy + offsetY*0.09, r, 0, Math.PI*2);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // draw two spiral arms
-      ctx.save();
-      ctx.lineWidth = 0.7;
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      for(let a=0;a<ARM_COUNT;a++){
-        const arm = basePoints[a];
-        ctx.beginPath();
-        for(let i=0;i<arm.length;i+=2){
-          const p = arm[i];
-          const angle = p.angle + (S.t * 0.0009) + (a * 0.45) + scrollInfluence + Math.sin(i*0.0016 + S.t*0.002)*0.002;
-          const r = p.radius * 0.45;
-          const x = cx + Math.cos(angle) * r + offsetX * (i/POINTS) * 0.95 + Math.sin(i*0.002 + a) * (a===0?1:-1) * 0.6;
-          const y = cy + Math.sin(angle) * r + offsetY * (i/POINTS) * 0.95 + Math.cos(i*0.002 + a) * (a===0?1:-1) * 0.6;
-          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // small highlights along spirals
-      ctx.save();
-      for(let a=0;a<ARM_COUNT;a++){
-        ctx.beginPath();
-        ctx.lineWidth = 1.05;
-        ctx.strokeStyle = 'rgba(255,255,255,' + (0.03 + (a%2)*0.02) + ')';
-        const arm = basePoints[a];
-        for(let i=40;i<arm.length;i+=22){
-          const p = arm[i];
-          const angle = p.angle + (S.t * 0.0016) + (a*0.4) + scrollInfluence;
-          const r = p.radius * 0.45;
-          const x = cx + Math.cos(angle) * r + offsetX * (i/POINTS) * 0.95;
-          const y = cy + Math.sin(angle) * r + offsetY * (i/POINTS) * 0.95;
-          ctx.moveTo(x,y);
-          const dx = Math.cos(angle+Math.PI/2) * 6;
-          const dy = Math.sin(angle+Math.PI/2) * 6;
-          ctx.lineTo(x+dx, y+dy);
-        }
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // dots moving along spirals
-      ctx.save();
-      for(let i=0;i<DOTS.length;i++){
-        const d = DOTS[i];
-        d.pos += d.speed;
-        if(d.pos >= POINTS) d.pos -= POINTS;
-        const p = basePoints[d.arm][Math.floor(d.pos) % POINTS];
-        if(!p) continue;
-        const angle = p.angle + (S.t * 0.0012) + (d.arm*0.32) + scrollInfluence;
-        const r = p.radius * 0.45;
-        const x = cx + Math.cos(angle) * r + offsetX * (d.pos/POINTS) * 0.95;
-        const y = cy + Math.sin(angle) * r + offsetY * (d.pos/POINTS) * 0.95;
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(255,255,255,'+ (d.alpha + Math.abs(Math.sin(d.pos*0.02))*0.06) +')';
-        ctx.arc(x, y, d.size, 0, Math.PI*2);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      // micro grain
-      ctx.save();
-      ctx.globalAlpha = 0.02;
-      ctx.fillStyle = '#ffffff';
-      for(let i=0;i<90;i++){
-        const x = Math.random()*W;
-        const y = Math.random()*H;
-        ctx.fillRect(x,y,1,1);
-      }
-      ctx.restore();
-
-      // vignette
-      ctx.save();
-      const g = ctx.createRadialGradient(cx + offsetX*0.08, cy + offsetY*0.05, Math.min(W,H)*0.05, cx, cy, Math.max(W,H)*0.7);
-      g.addColorStop(0, 'rgba(0,0,0,0)');
-      g.addColorStop(0.6, 'rgba(0,0,0,0.12)');
-      g.addColorStop(1, 'rgba(0,0,0,0.64)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,W,H);
-      ctx.restore();
-
-      requestAnimationFrame(draw);
-    }
-
-    requestAnimationFrame(draw);
-  })();
-  </script>
-
-  <script>
-  (function(){
-    const TARGET = document.getElementById('heroTitle');
-    const BASE = 'SILENT STUDIO';
-    const GLYPH = '𐕣'; // inverted cross symbol; browser fallback if missing
-    const CHARS = BASE.split('');
-    // build spans
-    TARGET.innerHTML = '';
-    const spans = [];
-    CHARS.forEach((ch, idx) => {
-      const sp = document.createElement('span');
-      sp.className = 'title-char';
-      sp.setAttribute('data-idx', idx);
-      sp.textContent = ch;
-      TARGET.appendChild(sp);
-      spans.push(sp);
-    });
-
-    function randomFlick() {
-      // number of letters to flick this burst (1..3)
-      const count = 1 + Math.floor(Math.random()*3);
-      const indices = [];
-      // choose random non-space indices
-      const available = spans.map((s,i)=> ({s,i})).filter(x=> x.s.textContent !== ' ');
-      for(let i=0;i<count;i++){
-        const pick = available[Math.floor(Math.random()*available.length)];
-        indices.push(pick.i);
-      }
-      // apply flick: replace characters temporarily
-      indices.forEach((i)=>{
-        const el = spans[i];
-        if(!el) return;
-        const original = el.textContent;
-        el.classList.add('cursed');
-        el.textContent = GLYPH;
-        // restore after short random duration
-        const dur = 80 + Math.random()*260; // short flash
-        setTimeout(()=>{
-          // small secondary blink possibility
-          if(Math.random() < 0.08){
-            el.textContent = GLYPH;
-            setTimeout(()=>{ el.textContent = original; el.classList.remove('cursed'); }, 60 + Math.random()*160);
-          } else {
-            el.textContent = original;
-            el.classList.remove('cursed');
-          }
-        }, dur);
-      });
-    }
-
-    // schedule flicker bursts with variable cadence
-    function scheduleFlick(){
-      // base delay between bursts
-      const delay = 300 + Math.random()*1200;
-      setTimeout(()=>{
-        // sometimes do a rapid flurry
-        if(Math.random() < 0.12){
-          // rapid series
-          for(let k=0;k<3;k++){
-            setTimeout(randomFlick, k*80 + Math.random()*40);
-          }
-        } else {
-          randomFlick();
-        }
-        scheduleFlick();
-      }, delay);
-    }
-    // start after small delay
-    setTimeout(scheduleFlick, 600);
-
-    // also on hover, more intense flick
-    TARGET.addEventListener('mouseenter', ()=>{
-      for(let i=0;i<6;i++){
-        setTimeout(randomFlick, i*60 + Math.random()*60);
-      }
-    });
+    window.addEventListener('error', (ev)=>{ console.warn('LUNA script error', ev.error); }); // ZMĚNĚNO: Název studia v logu
   })();
   </script>
 
