@@ -1,1 +1,108 @@
 
+ 
+    <!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>COMMING SOON</title>
+ <link rel="icon" href="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/IMG_4254.
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Uncial+Antiqua&family=Special+Elite&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+
+<style>
+  html,body{
+    height:100%;
+    margin:0;
+    background:black;
+    overflow:hidden;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+  }
+
+  h1{
+    font-size:clamp(40px, 10vw, 200px);
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    transition: all 50ms linear;
+    mix-blend-mode:difference;
+    position:relative;
+  }
+
+  .cross{
+    position:absolute;
+    color:white;
+    font-size:20px;
+    opacity:1;
+    transform:rotate(180deg);
+    animation: vanish 1.4s ease forwards;
+  }
+
+  @keyframes vanish{
+    0% { opacity:1; transform:scale(1) rotate(180deg); }
+    100% { opacity:0; transform:scale(0) rotate(180deg); }
+  }
+
+  /* jen aby to působilo trošku glitch */
+  h1::before, h1::after{
+    content:attr(data-text);
+    position:absolute;
+    left:0; top:0;
+    width:100%;
+    color:white;
+    opacity:0.4;
+    mix-blend-mode:screen;
+  }
+  h1::before{ transform:translate(2px,-1px); }
+  h1::after{ transform:translate(-2px,1px); }
+
+  .sub{
+    font-family:"Special Elite", monospace;
+    opacity:0.6;
+    font-size:clamp(12px,2vw,18px);
+    margin-top:1rem;
+  }
+</style>
+</head>
+<body>
+<h1 id="title" data-text="COMMING SOON">COMMING SOON</h1>
+<div class="sub">prepare yourself...</div>
+
+<script>
+const title = document.getElementById('title');
+const fonts = [
+  '"Creepster", cursive',
+  '"Nosifer", cursive',
+  '"Uncial Antiqua", serif',
+  '"Special Elite", monospace',
+  '"Rubik Mono One", sans-serif'
+];
+
+// Agresivní glitch efekt — mění font každých 80–150ms
+setInterval(()=>{
+  const font = fonts[Math.floor(Math.random()*fonts.length)];
+  title.style.fontFamily = font;
+  title.style.letterSpacing = (Math.random()*0.3 - 0.1) + 'em';
+  title.style.transform = `scale(${1 + Math.random()*0.05}) rotate(${(Math.random()*4-2)}deg)`;
+}, 100);
+
+// Náhodně spawnuje obrácené kříže
+function spawnCross(){
+  const c = document.createElement('div');
+  c.className = 'cross';
+  c.textContent = '†';
+  c.style.left = Math.random()*100 + 'vw';
+  c.style.top = Math.random()*100 + 'vh';
+  c.style.fontSize = (Math.random()*30+10) + 'px';
+  document.body.appendChild(c);
+  setTimeout(()=> c.remove(), 1500);
+}
+
+// Spawn každých 200–500ms
+setInterval(spawnCross, 200 + Math.random()*300);
+</script>
+</body>
+</html>
+
