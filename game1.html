@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -93,7 +93,7 @@ const overlay = document.getElementById('overlay');
 const bgMusic = document.getElementById('bgMusic');
 const clickSound = document.getElementById('clickSound');
 
-// Enter click: odblokuje hudbu a odstraní blur overlay
+// Odblokování hudby po Enter
 enterBtn.addEventListener('click', () => {
   bgMusic.play();
   overlay.style.opacity = 0;
@@ -101,8 +101,9 @@ enterBtn.addEventListener('click', () => {
   playBtn.style.display = 'block';
 });
 
-// Play button: zvuk a přesměrování
+// Play button behavior
 playBtn.addEventListener('click', () => {
+  clickSound.volume = Math.min(1, bgMusic.volume * 3); // 3x hlasitější než hudba
   clickSound.play();
   setTimeout(() => {
     window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
@@ -116,11 +117,11 @@ document.querySelectorAll('a').forEach(a => {
   }
 });
 
-// Reklama
-(function(s){
-  s.dataset.zone='10262583';
-  s.src='https://groleegni.net/vignette.min.js';
-})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+// Reklamní skripty
+(function(s){s.dataset.zone='10262583';s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+(function(s){s.dataset.zone='10262650';s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+(function(s){s.dataset.zone='10262654';s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+(function(s){s.dataset.zone='10262655';s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
 </script>
 
 </body>
