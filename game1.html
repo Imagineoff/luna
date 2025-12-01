@@ -21,18 +21,27 @@ html, body {
   /* Zabrání jakémukoliv scrollování */
   overflow: hidden; 
   
-  /* --- Úprava pozadí --- */
+  /* --- Nastavení pozadí --- */
+  
+  /* 1. Základní barva (pro případ, že by se obrázek nenačetl) */
+  background-color: #000;
+  
+  /* 2. Obrázek */
   background-image: url('https://i.imgur.com/8qs7svL.jpeg');
-  /* Vždy vycentruje obrázek */
+  
+  /* 3. Vždy vycentruje obrázek */
   background-position: center center;
-  /* Zabrání opakování obrázku */
+  
+  /* 4. Zabrání opakování obrázku */
   background-repeat: no-repeat;
-  /* Zajistí, že pozadí zůstane fixní (lepší pro mobily) */
+  
+  /* 5. Zajistí, že pozadí zůstane fixní (lepší pro mobily) */
   background-attachment: fixed;
-  /* Klíčová vlastnost: roztáhne obrázek tak, aby pokryl celou obrazovku.
+  
+  /* 6. Klíčová vlastnost: roztáhne obrázek tak, aby pokryl celou obrazovku.
      Zachová poměr stran, ale OŘÍZNE to, co se nevejde. */
   background-size: cover; 
-  /* --- Konec úpravy pozadí --- */
+  /* --- Konec nastavení pozadí --- */
 
   /* Flexbox pro centrování obsahu */
   display: flex;
@@ -128,7 +137,6 @@ playBtn.addEventListener('click', () => {
   playBtn.textContent = 'Loading...';
   playBtn.disabled = true; // Zabrání opakovanému kliknutí
   
-  // Tvůj původní výpočet byl zbytečně složitý, vedl vždy k hodnotě 1
   clickSound.volume = 1.0; 
   clickSound.play();
   
@@ -136,11 +144,6 @@ playBtn.addEventListener('click', () => {
     window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
   };
 });
-
-// Původní kód pro odkazy (<a>) zde nic nedělal, 
-// protože na stránce žádné <a> tagy nemáš.
-// Proto jsem ho pro čistotu odstranil.
-
 </script>
 
 </body>
