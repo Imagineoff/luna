@@ -103,9 +103,11 @@ enterBtn.addEventListener('click', () => {
   playBtn.style.display = 'block';
 });
 
-// Play button: přehraje zvuk a teprve po dohrání teleport
+// Play button: ztlumení hudby, změna textu, přehrání zvuku, teleport po skončení
 playBtn.addEventListener('click', () => {
-  clickSound.volume = Math.min(1, bgMusic.volume * 3); // 3x hlasitější než hudba
+  bgMusic.volume = 0.1; // ztlumení hudby
+  playBtn.textContent = 'Loading...';
+  clickSound.volume = Math.min(1, bgMusic.volume * 3 / 0.1); // 3× hlasitější než původní hlasitost hudby
   clickSound.play();
   clickSound.onended = () => {
     window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
