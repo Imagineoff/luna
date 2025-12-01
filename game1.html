@@ -12,66 +12,81 @@
 
 <style>
 html, body {
-  margin:0;
-  height:100%;
-  width:100%;
-  background: url('https://i.imgur.com/8qs7svL.jpeg') center/cover no-repeat;
-  background-size: cover;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  color:white;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  color: white;
   font-family: Arial, sans-serif;
-  overflow:hidden;
+  /* Zabrání jakémukoliv scrollování */
+  overflow: hidden; 
+  
+  /* --- Úprava pozadí --- */
+  background-image: url('https://i.imgur.com/8qs7svL.jpeg');
+  /* Vždy vycentruje obrázek */
+  background-position: center center;
+  /* Zabrání opakování obrázku */
+  background-repeat: no-repeat;
+  /* Zajistí, že pozadí zůstane fixní (lepší pro mobily) */
+  background-attachment: fixed;
+  /* Klíčová vlastnost: roztáhne obrázek tak, aby pokryl celou obrazovku.
+     Zachová poměr stran, ale OŘÍZNE to, co se nevejde. */
+  background-size: cover; 
+  /* --- Konec úpravy pozadí --- */
+
+  /* Flexbox pro centrování obsahu */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 #overlay {
-  position:absolute;
-  top:0; left:0;
-  width:100%; height:100%;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 10;
   transition: opacity 0.5s ease;
 }
 
 #welcome {
   font-size: 3em;
-  text-align:center;
-  margin-bottom:20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 #enter {
   font-size: 1.5em;
   padding: 10px 20px;
-  background:red;
-  border:none;
-  color:white;
-  cursor:pointer;
+  background: red;
+  border: none;
+  color: white;
+  cursor: pointer;
   animation: blink 1s infinite;
 }
 
 @keyframes blink {
-  0%, 50%, 100% { opacity:1; }
-  25%, 75% { opacity:0.5; }
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.5; }
 }
 
 #playBtn {
   font-size: 2em;
   padding: 20px 50px;
-  background:red;
-  border:none;
-  color:white;
-  cursor:pointer;
-  display:none;
+  background: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: none;
   animation: blink 1s infinite;
-  position:relative;
-  z-index:1;
+  position: relative;
+  z-index: 1;
 }
 </style>
 </head>
@@ -88,7 +103,7 @@ html, body {
 <audio id="clickSound" src="https://files.catbox.moe/mqkcqb.mp3"></audio>
 
 <script>
-// Elements
+// Elementy
 const enterBtn = document.getElementById('enter');
 const playBtn = document.getElementById('playBtn');
 const overlay = document.getElementById('overlay');
@@ -97,9 +112,13 @@ const clickSound = document.getElementById('clickSound');
 
 // Enter click: odblokuje hudbu a odstraní overlay
 enterBtn.addEventListener('click', () => {
-  bgMusic.play();
+  // Přehrání hudby musí být vyvoláno akcí uživatele (kliknutím)
+  bgMusic.play().catch(e => console.error("Chyba při přehrávání hudby:", e));
+  
   overlay.style.opacity = 0;
+  // Počká na dokončení animace (0.5s) a pak teprve skryje overlay
   setTimeout(() => overlay.style.display = 'none', 500);
+  
   playBtn.style.display = 'block';
 });
 
@@ -107,19 +126,21 @@ enterBtn.addEventListener('click', () => {
 playBtn.addEventListener('click', () => {
   bgMusic.volume = 0.1; // ztlumení hudby
   playBtn.textContent = 'Loading...';
-  clickSound.volume = Math.min(1, bgMusic.volume * 3 / 0.1); // 3× hlasitější než původní hlasitost hudby
+  playBtn.disabled = true; // Zabrání opakovanému kliknutí
+  
+  // Tvůj původní výpočet byl zbytečně složitý, vedl vždy k hodnotě 1
+  clickSound.volume = 1.0; 
   clickSound.play();
+  
   clickSound.onended = () => {
     window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
   };
 });
 
-// Odkazy mimo doménu otevírat v nové kartě
-document.querySelectorAll('a').forEach(a => {
-  if (!a.href.includes('project-luna-off.vercel.app')) {
-    a.target = '_blank';
-  }
-});
+// Původní kód pro odkazy (<a>) zde nic nedělal, 
+// protože na stránce žádné <a> tagy nemáš.
+// Proto jsem ho pro čistotu odstranil.
+
 </script>
 
 </body>
