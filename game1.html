@@ -18,13 +18,12 @@ html, body {
   width: 100%;
   color: white;
   font-family: Arial, sans-serif;
-  /* Zabrání jakémukoliv scrollování */
   overflow: hidden; 
   
-  /* --- Nastavení pozadí --- */
+  /* --- Nastavení pozadí pro zobrazení celého obrázku (contain) --- */
   
-  /* 1. Základní barva (pro případ, že by se obrázek nenačetl) */
-  background-color: #000;
+  /* 1. Barva, která vyplní prázdné pruhy - ZMĚNĚNO! */
+  background-color: #140000; /* Téměř černá s jemným rudým nádechem */
   
   /* 2. Obrázek */
   background-image: url('https://i.imgur.com/8qs7svL.jpeg');
@@ -35,12 +34,11 @@ html, body {
   /* 4. Zabrání opakování obrázku */
   background-repeat: no-repeat;
   
-  /* 5. Zajistí, že pozadí zůstane fixní (lepší pro mobily) */
+  /* 5. Zajistí, že pozadí zůstane fixní */
   background-attachment: fixed;
   
-  /* 6. Klíčová vlastnost: roztáhne obrázek tak, aby pokryl celou obrazovku.
-     Zachová poměr stran, ale OŘÍZNE to, co se nevejde. */
-  background-size: cover; 
+  /* 6. Klíčová vlastnost: zajistí, že JE VIDĚT VŽDY CELÝ OBRÁZEK. */
+  background-size: contain; 
   /* --- Konec nastavení pozadí --- */
 
   /* Flexbox pro centrování obsahu */
