@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,9 @@
 html, body {
   margin:0;
   height:100%;
+  width:100%;
   background: url('https://i.imgur.com/8qs7svL.jpeg') center/cover no-repeat;
+  background-size: cover;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -93,7 +95,7 @@ const overlay = document.getElementById('overlay');
 const bgMusic = document.getElementById('bgMusic');
 const clickSound = document.getElementById('clickSound');
 
-// Odblokování hudby po Enter
+// Enter click: odblokuje hudbu a odstraní overlay
 enterBtn.addEventListener('click', () => {
   bgMusic.play();
   overlay.style.opacity = 0;
@@ -101,13 +103,13 @@ enterBtn.addEventListener('click', () => {
   playBtn.style.display = 'block';
 });
 
-// Play button behavior
+// Play button: přehraje zvuk a teprve po dohrání teleport
 playBtn.addEventListener('click', () => {
   clickSound.volume = Math.min(1, bgMusic.volume * 3); // 3x hlasitější než hudba
   clickSound.play();
-  setTimeout(() => {
+  clickSound.onended = () => {
     window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
-  }, 300);
+  };
 });
 
 // Odkazy mimo doménu otevírat v nové kartě
@@ -116,12 +118,6 @@ document.querySelectorAll('a').forEach(a => {
     a.target = '_blank';
   }
 });
-
-// Reklamní skripty
-(function(s){s.dataset.zone='10262583';s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-(function(s){s.dataset.zone='10262650';s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-(function(s){s.dataset.zone='10262654';s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-(function(s){s.dataset.zone='10262655';s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
 </script>
 
 </body>
