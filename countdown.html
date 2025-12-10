@@ -1,108 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUNA</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>LUNA - spotlight</title>
     <style>
         /* --- GENERAL SETTINGS --- */
-        body, html {
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #000;
+            background: #000;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             user-select: none;
-            cursor: none; /* Hides cursor for better immersion */
+            cursor: none;
         }
 
-        /* --- INTRO SCREEN --- */
+        /* INTRO */
         #intro-layer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            transition: opacity 1s ease;
-            cursor: default; /* Cursor visible only here */
+            inset: 0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#000;
+            z-index:2000;
+            transition:opacity .8s ease;
+            cursor:default;
         }
-
         #enter-btn {
-            background: transparent;
-            color: #fff;
-            border: 1px solid #fff;
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
+            border:1px solid #fff;
+            background:transparent;
+            color:#fff;
+            padding:14px 36px;
+            font-size:1.4rem;
+            text-transform:uppercase;
+            letter-spacing:4px;
+            cursor:pointer;
         }
+        #enter-btn:hover { background:#fff; color:#000; }
 
-        #enter-btn:hover {
-            background: #fff;
-            color: #000;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
-
-        /* --- COUNTDOWN CONTENT --- */
+        /* CONTENT */
         #content-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
-            opacity: 0;
-            transition: opacity 2s ease;
+            position:fixed;
+            inset:0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:1;
+            opacity:0;
+            transition:opacity .8s ease;
         }
+        #timer { color:#fff; font-size:4.2rem; letter-spacing:4px; }
 
-        #timer {
-            color: #ffffff;
-            font-size: 5rem;
-            font-weight: bold;
-            letter-spacing: 5px;
-            text-align: center;
-            /* Text styling */
-        }
-
-        /* --- SPOTLIGHT OVERLAY --- */
+        /* SPOTLIGHT */
         #spotlight-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 2s ease;
-            
-            /* The spotlight gradient */
-            /* We use CSS variables --x and --y updated by JS every frame */
-            background: radial-gradient(
-                circle 300px at var(--x, 50%) var(--y, 50%), 
-                transparent 0%, 
-                rgba(0,0,0,0.98) 35%,
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:10;
+            opacity:0;
+            transition:opacity .8s ease;
+            /* gradient uses CSS variables set from JS: --x, --y, --r, --soft */
+            background:
+              radial-gradient(
+                circle var(--r, 300px) at var(--x, 50%) var(--y, 50%),
+                rgba(255,255,255,0) 0%,
+                rgba(0,0,0,0.92) 38%,
                 black 100%
-            );
-            
-            /* NO CSS TRANSITION here - JS handles the movement instantly */
+              );
+            will-change: background;
         }
 
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-            #timer { font-size: 2.5rem; }
+        @media (max-width:768px){
+            #timer { font-size:2.2rem; }
         }
     </style>
 </head>
@@ -123,103 +96,192 @@
     </div>
 
     <script>
-        /* ==========================================
-           DATE SETTINGS (Edit here)
-           Format: YYYY-MM-DDTHH:MM:SS
-           ========================================== */
-        const targetDateString = "2025-12-20T15:00:00";
-        /* ========================================== */
+    /*
+      Nastavení: upravuj tady
+    */
+    const targetDateString = "2025-12-20T15:00:00";
 
-        // Elements
-        const introLayer = document.getElementById('intro-layer');
-        const enterBtn = document.getElementById('enter-btn');
-        const audio = document.getElementById('bg-music');
-        const contentLayer = document.getElementById('content-layer');
-        const spotlightOverlay = document.getElementById('spotlight-overlay');
-        const timerElement = document.getElementById('timer');
+    // Movement tuning
+    const SETTINGS = {
+        baseSpeed: 180,           // px/s (průměrná rychlost)
+        minTargetTime: 800,       // ms - min doba než si vybere nový cílový bod
+        maxTargetTime: 2600,      // ms - max doba
+        reachThreshold: 40,       // px - když jsme blízko cíle, vybere se nový
+        radiusMin: 200,           // px - spotlight radius min
+        radiusMax: 420,           // px - spotlight radius max
+        jitter: 14,               // px - drobný náhodný jitter pro organic pohyb
+        changeRadiusEvery: 1200   // ms - jak často míchat velikost spotu
+    };
 
-        // 1. START
-        enterBtn.addEventListener('click', () => {
-            audio.volume = 0.5;
-            audio.play().catch(e => console.log("Audio error:", e));
+    // Elements
+    const introLayer = document.getElementById('intro-layer');
+    const enterBtn = document.getElementById('enter-btn');
+    const audio = document.getElementById('bg-music');
+    const contentLayer = document.getElementById('content-layer');
+    const spotlightOverlay = document.getElementById('spotlight-overlay');
+    const timerElement = document.getElementById('timer');
 
-            introLayer.style.opacity = '0';
-            
-            setTimeout(() => {
-                introLayer.style.display = 'none';
-                contentLayer.style.opacity = '1';
-                spotlightOverlay.style.opacity = '1';
-                
-                // Start the physics loop
-                requestAnimationFrame(animateSpotlight);
-            }, 1000);
-        });
-
-        // 2. COUNTDOWN
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const target = new Date(targetDateString).getTime();
-            const distance = target - now;
-
-            if (distance < 0) {
-                timerElement.innerHTML = "00d 00h 00m 00s";
-                return;
-            }
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            const fDays = days < 10 ? "0" + days : days;
-            const fHours = hours < 10 ? "0" + hours : hours;
-            const fMinutes = minutes < 10 ? "0" + minutes : minutes;
-            const fSeconds = seconds < 10 ? "0" + seconds : seconds;
-
-            timerElement.innerHTML = `${fDays}d ${fHours}h ${fMinutes}m ${fSeconds}s`;
+    // Countdown
+    function updateCountdown(){
+        const now = Date.now();
+        const target = new Date(targetDateString).getTime();
+        const d = target - now;
+        if (d <= 0) {
+            timerElement.textContent = "00d 00h 00m 00s";
+            return;
         }
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        const days = Math.floor(d / (1000*60*60*24));
+        const hours = Math.floor((d % (1000*60*60*24)) / (1000*60*60));
+        const minutes = Math.floor((d % (1000*60*60)) / (1000*60));
+        const seconds = Math.floor((d % (1000*60)) / 1000);
+        const pad = n => (n<10 ? "0"+n : n);
+        timerElement.textContent = `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
 
-        // 3. CONTINUOUS PHYSICS MOVEMENT (No stopping)
-        
-        // Initial position (center)
-        let posX = 50;
-        let posY = 50;
+    // Start interaction
+    enterBtn.addEventListener('click', () => {
+        // try play audio (may be blocked by browser)
+        audio.volume = 0.5;
+        audio.play().catch(()=>{ /* ignore */ });
 
-        // Velocity (Speed and Direction)
-        // We set random initial speed
-        let velX = (Math.random() - 0.5) * 0.6; // Speed X
-        let velY = (Math.random() - 0.5) * 0.6; // Speed Y
+        introLayer.style.opacity = '0';
+        setTimeout(()=>{
+            introLayer.style.display = 'none';
+            contentLayer.style.opacity = '1';
+            spotlightOverlay.style.opacity = '1';
+            startSpotlight();
+        }, 700);
+    });
 
-        function animateSpotlight() {
-            // Update position
-            posX += velX;
-            posY += velY;
+    // Spotlight physics (steering to random targets)
+    let vw = window.innerWidth;
+    let vh = window.innerHeight;
 
-            // Bounce off edges (0% and 100%)
-            // We add a tiny randomness to velocity on bounce to keep it organic
-            if (posX <= 0 || posX >= 100) {
-                velX = -velX;
-                // Add slight random variation so it doesn't get stuck in a perfect loop
-                velY += (Math.random() - 0.5) * 0.05; 
-            }
-            if (posY <= 0 || posY >= 100) {
-                velY = -velY;
-                velX += (Math.random() - 0.5) * 0.05;
-            }
+    let pos = { x: vw/2, y: vh/2 }; // current position (px)
+    let target = randomPoint();
+    let currentSpeed = SETTINGS.baseSpeed * (0.7 + Math.random()*0.9);
+    let lastTime = performance.now();
 
-            // Clamp values just in case
-            posX = Math.max(0, Math.min(100, posX));
-            posY = Math.max(0, Math.min(100, posY));
+    // radius animation
+    let radius = (SETTINGS.radiusMin + SETTINGS.radiusMax) / 2;
+    let lastRadiusChange = performance.now();
 
-            // Apply to CSS
-            spotlightOverlay.style.setProperty('--x', posX + '%');
-            spotlightOverlay.style.setProperty('--y', posY + '%');
+    // pick a random target timer (so it occasionally re-chooses even if not reached)
+    let nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
+    let targetTimer = 0;
 
-            // Keep looping forever at 60fps
-            requestAnimationFrame(animateSpotlight);
+    function randomInt(min, max){ return Math.floor(min + Math.random()*(max-min)); }
+    function randomPoint(){
+        return {
+            x: Math.random() * vw,
+            y: Math.random() * vh
+        };
+    }
+
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+    function startSpotlight(){
+        // set initial CSS vars
+        spotlightOverlay.style.setProperty('--x', pos.x + 'px');
+        spotlightOverlay.style.setProperty('--y', pos.y + 'px');
+        spotlightOverlay.style.setProperty('--r', radius + 'px');
+
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    }
+
+    function loop(t){
+        const dt = Math.min(40, t - lastTime) / 1000; // limit dt to avoid huge jumps (s)
+        lastTime = t;
+
+        // if reached target or timeout, pick a new one
+        const dx = target.x - pos.x;
+        const dy = target.y - pos.y;
+        const dist = Math.hypot(dx, dy);
+
+        targetTimer += dt*1000;
+        if (dist < SETTINGS.reachThreshold || targetTimer > nextTargetTimeout) {
+            target = randomPoint();
+            currentSpeed = SETTINGS.baseSpeed * (0.5 + Math.random()*1.2);
+            nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
+            targetTimer = 0;
         }
+
+        // directional movement towards target with easing
+        if (dist > 1) {
+            const dirx = dx / dist;
+            const diry = dy / dist;
+
+            // Move: speed * dt, plus small jitter for organic feel
+            const moveX = dirx * currentSpeed * dt;
+            const moveY = diry * currentSpeed * dt;
+
+            // small frame-stable jitter
+            const jitterX = (Math.random() - 0.5) * SETTINGS.jitter * dt;
+            const jitterY = (Math.random() - 0.5) * SETTINGS.jitter * dt;
+
+            pos.x += moveX + jitterX;
+            pos.y += moveY + jitterY;
+        } else {
+            // tiny random drift if exactly on target
+            pos.x += (Math.random() - 0.5) * 10 * dt;
+            pos.y += (Math.random() - 0.5) * 10 * dt;
+        }
+
+        // keep inside bounds
+        pos.x = clamp(pos.x, 0, vw);
+        pos.y = clamp(pos.y, 0, vh);
+
+        // occasionally change radius for dynamic effect
+        if (t - lastRadiusChange > SETTINGS.changeRadiusEvery) {
+            lastRadiusChange = t;
+            const newR = SETTINGS.radiusMin + Math.random() * (SETTINGS.radiusMax - SETTINGS.radiusMin);
+            // smooth transition of radius with a small tween
+            animateRadius(radius, newR, 450);
+        }
+
+        // set CSS variables
+        spotlightOverlay.style.setProperty('--x', pos.x + 'px');
+        spotlightOverlay.style.setProperty('--y', pos.y + 'px');
+        spotlightOverlay.style.setProperty('--r', Math.round(radius) + 'px');
+
+        requestAnimationFrame(loop);
+    }
+
+    // small tween for radius to keep it smooth
+    function animateRadius(from, to, duration){
+        const start = performance.now();
+        function tick(now){
+            const p = Math.min(1, (now - start) / duration);
+            // ease in-out
+            const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+            radius = from + (to - from) * eased;
+            if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    // update vw/vh on resize and clamp positions/target
+    window.addEventListener('resize', () => {
+        vw = window.innerWidth;
+        vh = window.innerHeight;
+        pos.x = clamp(pos.x, 0, vw);
+        pos.y = clamp(pos.y, 0, vh);
+        target.x = clamp(target.x, 0, vw);
+        target.y = clamp(target.y, 0, vh);
+    });
+
+    // Optional: show spotlight on mouse (debug) - un-comment if you want manual control
+    /*
+    window.addEventListener('mousemove', (e)=>{
+        pos.x = e.clientX;
+        pos.y = e.clientY;
+        // disable pointer hiding if necessary:
+        // document.body.style.cursor = 'default';
+    });
+    */
 
     </script>
 </body>
