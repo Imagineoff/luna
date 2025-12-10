@@ -5,19 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUNA</title>
     <style>
-        /* --- ZÁKLADNÍ NASTAVENÍ --- */
+        /* --- GENERAL SETTINGS --- */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             background-color: #000;
-            font-family: 'Courier New', Courier, monospace; /* Technický font */
-            overflow: hidden; /* Zabrání scrollování */
-            user-select: none; /* Nelze označovat text */
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            user-select: none;
+            cursor: none; /* Hides cursor for better immersion */
         }
 
-        /* --- OBRAZOVKA S TLAČÍTKEM (INTRO) --- */
+        /* --- INTRO SCREEN --- */
         #intro-layer {
             position: fixed;
             top: 0;
@@ -30,6 +31,7 @@
             align-items: center;
             z-index: 2000;
             transition: opacity 1s ease;
+            cursor: default; /* Cursor visible only here */
         }
 
         #enter-btn {
@@ -50,7 +52,7 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
-        /* --- HLAVNÍ OBSAH (ODPOČET) --- */
+        /* --- COUNTDOWN CONTENT --- */
         #content-layer {
             position: fixed;
             top: 0;
@@ -60,41 +62,45 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1; /* Je vespod */
-            opacity: 0; /* Zpočátku skryté */
+            z-index: 1;
+            opacity: 0;
             transition: opacity 2s ease;
         }
 
         #timer {
             color: #ffffff;
-            font-size: 5rem; /* Velký text */
+            font-size: 5rem;
             font-weight: bold;
             letter-spacing: 5px;
             text-align: center;
+            /* Text styling */
         }
 
-        /* --- EFEKT REFLEKTORU (TMA) --- */
+        /* --- SPOTLIGHT OVERLAY --- */
         #spotlight-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Aby šlo klikat skrz (pokud by bylo třeba) */
-            z-index: 10; /* Překrývá text */
+            pointer-events: none;
+            z-index: 10;
             opacity: 0;
             transition: opacity 2s ease;
             
-            /* Tmavá vrstva s průhlednou dírou. Pozice se mění přes JS proměnné */
+            /* The spotlight gradient */
+            /* We use CSS variables --x and --y updated by JS every frame */
             background: radial-gradient(
-                circle 250px at var(--x, 50%) var(--y, 50%), 
+                circle 300px at var(--x, 50%) var(--y, 50%), 
                 transparent 0%, 
-                rgba(0,0,0,0.95) 40%,
+                rgba(0,0,0,0.98) 35%,
                 black 100%
             );
+            
+            /* NO CSS TRANSITION here - JS handles the movement instantly */
         }
 
-        /* Responsivita pro mobily */
+        /* Mobile adjustments */
         @media (max-width: 768px) {
             #timer { font-size: 2.5rem; }
         }
@@ -118,12 +124,13 @@
 
     <script>
         /* ==========================================
-           NASTAVENÍ DATA (Uprav zde)
+           DATE SETTINGS (Edit here)
+           Format: YYYY-MM-DDTHH:MM:SS
            ========================================== */
         const targetDateString = "2025-12-20T15:00:00";
         /* ========================================== */
 
-        // Elementy
+        // Elements
         const introLayer = document.getElementById('intro-layer');
         const enterBtn = document.getElementById('enter-btn');
         const audio = document.getElementById('bg-music');
@@ -131,13 +138,11 @@
         const spotlightOverlay = document.getElementById('spotlight-overlay');
         const timerElement = document.getElementById('timer');
 
-        // 1. SPUŠTĚNÍ WEBU
+        // 1. START
         enterBtn.addEventListener('click', () => {
-            // Pustit hudbu
             audio.volume = 0.5;
             audio.play().catch(e => console.log("Audio error:", e));
 
-            // Zmizet tlačítko
             introLayer.style.opacity = '0';
             
             setTimeout(() => {
@@ -145,12 +150,12 @@
                 contentLayer.style.opacity = '1';
                 spotlightOverlay.style.opacity = '1';
                 
-                // Spustit náhodný pohyb světla
-                moveSpotlightRandomly();
+                // Start the physics loop
+                requestAnimationFrame(animateSpotlight);
             }, 1000);
         });
 
-        // 2. LOGIKA ODPOČTU
+        // 2. COUNTDOWN
         function updateCountdown() {
             const now = new Date().getTime();
             const target = new Date(targetDateString).getTime();
@@ -166,7 +171,6 @@
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            // Formátování na 2 číslice (05, 12 atd.)
             const fDays = days < 10 ? "0" + days : days;
             const fHours = hours < 10 ? "0" + hours : hours;
             const fMinutes = minutes < 10 ? "0" + minutes : minutes;
@@ -174,26 +178,47 @@
 
             timerElement.innerHTML = `${fDays}d ${fHours}h ${fMinutes}m ${fSeconds}s`;
         }
-
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // 3. LOGIKA NÁHODNÉHO REFLEKTORU
-        function moveSpotlightRandomly() {
-            // Vygeneruj náhodná % pro X a Y (0% až 100%)
-            const randomX = Math.floor(Math.random() * 100);
-            const randomY = Math.floor(Math.random() * 100);
+        // 3. CONTINUOUS PHYSICS MOVEMENT (No stopping)
+        
+        // Initial position (center)
+        let posX = 50;
+        let posY = 50;
 
-            // Aplikuj na CSS proměnné
-            spotlightOverlay.style.setProperty('--x', randomX + '%');
-            spotlightOverlay.style.setProperty('--y', randomY + '%');
+        // Velocity (Speed and Direction)
+        // We set random initial speed
+        let velX = (Math.random() - 0.5) * 0.6; // Speed X
+        let velY = (Math.random() - 0.5) * 0.6; // Speed Y
 
-            // Přechod trvá náhodně mezi 2 a 4 sekundami pro přirozenější efekt
-            const duration = (Math.random() * 2 + 2).toFixed(1); 
-            spotlightOverlay.style.transition = `background ${duration}s ease-in-out`;
+        function animateSpotlight() {
+            // Update position
+            posX += velX;
+            posY += velY;
 
-            // Zavolej tuto funkci znovu po dokončení pohybu
-            setTimeout(moveSpotlightRandomly, duration * 1000);
+            // Bounce off edges (0% and 100%)
+            // We add a tiny randomness to velocity on bounce to keep it organic
+            if (posX <= 0 || posX >= 100) {
+                velX = -velX;
+                // Add slight random variation so it doesn't get stuck in a perfect loop
+                velY += (Math.random() - 0.5) * 0.05; 
+            }
+            if (posY <= 0 || posY >= 100) {
+                velY = -velY;
+                velX += (Math.random() - 0.5) * 0.05;
+            }
+
+            // Clamp values just in case
+            posX = Math.max(0, Math.min(100, posX));
+            posY = Math.max(0, Math.min(100, posY));
+
+            // Apply to CSS
+            spotlightOverlay.style.setProperty('--x', posX + '%');
+            spotlightOverlay.style.setProperty('--y', posY + '%');
+
+            // Keep looping forever at 60fps
+            requestAnimationFrame(animateSpotlight);
         }
 
     </script>
