@@ -7,286 +7,182 @@
 <style>
   :root {
     --bg: #080808;
-    --hint: rgba(255,255,255,0.12);
   }
-  html,body { height:100%; margin:0; background:var(--bg); overflow:hidden; }
-  .wrap {
-    position:relative;
-    width:100vw;
-    height:100vh;
-  }
-
-  /* dva canvasy: spodní pro nápis + akumulované tečky, horní pro pohybující se ovál (bez stop) */
-  canvas {
-    position:absolute;
-    left:0; top:0;
-    width:100%;
+  html,body {
     height:100%;
-    display:block;
+    margin:0;
+    background:var(--bg);
+    overflow:hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
-
-  #hint {
-    position:fixed;
-    left:12px;
-    bottom:12px;
-    color:var(--hint);
-    font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size:12px;
-    user-select:none;
-    pointer-events:none;
-  }
-
-  /* styl nadpisu pro případ, že JS nepoběží */
-  .fallback {
-    position:absolute;
-    left:50%; top:27%;
-    transform:translate(-50%,-50%);
-    color:#fff;
-    font-weight:800;
-    font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size:48px;
-    letter-spacing:4px;
-    text-align:center;
-    opacity:0.02;
-    pointer-events:none;
-  }
+  canvas { display:block; width:100vw; height:100vh; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <canvas id="base"></canvas> <!-- statické + akumulace -->
-  <canvas id="top"></canvas>  <!-- pohybující se ovál -->
-  <div class="fallback">GOON VERSE</div>
-</div>
-<div id="hint">automatik — meme režim</div>
+<canvas id="c"></canvas>
 
 <script>
-(() => {
-  // canvases + contexty
-  const base = document.getElementById('base');
-  const top = document.getElementById('top');
-  const bgCtx = base.getContext('2d', { alpha: false }); // pro akumulaci teček (nevynulovat)
-  const topCtx = top.getContext('2d', { alpha: true });  // bude se čistit každým rámcem
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
 
-  // HiDPI resize
-  function fit(canv, ctx) {
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const w = innerWidth, h = innerHeight;
-    canv.width = Math.floor(w * dpr);
-    canv.height = Math.floor(h * dpr);
-    canv.style.width = w + 'px';
-    canv.style.height = h + 'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
+function resize() {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width  = Math.floor(window.innerWidth  * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  canvas.style.width  = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
 
-  function resizeAll() {
-    fit(base, bgCtx);
-    fit(top, topCtx);
-    drawStaticBase(); // překreslí základní prvky na spodní canvas (menu + koule)
-  }
-  addEventListener('resize', resizeAll);
-  resizeAll();
+// helper positions based on current size
+function CX(){ return innerWidth/2; }
+function baseY(){ return innerHeight * 0.62; }
+const titleYratio = 0.25;
 
-  // PARAMS
-  const MAX_PARTICLES = 7000;   // bezpečnostní limit
-  const EMIT_PER_FRAME = 60;    // výchozí generování / frame
-  const PARTICLE_MIN = 0.8, PARTICLE_MAX = 4.0;
-  const GRAVITY = 0.02;
-  const SPEED = 2.6;
-  const PARTICLE_LIFE_FRAMES = 140;
+// particles accumulate permanently on the canvas (no clearing)
+const particles = [];
+const MAX_PARTICLES = 9000;
 
-  // positions (nastavíme při drawStaticBase)
-  let cx = innerWidth/2;
-  let baseY = innerHeight * 0.62;
-  // emitter bude navázaný na pohyblivý ovál (top oval)
-  let emitterX = cx;
-  let emitterY = baseY - 100;
+// emission settings
+const EMIT_PER_FRAME = 18; // výchozí počet teček / frame
+const SPEED = 2.8;
+const GRAV = 0.03;
 
-  // particles nejsou ukládány kvůli akumulaci — budeme je vykreslovat do spodního canvas jako "permanentní stopy".
-  // Aby proces byl kontrolovatelný, ale nezpomalil, limitujeme počet současně generovaných bodů.
-  let currentParticleCount = 0;
+// time
+let t = 0;
 
-  // statické elementy: title + dvě koule (spodní) -> vykreslí se na base canvas
-  function drawStaticBase() {
-    // vyplnit pozadí (tímto se smažou staré pixelové stopy pokud chceme restartovat; tady voláme při resize)
-    bgCtx.fillStyle = '#080808';
-    bgCtx.fillRect(0,0,innerWidth,innerHeight);
+// draw static-ish lower shapes (we redraw every frame so they stay on top of subtle background)
+function drawScene(bounce) {
+  // slight dark overlay instead of full clear to keep accumulation visible
+  ctx.fillStyle = "rgba(8,8,8,0.06)";
+  ctx.fillRect(0,0,innerWidth,innerHeight);
 
-    // Title
-    const title = "GOON VERSE";
-    const fontSize = Math.floor(Math.min(innerWidth, innerHeight) * 0.12);
-    bgCtx.font = `800 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-    bgCtx.textAlign = 'center';
-    bgCtx.textBaseline = 'middle';
-    const grad = bgCtx.createLinearGradient(innerWidth/2 - 220, innerHeight*0.28, innerWidth/2 + 220, innerHeight*0.28);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(1, '#cfcfcf');
-    bgCtx.fillStyle = grad;
-    bgCtx.fillText(title, innerWidth/2, innerHeight * 0.28);
+  // Title
+  const fontSize = Math.floor(Math.min(innerWidth, innerHeight) * 0.10);
+  ctx.font = `800 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // subtle gradient for title
+  const g = ctx.createLinearGradient(CX() - 200, innerHeight*titleYratio, CX() + 200, innerHeight*titleYratio);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#cfcfcf');
+  ctx.fillStyle = g;
+  ctx.fillText("GOON VERSE", CX(), innerHeight * titleYratio);
 
-    // cartoon lower shapes (dvě koule + tělo) — stylizované, NE explicitní popis
-    cx = innerWidth/2;
-    baseY = innerHeight * 0.62;
+  // coordinates for shapes
+  const cx = CX();
+  const by = baseY();
 
-    // ground shadow
-    bgCtx.beginPath();
-    bgCtx.ellipse(cx, baseY + 96, 130, 28, 0, 0, Math.PI*2);
-    bgCtx.fillStyle = 'rgba(0,0,0,0.46)';
-    bgCtx.fill();
+  // ground shadow
+  ctx.beginPath();
+  ctx.ellipse(cx, by + 96, 140, 30, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fill();
 
-    // left sphere
-    bgCtx.beginPath();
-    bgCtx.arc(cx - 56, baseY + 12, 46, 0, Math.PI*2);
-    bgCtx.fillStyle = '#111';
-    bgCtx.fill();
+  // dvě velké koule (jasně viditelné pod oválem)
+  ctx.fillStyle = '#111';
+  // left circle
+  ctx.beginPath();
+  ctx.arc(cx - 66, by + 10, 52, 0, Math.PI*2);
+  ctx.fill();
+  // right circle
+  ctx.beginPath();
+  ctx.arc(cx + 66, by + 10, 52, 0, Math.PI*2);
+  ctx.fill();
 
-    // right sphere
-    bgCtx.beginPath();
-    bgCtx.arc(cx + 56, baseY + 12, 46, 0, Math.PI*2);
-    bgCtx.fillStyle = '#111';
-    bgCtx.fill();
+  // outline for emphasis (cartoon look)
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.beginPath();
+  ctx.arc(cx - 66, by + 10, 52, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + 66, by + 10, 52, 0, Math.PI*2);
+  ctx.stroke();
 
-    // main oval body (slightly taller, will not move)
-    bgCtx.beginPath();
-    bgCtx.ellipse(cx, baseY - 38, 48, 92, 0, 0, Math.PI*2);
-    bgCtx.fill();
+  // hlavní střední tělo (ovál) — trochu nad koulemi
+  const ovalRx = 46;
+  const ovalRy = 92;
+  const ovalX = cx;
+  const ovalY = by - 46 - bounce; // bounce posun
+  ctx.beginPath();
+  ctx.ellipse(ovalX, ovalY, ovalRx, ovalRy, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#111';
+  ctx.fill();
 
-    // subtle highlights
-    bgCtx.fillStyle = 'rgba(255,255,255,0.06)';
-    bgCtx.beginPath();
-    bgCtx.ellipse(cx - 22, baseY - 58, 14, 36, -0.5, 0, Math.PI*2);
-    bgCtx.fill();
-    bgCtx.beginPath();
-    bgCtx.ellipse(cx + 36, baseY - 8, 10, 22, 0.45, 0, Math.PI*2);
-    bgCtx.fill();
+  // glossy highlights
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.beginPath();
+  ctx.ellipse(ovalX - 18, ovalY - 24, 14, 34, -0.5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(ovalX + 30, ovalY + 6, 10, 20, 0.4, 0, Math.PI*2);
+  ctx.fill();
 
-    // emitter baseline (ovální krk)
-    emitterX = cx;
-    emitterY = baseY - 100;
-  }
+  // return coordinates for emitter (top of oval)
+  return { x: ovalX, y: ovalY - ovalRy + 6 };
+}
 
-  // PARTICLE EMISSION: generujeme body, vykreslíme je přímo na bgCtx (tedy PERMANENTNĚ akumulují)
-  function emitParticles(n, eX, eY) {
-    // rychlé kreslení: použijeme Path2D? vykreslovat přímo kruhy je OK
-    for (let i = 0; i < n; i++) {
-      if (currentParticleCount >= MAX_PARTICLES) break;
-      // rozptyl a rychlost
-      const angle = -Math.PI/2 + (Math.random()-0.5) * 1.4; // převážně nahoru
-      const spd = SPEED * (0.5 + Math.random()*1.4);
-      const vx = Math.cos(angle) * spd + (Math.random()-0.5) * 0.6;
-      const vy = Math.sin(angle) * spd + (Math.random()-0.5) * 0.6;
+// simple particle emitter: we simulate a few steps, then draw final dot permanently
+function emitFrom(x, y, n) {
+  for (let i=0;i<n;i++){
+    if (particles.length >= MAX_PARTICLES) break;
+    // initial random velocity upward-ish
+    const angle = -Math.PI/2 + (Math.random()-0.5) * 1.2;
+    const spd = SPEED * (0.6 + Math.random()*1.1);
+    let vx = Math.cos(angle) * spd + (Math.random()-0.5)*0.6;
+    let vy = Math.sin(angle) * spd + (Math.random()-0.5)*0.6;
+    let px = x + (Math.random()-0.5) * 12;
+    let py = y + (Math.random()-0.5) * 6;
 
-      // Vypočítáme finální "landing" bod přibližně integrací několika kroků,
-      // ale jednoduché řešení: necháme bod vykreslit přímo s náhodným offsetem a malou trajektorií,
-      // aby efekt působil jako vystřelení (ale stále byl vykreslen permanentně).
-      // Simulujeme několik kroků a nakreslíme tečku v konečné pozici, to je rychlejší než animovat každého.
-      let px = eX + (Math.random()-0.5) * 14;
-      let py = eY + (Math.random()-0.5) * 6;
-
-      // simulate a few physics steps to spread
-      const steps = 12 + Math.floor(Math.random()*18);
-      let curVx = vx, curVy = vy;
-      for (let s = 0; s < steps; s++) {
-        curVy += GRAVITY;
-        px += curVx;
-        py += curVy;
-      }
-
-      // size + alpha variation
-      const size = PARTICLE_MIN + Math.random() * (PARTICLE_MAX - PARTICLE_MIN);
-      const alpha = 0.85 - Math.random() * 0.35;
-
-      // draw final dot on base canvas (accumulate)
-      bgCtx.beginPath();
-      bgCtx.fillStyle = `rgba(255,255,255,${alpha})`;
-      bgCtx.arc(px, py, size, 0, Math.PI*2);
-      bgCtx.fill();
-
-      currentParticleCount++;
-    }
-  }
-
-  // bouncing ovál (animace na topCtx) - jemná oscilace, bez stop
-  let t0 = performance.now();
-  function drawTopOval(time) {
-    topCtx.clearRect(0,0,innerWidth,innerHeight);
-    const t = (time - t0) / 1000; // sekundy
-
-    // bouncing parametry
-    const bounceAmp = Math.min(1, innerHeight / 900) * 18; // výška bounce
-    const bounceSpeed = 2.6; // freq
-    const bob = Math.abs(Math.sin(t * bounceSpeed)) * bounceAmp; // 0..amp
-
-    const ovalX = cx;
-    const ovalY = (baseY - 100) - bob; // ovál se pohybuje nahoru/dolů
-    const ovalRx = 38;
-    const ovalRy = 70;
-
-    // jemné rotace pro "jittery" efekt
-    const rot = Math.sin(t * 7.3) * 0.06;
-
-    topCtx.save();
-    topCtx.translate(ovalX, ovalY);
-    topCtx.rotate(rot);
-
-    // shadow/glow
-    const grd = topCtx.createRadialGradient(0, -10, 10, 0, -10, 120);
-    grd.addColorStop(0, 'rgba(255,255,255,0.035)');
-    grd.addColorStop(1, 'rgba(0,0,0,0)');
-    topCtx.fillStyle = grd;
-    topCtx.beginPath();
-    topCtx.ellipse(0, -8, ovalRx*2.2, ovalRy*2.0, 0, 0, Math.PI*2);
-    topCtx.fill();
-
-    // main oval (darker)
-    topCtx.fillStyle = '#111';
-    topCtx.beginPath();
-    topCtx.ellipse(0, 0, ovalRx, ovalRy, 0, 0, Math.PI*2);
-    topCtx.fill();
-
-    // glossy highlight
-    topCtx.fillStyle = 'rgba(255,255,255,0.07)';
-    topCtx.beginPath();
-    topCtx.ellipse(-12, -20, 12, 30, -0.5, 0, Math.PI*2);
-    topCtx.fill();
-
-    topCtx.restore();
-
-    // update emitter coords to top of oval (so particles shoot from moving point)
-    // compute emitter point from ovalX, ovalY, rot
-    const topOffsetX = 0;
-    const topOffsetY = -ovalRy - 6; // kousek nad oválem
-    // rotate offset by rot and add to cx/ovalY
-    const sinr = Math.sin(rot), cosr = Math.cos(rot);
-    emitterX = ovalX + (topOffsetX * cosr - topOffsetY * sinr);
-    emitterY = ovalY + (topOffsetX * sinr + topOffsetY * cosr);
-  }
-
-  // hlavní loop: vykreslí top oval (animace) a emituje částice na spodní canvas
-  function loop(time) {
-    drawTopOval(time);
-
-    // emitovat částice z emitteru; rychlost generování může být konstantní
-    emitParticles(EMIT_PER_FRAME, emitterX, emitterY);
-
-    // pokud chceme, můžeme občas vykreslit pár extra "splash" bodů pro variaci
-    if (Math.random() < 0.08) {
-      emitParticles(8 + Math.floor(Math.random() * 18), emitterX, emitterY);
+    // simulate short trajectory
+    const steps = 10 + Math.floor(Math.random()*20);
+    for (let s=0;s<steps;s++){
+      vy += GRAV;
+      px += vx;
+      py += vy;
     }
 
-    // degradace počtu když překročíme limit: v tomto designu neodstraňujeme pixely,
-    // ale stopneme další generaci pokud je count >= MAX_PARTICLES
-    // (to se dělá uvnitř emitParticles)
-    requestAnimationFrame(loop);
+    // draw permanent dot
+    const r = 0.9 + Math.random()*3.6;
+    const a = 0.85 - Math.random()*0.35;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.arc(px, py, r, 0, Math.PI*2);
+    ctx.fill();
+
+    particles.push({}); // just track count
+  }
+}
+
+// main loop
+function loop(){
+  t += 0.05;
+  // bounce value (smooth)
+  const bounceAmp = Math.min(38, innerHeight / 40);
+  const bounce = Math.abs(Math.sin(t * 1.8)) * bounceAmp;
+
+  // draw scene and get emitter point
+  const emitter = drawScene(bounce);
+
+  // emit a bunch per frame from top of oval
+  emitFrom(emitter.x, emitter.y, EMIT_PER_FRAME);
+
+  // small occasional heavier bursts so fill looks organic
+  if (Math.random() < 0.07) {
+    emitFrom(emitter.x + (Math.random()-0.5)*40, emitter.y + (Math.random()-0.5)*10, 6 + Math.floor(Math.random()*12));
   }
 
-  // start animace
-  drawStaticBase();
-  // malý delay, aby byl title viditelný před startem
-  setTimeout(() => {
-    requestAnimationFrame(loop);
-  }, 120);
-})();
+  // loop
+  requestAnimationFrame(loop);
+}
+
+// start
+// small initial dark clear so shapes show cleanly at load
+ctx.fillStyle = '#080808';
+ctx.fillRect(0,0,innerWidth,innerHeight);
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
