@@ -3,21 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUNA - Cinematic Experience</title>
+    <title>LUNA - Price of Pain & Dev Studio</title>
+    
+    <meta name="description" content="LUNA - a passionate development studio creating unique digital experiences.">
+    <link rel="icon" type="image/jpeg" href="https://i.imgur.com/BRzF9ds.jpeg">
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --accent: #c026d3; }
+        :root { --accent: #c026d3; --bg: #000; }
         body {
-            background: #000;
+            background: var(--bg);
             color: #fff;
             font-family: 'Inter', sans-serif;
             margin: 0;
             overflow-x: hidden;
+            background-attachment: fixed;
         }
 
-        /* Kontejner, který drží scénu na místě */
-        .sticky-container {
+        /* Smooth Scroll Wrapper */
+        .scrolly-section {
+            position: relative;
+            height: 350vh; /* Délka scrollu pro každou scénu */
+            width: 100%;
+        }
+
+        .sticky-viewport {
             position: sticky;
             top: 0;
             height: 100vh;
@@ -26,13 +38,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 2000px;
-        }
-
-        /* Každá sekce má definovanou výšku scrollu (300vh = 3x výška okna pro animaci) */
-        .scroll-track {
-            height: 300vh;
-            position: relative;
+            perspective: 1500px;
         }
 
         .text-gradient {
@@ -42,174 +48,201 @@
             color: transparent;
         }
 
-        /* 3D Model placeholder (iPhone-style) */
-        #iphone-card {
-            width: 300px;
-            height: 600px;
-            background: #111;
-            border: 8px solid #222;
-            border-radius: 40px;
-            position: relative;
+        /* 3D Game Card Style */
+        #game-showcase {
+            width: 80vw;
+            max-width: 1000px;
+            aspect-ratio: 16/9;
+            background: url('https://i.imgur.com/nxvHrEV.jpeg') center/cover;
+            border-radius: 24px;
+            box-shadow: 0 0 100px rgba(192, 38, 211, 0.2);
             transform-style: preserve-3d;
-            will-change: transform;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            will-change: transform, opacity;
+            position: relative;
         }
 
-        #iphone-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url('https://i.imgur.com/BRzF9ds.jpeg') center/cover;
-            border-radius: 32px;
-            opacity: 0.8;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
-        /* Světelný odlesk na "displeji" */
-        .glare {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, transparent 50%);
-            border-radius: 32px;
-            pointer-events: none;
+        .btn-luna {
+            background: linear-gradient(90deg, #4f46e5, #c026d3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .btn-luna:hover { transform: scale(1.05) translateY(-3px); box-shadow: 0 10px 30px rgba(192, 38, 211, 0.4); }
 
-        .scroll-hint {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0.5;
-            animation: bounce 2s infinite;
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
 
-        @keyframes bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 10px); } }
     </style>
 </head>
 <body>
 
-    <div class="scroll-hint">Scroll to explore</div>
-
-    <div class="scroll-track" id="track-hero">
-        <div class="sticky-container">
-            <h1 id="luna-main" class="font-black text-center select-none" style="font-size: 15rem; transform: scale(1);">
+    <div class="scrolly-section" id="section-hero">
+        <div class="sticky-viewport">
+            <h1 id="luna-logo" class="font-black text-center select-none" style="font-size: clamp(5rem, 20vw, 25rem);">
                 LUNA
             </h1>
         </div>
     </div>
 
-    <div class="scroll-track" id="track-3d">
-        <div class="sticky-container">
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <h2 id="text-pop" class="text-6xl font-black mb-8 opacity-0">PRICE OF PAIN</h2>
-                <div id="iphone-card">
-                    <div class="glare"></div>
-                    <div class="absolute inset-0 flex items-center justify-center p-8 text-center bg-black/40 rounded-[32px]">
-                        <p id="card-desc" class="opacity-0 font-bold text-xl">The darkness is <br>calling you.</p>
-                    </div>
+    <div class="scrolly-section" id="section-game">
+        <div class="sticky-viewport">
+            <div id="game-container" class="flex flex-col items-center">
+                <div id="game-title-group" class="text-center mb-12 opacity-0">
+                    <h2 class="text-6xl md:text-8xl font-black italic tracking-tighter">PRICE OF PAIN</h2>
+                    <p class="text-purple-400 font-bold tracking-[0.3em] uppercase mt-2">Psychological Horror Experience</p>
                 </div>
-                <div id="cta-pop" class="mt-12 opacity-0">
-                    <a href="https://project-luna-off.vercel.app/countdown.html" class="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-purple-500 hover:text-white transition">PLAY NOW</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="scroll-track" id="track-partners">
-        <div class="sticky-container">
-            <div id="p1" class="absolute transform -translate-x-96 opacity-0">
-                <img src="https://github.com/Imagineoff/Imagineweb/raw/main/NeP.PNG" class="h-48 w-auto">
-            </div>
-            <div id="p2" class="absolute transform translate-x-96 opacity-0">
-                <img src="https://github.com/Imagineoff/Imagineweb/raw/main/KladneskeDilny.WEBP" class="h-48 w-auto">
-            </div>
-            <h2 id="partner-title" class="text-4xl font-bold opacity-0">PARTNERS</h2>
-        </div>
-    </div>
-
-    <div class="scroll-track" id="track-final">
-        <div class="sticky-container">
-            <div id="final-content" class="max-w-4xl w-full px-6 opacity-0 scale-90">
-                <div class="relative group">
-                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-75"></div>
-                    <img src="https://i.imgur.com/hLCDPcl.jpeg" class="relative rounded-xl w-full">
-                </div>
-                <div class="grid grid-cols-2 gap-8 mt-12">
-                    <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="300" frameborder="0" class="rounded-xl"></iframe>
-                    <div class="flex flex-col justify-center">
-                        <h3 class="text-3xl font-bold mb-4">Join LUNA</h3>
-                        <p class="text-gray-400">assist.luna@proton.me</p>
+                
+                <div id="game-showcase" class="opacity-0">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-2xl"></div>
+                    <div id="game-info" class="absolute bottom-10 left-10 right-10 flex justify-between items-end opacity-0">
+                        <div class="max-w-md">
+                            <p class="text-lg text-gray-200">Dive into a decaying world filled with hidden secrets and a dark, evolving lore. Nothing is as it seems.</p>
+                        </div>
+                        <a href="https://project-luna-off.vercel.app/countdown.html" target="_blank" class="btn-luna px-10 py-4 rounded-full font-black text-white uppercase tracking-widest">Play Now</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="scrolly-section" id="section-about">
+        <div class="sticky-viewport">
+            <div class="container max-w-5xl px-6 grid md:grid-cols-2 gap-12 items-center">
+                <div id="about-text" class="opacity-0 translate-x-[-100px]">
+                    <h2 class="text-5xl font-black mb-6">We Are <span class="text-gradient">LUNA</span></h2>
+                    <p class="text-xl text-gray-400 leading-relaxed">
+                        A new and passionate development studio, creating unique digital experiences from captivating web games to immersive Roblox mini-games.
+                    </p>
+                </div>
+                <div id="about-stats" class="grid grid-cols-2 gap-4 opacity-0 translate-x-[100px]">
+                    <div class="glass-card p-8 rounded-2xl text-center">
+                        <div class="text-4xl font-black text-gradient">2024</div>
+                        <div class="text-sm uppercase text-gray-500 font-bold mt-2">Founded</div>
+                    </div>
+                    <div class="glass-card p-8 rounded-2xl text-center">
+                        <div class="text-4xl font-black text-gradient">100%</div>
+                        <div class="text-sm uppercase text-gray-500 font-bold mt-2">Passion</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scrolly-section" id="section-community">
+        <div class="sticky-viewport">
+            <div class="container max-w-6xl px-6">
+                <h2 id="comm-title" class="text-5xl font-black text-center mb-16 opacity-0">JOIN THE PULSE</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div id="comm-links" class="space-y-4 opacity-0 scale-90">
+                        <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="glass-card flex items-center justify-between p-6 rounded-xl hover:bg-white/10 transition">
+                            <span class="font-bold">Patreon</span><span class="text-purple-500">↗</span>
+                        </a>
+                        <a href="https://x.com/project_luna_" target="_blank" class="glass-card flex items-center justify-between p-6 rounded-xl hover:bg-white/10 transition">
+                            <span class="font-bold">Twitter (X)</span><span class="text-purple-500">↗</span>
+                        </a>
+                        <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" class="glass-card flex items-center justify-between p-6 rounded-xl hover:bg-white/10 transition">
+                            <span class="font-bold">YouTube</span><span class="text-purple-500">↗</span>
+                        </a>
+                        <a href="https://www.tiktok.com/@project_luna_" target="_blank" class="glass-card flex items-center justify-between p-6 rounded-xl hover:bg-white/10 transition">
+                            <span class="font-bold">TikTok</span><span class="text-purple-500">↗</span>
+                        </a>
+                        <a href="https://www.instagram.com/_project_luna/" target="_blank" class="glass-card flex items-center justify-between p-6 rounded-xl hover:bg-white/10 transition">
+                            <span class="font-bold">Instagram</span><span class="text-purple-500">↗</span>
+                        </a>
+                    </div>
+
+                    <div id="comm-discord" class="lg:col-span-2 opacity-0 scale-95 translate-y-20">
+                        <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="400" allowtransparency="true" frameborder="0" class="rounded-2xl border border-white/10"></iframe>
+                    </div>
+                </div>
+                
+                <div id="comm-footer" class="mt-20 text-center opacity-0">
+                    <p class="text-gray-500 mb-2 font-bold uppercase tracking-widest text-sm">Direct Line</p>
+                    <a href="mailto:assist.luna@proton.me" class="text-3xl font-black text-gradient">assist.luna@proton.me</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-10 text-center text-gray-600 text-sm border-t border-white/5">
+        &copy; <span id="year"></span> LUNA DEVELOPMENT. ALL RIGHTS RESERVED.
+    </footer>
 
     <script>
-        // Logika pro plynulý Apple-style scrollytelling
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // SCRUBBING ENGINE
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
             const wh = window.innerHeight;
 
-            // --- SEKCE 1: LUNA ZOOM ---
-            const heroTrack = document.getElementById('track-hero');
-            const lunaMain = document.getElementById('luna-main');
-            let p1 = scrollY / (wh * 2); // Progress 0-1
-            if (p1 >= 0 && p1 <= 1) {
-                lunaMain.style.transform = `scale(${1 + p1 * 50})`;
-                lunaMain.style.opacity = 1 - (p1 * 1.5);
-            }
+            // 1. HERO LUNA ZOOM (Timeline: 0 to 1)
+            const p1 = Math.min(1, scrollY / (wh * 2.5));
+            const lunaLogo = document.getElementById('luna-logo');
+            lunaLogo.style.transform = `scale(${1 + p1 * 60}) translate3d(0,0,0)`;
+            lunaLogo.style.opacity = 1 - (p1 * 1.2);
+            lunaLogo.style.filter = `blur(${p1 * 20}px)`;
 
-            // --- SEKCE 2: 3D IPHONE ROTACE ---
-            const track3D = document.getElementById('track-3d');
-            const iphone = document.getElementById('iphone-card');
-            const textPop = document.getElementById('text-pop');
-            const ctaPop = document.getElementById('cta-pop');
-            const cardDesc = document.getElementById('card-desc');
-            
-            // Začátek této sekce v px
-            const start3D = heroTrack.offsetHeight;
-            let p2 = (scrollY - start3D) / (wh * 2);
+            // 2. PRICE OF PAIN REVEAL (Timeline: Start after Hero)
+            const sectionGame = document.getElementById('section-hero').offsetHeight;
+            let p2 = (scrollY - sectionGame) / (wh * 2.5);
+            p2 = Math.max(0, Math.min(1, p2));
 
-            if (p2 >= 0 && p2 <= 1) {
-                // iPhone rotace (od 0 do 360 stupňů + náklon)
-                const rotateY = p2 * 360;
-                const rotateX = Math.sin(p2 * Math.PI) * 20;
-                iphone.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(${0.5 + p2 * 0.5})`;
+            const showcase = document.getElementById('game-showcase');
+            const gameTitle = document.getElementById('game-title-group');
+            const gameInfo = document.getElementById('game-info');
+
+            if (p2 > 0) {
+                // 360 rotation + scale up
+                const rotation = p2 * 360;
+                const scale = p2 < 0.5 ? 0.5 + p2 : 1; 
+                showcase.style.opacity = p2 * 2;
+                showcase.style.transform = `rotateY(${rotation}deg) scale(${scale}) translate3d(0,0,0)`;
                 
-                // Texty se objevují a mizí podle fáze rotace
-                textPop.style.opacity = p2 > 0.1 ? (p2 < 0.9 ? 1 : 1 - (p2-0.9)*10) : p2 * 10;
-                ctaPop.style.opacity = p2 > 0.5 ? 1 : 0;
-                cardDesc.style.opacity = (p2 > 0.4 && p2 < 0.6) ? 1 : 0;
-            }
-
-            // --- SEKCE 3: PARTNERS (Spatial) ---
-            const startPartners = start3D + track3D.offsetHeight;
-            let p3 = (scrollY - startPartners) / (wh * 2);
-            
-            if (p3 >= 0 && p3 <= 1) {
-                const partTitle = document.getElementById('partner-title');
-                const nep = document.getElementById('p1');
-                const klade = document.getElementById('p2');
-
-                partTitle.style.opacity = p3 * 2;
-                partTitle.style.transform = `translateZ(${p3 * 500}px)`;
-
-                // Loga letí z hloubky a ze stran
-                nep.style.opacity = p3 * 2;
-                nep.style.transform = `translateX(${-384 + p3 * 200}px) translateZ(${p3 * 200}px) rotate(${p3 * 10}deg)`;
+                gameTitle.style.opacity = p2 * 1.5;
+                gameTitle.style.transform = `translateY(${(1-p2)*50}px)`;
                 
-                klade.style.opacity = p3 * 2;
-                klade.style.transform = `translateX(${384 - p3 * 200}px) translateZ(${p3 * 200}px) rotate(${-p3 * 10}deg)`;
+                gameInfo.style.opacity = p2 > 0.8 ? (p2 - 0.8) * 5 : 0;
             }
 
-            // --- SEKCE 4: FINAL AD ---
-            const startFinal = startPartners + document.getElementById('track-partners').offsetHeight;
-            let p4 = (scrollY - startFinal) / (wh * 1.5);
+            // 3. ABOUT SECTION (Slide in from sides)
+            const sectionAbout = sectionGame + document.getElementById('section-game').offsetHeight;
+            let p3 = (scrollY - sectionAbout) / (wh * 2.5);
+            p3 = Math.max(0, Math.min(1, p3));
 
-            if (p4 >= 0 && p4 <= 1) {
-                const finalContent = document.getElementById('final-content');
-                finalContent.style.opacity = p4;
-                finalContent.style.transform = `scale(${0.9 + p4 * 0.1}) translateY(${(1-p4) * 100}px)`;
+            const aboutText = document.getElementById('about-text');
+            const aboutStats = document.getElementById('about-stats');
+
+            if (p3 > 0) {
+                aboutText.style.opacity = p3 * 2;
+                aboutText.style.transform = `translateX(${(1-p3)*-100}px)`;
+                aboutStats.style.opacity = p3 * 2;
+                aboutStats.style.transform = `translateX(${(1-p3)*100}px)`;
+            }
+
+            // 4. COMMUNITY (Grid formation)
+            const sectionComm = sectionAbout + document.getElementById('section-about').offsetHeight;
+            let p4 = (scrollY - sectionComm) / (wh * 2.5);
+            p4 = Math.max(0, Math.min(1, p4));
+
+            if (p4 > 0) {
+                document.getElementById('comm-title').style.opacity = p4 * 2;
+                document.getElementById('comm-links').style.opacity = p4 * 2;
+                document.getElementById('comm-links').style.transform = `scale(${0.9 + p4*0.1})`;
+                
+                const discord = document.getElementById('comm-discord');
+                discord.style.opacity = p4 * 2;
+                discord.style.transform = `translateY(${(1-p4)*50}px) scale(${0.95 + p4*0.05})`;
+                
+                document.getElementById('comm-footer').style.opacity = p4 > 0.7 ? (p4-0.7)*3 : 0;
             }
         });
     </script>
