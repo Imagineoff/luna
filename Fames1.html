@@ -9,7 +9,6 @@
 <meta property="og:description" content="Game by LUNA">
 <meta property="og:image" content="https://i.imgur.com/8qs7svL.jpeg">
 <link rel="icon" href="https://i.imgur.com/8qs7svL.jpeg">
-
 <style>
 html, body {
   margin: 0;
@@ -18,56 +17,36 @@ html, body {
   width: 100%;
   color: white;
   font-family: Arial, sans-serif;
-  overflow: hidden; 
-  
-  /* --- Nastavení pozadí pro zobrazení celého obrázku (contain) --- */
-  
-  /* 1. Barva, která vyplní prázdné pruhy - ZMĚNĚNO! */
-  background-color: #140000; /* Téměř černá s jemným rudým nádechem */
-  
-  /* 2. Obrázek */
+  overflow: hidden;
+  background-color: #140000;
   background-image: url('https://i.imgur.com/8qs7svL.jpeg');
-  
-  /* 3. Vždy vycentruje obrázek */
   background-position: center center;
-  
-  /* 4. Zabrání opakování obrázku */
   background-repeat: no-repeat;
-  
-  /* 5. Zajistí, že pozadí zůstane fixní */
   background-attachment: fixed;
-  
-  /* 6. Klíčová vlastnost: zajistí, že JE VIDĚT VŽDY CELÝ OBRÁZEK. */
-  background-size: contain; 
-  /* --- Konec nastavení pozadí --- */
-
-  /* Flexbox pro centrování obsahu */
+  background-size: contain;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
 }
-
 #overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.65);
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  z-index: 10;
+  z-index: 20;
   transition: opacity 0.5s ease;
 }
-
 #welcome {
   font-size: 3em;
   text-align: center;
   margin-bottom: 20px;
 }
-
 #enter {
   font-size: 1.5em;
   padding: 10px 20px;
@@ -77,12 +56,10 @@ html, body {
   cursor: pointer;
   animation: blink 1s infinite;
 }
-
 @keyframes blink {
   0%, 50%, 100% { opacity: 1; }
   25%, 75% { opacity: 0.5; }
 }
-
 #playBtn {
   font-size: 2em;
   padding: 20px 50px;
@@ -95,6 +72,76 @@ html, body {
   position: relative;
   z-index: 1;
 }
+#adModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  background: rgba(0,0,0,0.8);
+}
+#adCard {
+  width: min(720px, 90%);
+  height: min(480px, 75%);
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+#adImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+#adTop {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+#countdown {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+#skipBtn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  display: none;
+}
+#adClose {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: default;
+  font-size: 0.9rem;
+}
 </style>
 </head>
 <body>
@@ -106,41 +153,63 @@ html, body {
 
 <button id="playBtn">Play</button>
 
+<div id="adModal" aria-hidden="true">
+  <div id="adCard" role="dialog" aria-label="Advertisement">
+    <img id="adImage" src="https://i.imgur.com/TdFT12d.jpeg" alt="Ad">
+    <div id="adTop">Advertisement</div>
+    <div id="countdown">15</div>
+    <button id="skipBtn">Skip Ad</button>
+    <div id="adClose">Ad will end soon</div>
+  </div>
+</div>
+
 <audio id="bgMusic" loop src="https://files.catbox.moe/48z4q0.mp3"></audio>
 <audio id="clickSound" src="https://files.catbox.moe/mqkcqb.mp3"></audio>
 
 <script>
-// Elementy
 const enterBtn = document.getElementById('enter');
 const playBtn = document.getElementById('playBtn');
 const overlay = document.getElementById('overlay');
 const bgMusic = document.getElementById('bgMusic');
 const clickSound = document.getElementById('clickSound');
-
-// Enter click: odblokuje hudbu a odstraní overlay
+const adModal = document.getElementById('adModal');
+const countdownEl = document.getElementById('countdown');
+const skipBtn = document.getElementById('skipBtn');
+const adClose = document.getElementById('adClose');
+const redirectUrl = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
 enterBtn.addEventListener('click', () => {
-  // Přehrání hudby musí být vyvoláno akcí uživatele (kliknutím)
-  bgMusic.play().catch(e => console.error("Chyba při přehrávání hudby:", e));
-  
+  bgMusic.play().catch(()=>{});
   overlay.style.opacity = 0;
-  // Počká na dokončení animace (0.5s) a pak teprve skryje overlay
   setTimeout(() => overlay.style.display = 'none', 500);
-  
   playBtn.style.display = 'block';
 });
-
-// Play button: ztlumení hudby, změna textu, přehrání zvuku, teleport po skončení
 playBtn.addEventListener('click', () => {
-  bgMusic.volume = 0.1; // ztlumení hudby
+  bgMusic.volume = 0.1;
   playBtn.textContent = 'Loading...';
-  playBtn.disabled = true; // Zabrání opakovanému kliknutí
-  
-  clickSound.volume = 1.0; 
-  clickSound.play();
-  
-  clickSound.onended = () => {
-    window.location.href = 'https://project-luna-off.vercel.app/Price-of-Pain.html';
-  };
+  playBtn.disabled = true;
+  clickSound.play().catch(()=>{});
+  showAd();
+});
+function showAd(){
+  adModal.style.display = 'flex';
+  adModal.setAttribute('aria-hidden','false');
+  let time = 15;
+  countdownEl.textContent = time;
+  skipBtn.style.display = 'none';
+  adClose.style.display = 'block';
+  const timer = setInterval(() => {
+    time--;
+    countdownEl.textContent = time;
+    if(time <= 0){
+      clearInterval(timer);
+      countdownEl.style.display = 'none';
+      skipBtn.style.display = 'inline-block';
+      adClose.style.display = 'none';
+    }
+  },1000);
+}
+skipBtn.addEventListener('click', () => {
+  window.location.href = redirectUrl;
 });
 </script>
 
