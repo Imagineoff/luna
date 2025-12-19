@@ -137,21 +137,31 @@
         };
         window.addEventListener('scroll', scroll);
         scroll();
-    </script>
-        <script>
-        let text = "LUNA";
-        let index = 0;
+    <script>
+let text = "LUNA";
+let index = 0;
+let deleting = false; 
 
-        function typeTitle() {
-            document.title = text.substring(0, index);
-            index++;
+function animateTitle() {
 
-            if(index > text.length){
-                index = 0;
-            }
+    if (!deleting) {
+        document.title = text.substring(0, index);
+        index++;
+        if (index > text.length) {
+            deleting = true;
+            index = text.length;
         }
+    } else {
+        document.title = text.substring(0, index);
+        index--;
+        if (index < 0) {
+            deleting = false;
+            index = 0;
+        }
+    }
+}
 
-        setInterval(typeTitle, 300);
-    </script>
+setInterval(animateTitle, 300); // rychlost animace
+</script>
 </body>
 </html>
