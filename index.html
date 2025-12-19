@@ -1,354 +1,479 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUNA - Heavy Motion</title>
+    <title>LUNA - Project Price of Pain</title>
+    <meta name="description" content="LUNA Development Studio - Creators of Price of Pain">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ZÁKLADNÍ NASTAVENÍ --- */
+        /* --- CORE STYLES --- */
         body {
-            background-color: #000;
-            color: #e5e7eb;
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #ffffff;
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden; /* Kritické pro animace příletů ze stran */
-            perspective: 1000px; /* Přidává 3D hloubku celému webu */
+            overflow: hidden; /* Důležité: Skryjeme nativní scrollbar, nahradíme ho virtuálním */
+            width: 100vw;
+            height: 100vh;
         }
 
-        /* Scrollbar design */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 4px; }
+        /* Virtuální kontejner pro Smooth Scroll */
+        #smooth-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            perspective: 1000px; /* Hloubka 3D scény */
+        }
 
-        /* --- GRADIENTY --- */
+        #smooth-content {
+            width: 100%;
+            /* Výška se nastaví dynamicky přes JS */
+            will-change: transform;
+            transform-style: preserve-3d;
+        }
+
+        /* --- TYPOGRAFIE A ELEMENTY --- */
         .text-gradient {
-            background-image: linear-gradient(to right, #4f46e5, #c026d3);
+            background: linear-gradient(to right, #6366f1, #d946ef);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
-        .btn-gradient {
-            background-image: linear-gradient(to right, #4f46e5 0%, #c026d3 100%);
-            background-size: 200% auto;
+
+        .hero-text-big {
+            font-size: clamp(6rem, 25vw, 40rem);
+            line-height: 0.8;
+            letter-spacing: -0.05em;
+            color: #ffffff;
+            opacity: 1;
+            transform-origin: center center;
+        }
+
+        /* Karty a boxy */
+        .glass-panel {
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-glow {
+            position: relative;
+            background: linear-gradient(90deg, #4f46e5, #c026d3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
             transition: 0.5s;
         }
-        .btn-gradient:hover { background-position: right center; box-shadow: 0 0 20px #c026d3; }
-
-        /* --- LUNA HERO EFEKT --- */
-        #hero-container {
-            height: 100vh;
-            width: 100%;
-            position: sticky;
-            top: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            z-index: 10;
-            pointer-events: none; /* Aby šlo scrollovat "skrz" text */
+        .btn-glow:hover::before {
+            left: 100%;
         }
-        .hero-text {
-            font-size: clamp(8rem, 30vw, 30rem);
-            line-height: 1;
-            will-change: transform, opacity;
-            transform-style: preserve-3d;
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(192, 38, 211, 0.5);
+            transform: scale(1.02);
         }
 
-        /* --- SLOŽITÉ ANIMACE (HEAVY ANIMATIONS) --- */
-        
-        /* Společná třída pro animované prvky */
-        .anim-item {
-            opacity: 0;
-            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); /* Velmi plynulý "dojezd" */
-            will-change: transform, opacity;
+        /* Scrollbar (Custom Visual) */
+        .scrollbar-track {
+            position: fixed;
+            top: 0; right: 0;
+            width: 6px;
+            height: 100%;
+            background: rgba(255,255,255,0.05);
+            z-index: 9999;
+        }
+        .scrollbar-thumb {
+            position: absolute;
+            top: 0; right: 0;
+            width: 6px;
+            background: #d946ef;
+            border-radius: 3px;
         }
 
-        /* 1. Přílet zleva (pro nadpisy) */
-        .fly-left {
-            transform: translateX(-100px) rotateY(-20deg) scale(0.9);
-        }
-        
-        /* 2. Přílet zprava (pro texty) */
-        .fly-right {
-            transform: translateX(100px) rotateY(20deg) scale(0.9);
-        }
-
-        /* 3. Přílet zespodu s 3D rotací (pro karty) */
-        .fly-up-3d {
-            transform: translateY(100px) rotateX(45deg) scale(0.8);
-        }
-
-        /* Stav, kdy je prvek vidět */
-        .anim-item.in-view {
-            opacity: 1;
-            transform: translateX(0) translateY(0) rotateX(0) rotateY(0) scale(1);
-        }
-
-        /* --- PARALAXA PRO PARTNERY --- */
-        /* Třída pro věci, které budou "plavat" při scrollu */
-        .parallax-float {
-            transition: transform 0.1s linear; /* Okamžitá reakce na scroll */
-            will-change: transform;
-        }
-
+        /* Helper classes pro animace */
+        .origin-center { transform-origin: center; }
+        .origin-left { transform-origin: left center; }
     </style>
 </head>
 <body>
 
-    <div id="hero-container">
-        <h1 id="luna-text" class="hero-text font-black uppercase text-gradient select-none">
-            LUNA
-        </h1>
-    </div>
+    <div class="scrollbar-track"><div class="scrollbar-thumb" id="custom-scrollbar"></div></div>
 
-    <div id="spacer-scroll-length" class="h-[150vh]"></div>
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
 
-    <div id="main-content" class="relative z-20 bg-black pt-20">
-
-        <section class="min-h-screen flex items-center justify-center py-24 px-6 overflow-hidden">
-            <div class="container mx-auto max-w-4xl grid md:grid-cols-2 gap-12 items-center">
-                <div class="anim-item fly-left text-left">
-                    <h2 class="text-5xl md:text-7xl font-bold mb-6">
-                        We Are <br><span class="text-gradient">LUNA</span>
-                    </h2>
-                    <div class="h-1 w-24 bg-purple-600 rounded-full"></div>
+            <section class="relative h-[160vh] flex items-start justify-center overflow-hidden" id="section-hero">
+                <div class="fixed-target sticky top-0 h-screen w-full flex items-center justify-center">
+                    <h1 class="hero-text-big font-black uppercase text-center select-none" data-speed="0">
+                        LUNA
+                    </h1>
                 </div>
-                <div class="anim-item fly-right">
-                    <p class="text-lg md:text-xl text-gray-400 leading-relaxed text-justify">
-                        We are a new and passionate development studio, starting our journey in creating unique digital experiences. From captivating web games to immersive Roblox mini-games. Our mission is to build projects we love.
-                    </p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="py-32 px-6 bg-gradient-to-b from-black via-purple-900/10 to-black">
-            <div class="container mx-auto max-w-6xl">
-                <div class="anim-item fly-up-3d text-center mb-20">
-                    <h2 class="text-4xl md:text-6xl font-bold">Our Projects</h2>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
-                    
-                    <div class="anim-item fly-up-3d border border-purple-500/30 rounded-2xl p-6 bg-gray-900/80 backdrop-blur-md hover:scale-105 transition-transform duration-500 shadow-2xl shadow-purple-900/20 group">
-                        <div class="h-48 bg-gray-800 rounded-xl mb-6 overflow-hidden relative">
-                            <div class="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                            <div class="absolute inset-0 flex items-center justify-center text-4xl">🎮</div>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-3 text-white group-hover:text-purple-400 transition-colors">
-                            Price of Pain
-                        </h3>
-                        <p class="text-gray-400 mb-6 text-sm">
-                            A free psychological horror game playable directly in your browser. Dive into a decaying world filled with hidden secrets.
-                        </p>
-                        <a href="https://project-luna-off.vercel.app/countdown.html" target="_blank" class="block w-full btn-gradient py-3 rounded-lg text-center font-bold text-white">
-                            Play Now
-                        </a>
-                    </div>
-
-                    <div class="anim-item fly-up-3d border border-gray-800 rounded-2xl p-6 bg-gray-900/40 backdrop-blur-sm grayscale hover:grayscale-0 transition-all duration-500" style="transition-delay: 100ms;">
-                        <div class="h-48 bg-gray-800 rounded-xl mb-6 flex items-center justify-center border border-gray-700">
-                            <span class="text-gray-500 font-mono">Coming Soon</span>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-3 text-gray-500">
-                            Project: Echo
-                        </h3>
-                        <p class="text-gray-600 mb-6 text-sm">
-                            Something dark is coming. Stay tuned for our next big reveal in the Roblox universe.
-                        </p>
-                        <button disabled class="block w-full bg-gray-800 py-3 rounded-lg text-center font-bold text-gray-600 cursor-not-allowed">
-                            Locked
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <section class="py-40 px-6 overflow-hidden relative">
-            <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-            
-            <div class="container mx-auto max-w-5xl relative z-10">
-                <h2 class="anim-item fly-up-3d text-4xl md:text-5xl font-bold text-center mb-24">
-                    Trusted Partners
-                </h2>
-                
-                <div class="flex flex-col md:flex-row items-center justify-center gap-16 md:gap-32">
-                    
-                    <div class="parallax-wrapper" data-speed="0.05">
-                        <div class="anim-item fly-left bg-white/5 p-8 rounded-full border border-white/10 hover:border-purple-500 transition-colors duration-300 backdrop-blur-sm">
-                            <img 
-                                src="https://github.com/Imagineoff/Imagineweb/raw/main/NeP.PNG" 
-                                alt="NeP Partner" 
-                                class="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="parallax-wrapper" data-speed="-0.08">
-                        <div class="anim-item fly-right bg-white/5 p-8 rounded-full border border-white/10 hover:border-purple-500 transition-colors duration-300 backdrop-blur-sm">
-                            <img 
-                                src="https://github.com/Imagineoff/Imagineweb/raw/main/KladneskeDilny.WEBP" 
-                                alt="Kladneske Dilny" 
-                                class="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                            >
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <section class="py-24 px-6 bg-gray-900/30">
-            <div class="container mx-auto max-w-6xl">
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                    <div class="anim-item fly-left flex flex-col space-y-4">
-                        <h3 class="text-3xl font-bold mb-8">Join the Pulse</h3>
+            <section class="relative py-32 px-6 overflow-hidden min-h-screen flex items-center" id="section-about">
+                <div class="container mx-auto max-w-5xl relative z-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         
-                        <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="group flex items-center justify-between p-4 border border-gray-800 rounded-xl hover:bg-purple-900/20 hover:border-purple-500 transition-all duration-300">
-                            <span class="font-bold text-lg">Patreon</span>
-                            <span class="text-purple-400 group-hover:translate-x-2 transition-transform">→</span>
-                        </a>
-                        <a href="https://x.com/project_luna_" target="_blank" class="group flex items-center justify-between p-4 border border-gray-800 rounded-xl hover:bg-purple-900/20 hover:border-purple-500 transition-all duration-300">
-                            <span class="font-bold text-lg">X (Twitter)</span>
-                            <span class="text-purple-400 group-hover:translate-x-2 transition-transform">→</span>
-                        </a>
-                        <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" class="group flex items-center justify-between p-4 border border-gray-800 rounded-xl hover:bg-purple-900/20 hover:border-purple-500 transition-all duration-300">
-                            <span class="font-bold text-lg">YouTube</span>
-                            <span class="text-purple-400 group-hover:translate-x-2 transition-transform">→</span>
-                        </a>
+                        <div class="anim-block" data-anim="fly-in-left">
+                            <h2 class="text-6xl md:text-8xl font-bold leading-tight mb-8">
+                                Beyond <br> <span class="text-gradient">Reality</span>
+                            </h2>
+                            <div class="h-1 w-0 bg-white mb-8" id="line-grow"></div>
+                        </div>
+
+                        <div class="anim-block space-y-8" data-anim="fly-in-right">
+                            <p class="text-xl text-gray-400 leading-relaxed border-l-2 border-purple-500 pl-6">
+                                We don't just write code. We forge worlds. LUNA is a development collective obsessed with the dark corners of creativity.
+                            </p>
+                            <p class="text-lg text-gray-500 leading-relaxed">
+                                From the depths of Roblox engines to standalone web experiences, our mission is to create tension, immersion, and utility.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="absolute top-1/2 right-[-10%] w-[50vw] h-[50vw] rounded-full bg-purple-900/10 blur-[120px] -z-10" data-speed="0.5"></div>
+            </section>
+
+            <section class="relative py-48 px-6 perspective-section" id="section-game">
+                <div class="container mx-auto max-w-7xl">
+                    
+                    <div class="flex flex-col items-center mb-24 anim-block" data-anim="fade-up">
+                        <span class="text-purple-500 tracking-[0.5em] text-sm uppercase font-bold mb-4">Featured Project</span>
+                        <h2 class="text-5xl md:text-7xl font-black text-center">PRICE OF PAIN</h2>
+                    </div>
+
+                    <div class="relative w-full max-w-5xl mx-auto h-[600px] md:h-[700px] perspective-container">
                         
-                        <div class="mt-8 pt-8 border-t border-gray-800">
-                            <p class="text-sm text-gray-500 mb-1">Direct Contact</p>
-                            <a href="mailto:assist.luna@proton.me" class="text-xl text-gradient font-bold">assist.luna@proton.me</a>
-                        </div>
-                    </div>
+                        <div class="absolute inset-0 w-full h-full glass-panel rounded-3xl overflow-hidden border-gradient-anim transform-gpu" id="game-card">
+                            
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-20"></div>
+                            
+                            <div class="absolute inset-0 bg-gray-900 overflow-hidden">
+                                <div class="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-black to-black opacity-80"></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20rem] opacity-5 select-none font-black text-white">
+                                    POP
+                                </div>
+                            </div>
 
-                    <div class="anim-item fly-right w-full h-full min-h-[400px]">
-                         <iframe 
-                            src="https://discord.com/widget?id=1433738890421997600&theme=dark" 
-                            width="100%" 
-                            height="500" 
-                            allowtransparency="true" 
-                            frameborder="0" 
-                            class="rounded-2xl shadow-2xl"
-                            sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
-                        ></iframe>
+                            <div class="absolute bottom-0 left-0 w-full p-8 md:p-16 z-30 flex flex-col md:flex-row items-end justify-between gap-8">
+                                <div class="max-w-xl">
+                                    <h3 class="text-3xl font-bold text-white mb-4">Psychological Horror</h3>
+                                    <p class="text-gray-300 text-lg mb-6">
+                                        Dive into a decaying world filled with hidden secrets. The truth twists as you descend deeper.
+                                        <br><span class="text-purple-400 text-sm mt-2 block">Available in Browser</span>
+                                    </p>
+                                    <div class="flex gap-4">
+                                        <a href="https://project-luna-off.vercel.app/countdown.html" target="_blank" class="btn-glow px-8 py-4 rounded-lg font-bold text-white text-lg tracking-wide uppercase">
+                                            Enter the Nightmare
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div class="hidden md:block text-right space-y-2">
+                                    <div class="text-xs text-gray-500 uppercase tracking-widest">Status</div>
+                                    <div class="text-xl font-mono text-green-400">LIVE</div>
+                                    <div class="text-xs text-gray-500 uppercase tracking-widest mt-4">Version</div>
+                                    <div class="text-xl font-mono">1.0.4</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+            </section>
 
-                <div class="mt-32 anim-item fly-up-3d flex justify-center">
-                    <div class="relative group cursor-pointer max-w-4xl w-full">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                        <img 
-                            src="https://i.imgur.com/hLCDPcl.jpeg" 
-                            alt="Advertisement" 
-                            class="relative rounded-xl w-full h-auto border border-gray-800 shadow-2xl transform group-hover:scale-[1.01] transition duration-500"
-                        >
-                        <div class="absolute bottom-4 right-4 bg-black/80 px-3 py-1 text-xs text-gray-400 rounded uppercase tracking-widest backdrop-blur-sm border border-white/10">
-                            Sponsored
+            <section class="relative py-40 px-6 overflow-hidden bg-black" id="section-partners">
+                <div class="container mx-auto text-center relative z-10">
+                    <h2 class="text-4xl font-bold mb-32 anim-block" data-anim="scale-up">Our Allies</h2>
+
+                    <div class="flex flex-col md:flex-row justify-center items-center gap-24 md:gap-48 relative">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-purple-900 to-transparent hidden md:block"></div>
+
+                        <div class="partner-item relative group" data-speed="0.1">
+                            <div class="absolute -inset-4 bg-purple-600/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                            <img src="https://github.com/Imagineoff/Imagineweb/raw/main/NeP.PNG" class="h-32 md:h-40 w-auto object-contain relative z-10 drop-shadow-2xl transform transition duration-500 group-hover:scale-110" alt="Partner">
+                        </div>
+
+                        <div class="partner-item relative group" data-speed="-0.1">
+                            <div class="absolute -inset-4 bg-blue-600/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                            <img src="https://github.com/Imagineoff/Imagineweb/raw/main/KladneskeDilny.WEBP" class="h-32 md:h-40 w-auto object-contain relative z-10 drop-shadow-2xl transform transition duration-500 group-hover:scale-110" alt="Partner">
                         </div>
                     </div>
                 </div>
+            </section>
 
-            </div>
-        </section>
+            <section class="relative py-32 px-6" id="section-connect">
+                <div class="container mx-auto max-w-6xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        <div class="lg:col-span-4 space-y-4 anim-block" data-anim="fly-in-left-hard">
+                            <div class="p-8 glass-panel rounded-2xl">
+                                <h3 class="text-2xl font-bold mb-6">Connect</h3>
+                                <div class="flex flex-col gap-4">
+                                    <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition border border-transparent hover:border-purple-500/50">
+                                        <span>Patreon</span> ↗
+                                    </a>
+                                    <a href="https://x.com/project_luna_" target="_blank" class="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition border border-transparent hover:border-purple-500/50">
+                                        <span>X (Twitter)</span> ↗
+                                    </a>
+                                    <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" class="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition border border-transparent hover:border-purple-500/50">
+                                        <span>YouTube</span> ↗
+                                    </a>
+                                    <a href="mailto:assist.luna@proton.me" class="mt-4 block text-sm text-gray-400 hover:text-white transition">
+                                        assist.luna@proton.me
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
 
-        <footer class="text-center py-12 border-t border-gray-900 bg-black z-30 relative">
-            <p class="text-gray-600 text-sm">
-                &copy; <span id="current-year"></span> LUNA Development. <br>Building the impossible.
-            </p>
-        </footer>
+                        <div class="lg:col-span-8 anim-block" data-anim="fly-in-right-hard">
+                            <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="500" allowtransparency="true" frameborder="0" class="rounded-2xl shadow-2xl w-full" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+                        </div>
 
+                    </div>
+                </div>
+            </section>
+
+            <section class="py-24 px-6 flex justify-center perspective-section">
+                <div class="container max-w-5xl anim-block" data-anim="rotate-up">
+                    <div class="relative group cursor-pointer w-full">
+                        <div class="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-3xl blur-xl opacity-40 group-hover:opacity-80 transition duration-700"></div>
+                        
+                        <img src="https://i.imgur.com/hLCDPcl.jpeg" alt="Advertisement" class="relative block w-full rounded-2xl shadow-2xl transform transition-transform duration-700 group-hover:scale-[1.02] group-hover:-translate-y-2">
+                        
+                        <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded text-xs font-mono uppercase border border-white/20">Sponsored</div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="py-12 text-center border-t border-gray-900 bg-black">
+                <p class="text-gray-600">&copy; <span id="year"></span> LUNA Development.</p>
+            </footer>
+        </div>
     </div>
 
     <script>
-        document.getElementById('current-year').textContent = new Date().getFullYear();
+        // --- 1. SETUP & UTILITIES ---
+        const body = document.body;
+        const main = document.getElementById('smooth-content');
+        const scrollbarThumb = document.getElementById('custom-scrollbar');
+        document.getElementById('year').textContent = new Date().getFullYear();
 
-        // 1. HERO LUNA ZOOM LOGIKA (Zachováno z minula, protože to funguje skvěle)
-        const lunaText = document.getElementById('luna-text');
-        const spacer = document.getElementById('spacer-scroll-length');
-        const maxScroll = spacer.offsetHeight; 
-
-        function updateHeroZoom() {
-            const scrollY = window.scrollY;
-            let progress = Math.min(1, scrollY / maxScroll);
-            const currentScale = 1 + (6 - 1) * progress; // Scale 1 až 6
-            const currentOpacity = 1 - progress;
-
-            lunaText.style.transform = `scale(${currentScale})`;
-            lunaText.style.opacity = currentOpacity;
-            
-            // Optimalizace: skryjeme kontejner, když je úplně pryč, aby nebrzdil zbytek
-            if (currentOpacity <= 0) {
-                lunaText.style.visibility = 'hidden';
-            } else {
-                lunaText.style.visibility = 'visible';
-            }
-        }
-
-        // 2. LOGIKA PRO PŘÍLETY (Intersection Observer)
-        // Toto sleduje, kdy se prvek objeví na obrazovce a přidá třídu 'in-view'
-        const observerOptions = {
-            threshold: 0.15, // Spustí se, když je 15% prvku vidět
-            rootMargin: "0px 0px -50px 0px" // Trochu odsazení odspodu
+        // Stavy aplikace
+        let state = {
+            current: 0,   // Kde se vizuálně nacházíme
+            target: 0,    // Kde bychom měli být (podle scrollbaru)
+            ease: 0.075,  // "Váha" scrollování (menší = těžší/pomalejší dojezd)
+            height: 0     // Výška obsahu
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                // Přidáme in-view když je vidět
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                } 
-                // Pokud chceš, aby odjížděly pryč když scrollneš nahoru (LOOP), odkomentuj else:
-                // else {
-                //    entry.target.classList.remove('in-view');
-                // }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.anim-item').forEach((el) => {
-            observer.observe(el);
+        // Lineární interpolace (Lerp) - tohle dělá ten "smooth" efekt
+        const lerp = (start, end, t) => start * (1 - t) + end * t;
+        
+        // Změna velikosti okna
+        function onResize() {
+            state.height = main.getBoundingClientRect().height;
+            body.style.height = `${state.height}px`; // Roztáhneme body, aby měl prohlížeč co scrollovat
+        }
+        window.addEventListener('resize', onResize);
+        
+        // Inicializace velikosti po načtení obrázků
+        window.addEventListener('load', () => {
+            onResize();
+            // Trigger pro první frame
+            update();
         });
 
-        // 3. LOGIKA PRO PARALAXU (Plovoucí prvky - Partners)
-        // Toto hýbe prvky podle toho, jak moc jsi odscrolloval od vrchu stránky
-        const parallaxItems = document.querySelectorAll('.parallax-wrapper');
-
-        function updateParallax() {
-            const scrollY = window.scrollY;
+        // --- 2. SCROLL LOOP (THE ENGINE) ---
+        function update() {
+            // Získání cílové pozice z nativního scrollu
+            state.target = window.scrollY;
             
-            parallaxItems.forEach(item => {
-                // Zjistíme rychlost z data-speed (pokud není, dáme 0)
-                const speed = parseFloat(item.getAttribute('data-speed') || 0);
-                
-                // Spočítáme posun: Scroll * Rychlost
-                // Používáme translate3d pro hardwarovou akceleraci (GPU)
-                item.style.transform = `translate3d(0, ${scrollY * speed}px, 0)`;
-            });
+            // Vypočítáme "dojezd" (smooth movement)
+            state.current = lerp(state.current, state.target, state.ease);
+            
+            // Zaokrouhlení pro výkon (aby nepočítal setiny pixelů donekonečna)
+            if (Math.abs(state.target - state.current) < 0.1) {
+                state.current = state.target;
+            }
+
+            // A. POSUN HLAVNÍHO OBSAHU
+            // Používáme translate3d pro hardwarovou akceleraci
+            main.style.transform = `translate3d(0, -${state.current}px, 0)`;
+
+            // B. POSUN VLASTNÍHO SCROLLBARU
+            const scrollRatio = window.innerHeight / state.height;
+            const thumbHeight = Math.max(window.innerHeight * scrollRatio, 50); // Min výška 50px
+            scrollbarThumb.style.height = `${thumbHeight}px`;
+            
+            // Výpočet pozice "palce" scrollbaru
+            const scrollPercent = state.current / (state.height - window.innerHeight);
+            const scrollbarTop = scrollPercent * (window.innerHeight - thumbHeight);
+            if(!isNaN(scrollbarTop)) {
+                scrollbarThumb.style.transform = `translate3d(0, ${scrollbarTop}px, 0)`;
+            }
+
+            // --- 3. ANIMATION LOGIC (SCRUBBING) ---
+            // Tady se děje magie. Spouštíme animace podle pozice `state.current`
+            animateElements(state.current);
+
+            // Zavolání dalšího framu
+            requestAnimationFrame(update);
         }
 
-        // HLAVNÍ LOOP PRO VŠECHNY ANIMACE NA SCROLL
-        // Spojíme vše do jednoho listeneru pro lepší výkon
-        let ticking = false;
+        // --- 4. DEFINICE ANIMACÍ ---
+        const lunaText = document.querySelector('.hero-text-big');
+        const heroSection = document.getElementById('section-hero');
+        const gameCard = document.getElementById('game-card');
+        const partners = document.querySelectorAll('.partner-item');
+        const animBlocks = document.querySelectorAll('.anim-block');
+        const lineGrow = document.getElementById('line-grow');
 
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    updateHeroZoom();
-                    updateParallax();
-                    ticking = false;
-                });
-                ticking = true;
+        function animateElements(scrollY) {
+            
+            // A. LUNA HERO ZOOM (Scrubbing)
+            // Efekt: Text se zvětšuje s tím, jak scrollujeme dolů
+            if (scrollY < window.innerHeight * 1.5) {
+                const progress = Math.min(1, scrollY / (window.innerHeight)); // 0 až 1
+                
+                // Scale from 1 to 50 (obrovský zoom skrz)
+                const scale = 1 + (progress * 40); 
+                const opacity = 1 - (progress * 1.2); // Rychlejší zmizení
+
+                lunaText.style.transform = `scale(${scale})`;
+                lunaText.style.opacity = Math.max(0, opacity);
+                
+                // Skrytí když je moc velký pro lepší výkon
+                lunaText.style.visibility = opacity <= 0 ? 'hidden' : 'visible';
             }
-        });
 
-        // Inicializace při startu
-        updateHeroZoom();
+            // B. PRICE OF PAIN CARD (3D Rotation)
+            // Karta se otáčí podle toho, kde je na obrazovce
+            const cardRect = gameCard.parentElement.getBoundingClientRect();
+            // Upravíme rect o virtuální scroll (protože getBoundingClientRect lže při transformu rodiče)
+            const cardTopAbsolute = cardRect.top + state.current; // Absolutní pozice prvku na stránce
+            
+            // Zjistíme, kde je karta relativně vůči viewportu (-1 = nahoře pryč, 0 = střed, 1 = dole pod)
+            const cardViewportPos = (cardTopAbsolute - scrollY - (window.innerHeight/2)) / (window.innerHeight/2);
+            
+            if (cardViewportPos > -2 && cardViewportPos < 2) {
+                // Rotace na ose X (náklon dopředu/dozadu)
+                const rotateX = cardViewportPos * 25; // Max 25 stupňů
+                // Jemný posun na ose Y pro paralaxu
+                const translateY = cardViewportPos * -50; 
+                
+                gameCard.style.transform = `
+                    rotateX(${-rotateX}deg) 
+                    translateY(${translateY}px) 
+                    scale(${1 - Math.abs(cardViewportPos * 0.05)})
+                `;
+            }
+
+            // C. PARTNERS (Parallax Float)
+            partners.forEach(p => {
+                const speed = parseFloat(p.getAttribute('data-speed'));
+                // Posuneme prvek relativně k aktuálnímu scrollu
+                const offset = scrollY * speed;
+                p.style.transform = `translate3d(0, ${offset}px, 0)`;
+            });
+
+            // D. GENERAL ANIM BLOCKS (Prvky co přilétají)
+            // Tady řešíme animace typu: přiletí zleva, zprava, atd.
+            animBlocks.forEach(block => {
+                // Pozice prvku
+                // Protože parent je transformovaný, musíme vypočítat pozici trochu složitěji,
+                // ale pro zjednodušení použijeme nativní offsetTop, který je v statickém layoutu konstantní.
+                // Pro přesnost ve virtuálním scrollu musíme najít offsetTop rekurzivně.
+                let el = block;
+                let offsetTop = 0;
+                while(el && el !== main) {
+                    offsetTop += el.offsetTop;
+                    el = el.offsetParent;
+                }
+
+                const triggerPoint = window.innerHeight * 0.85; // Animace začne, když je prvek v 85% výšky okna
+                const distFromTop = offsetTop - scrollY; // Vzdálenost od vršku okna
+
+                // Progres animace (0 = neviditelné/dole, 1 = na místě)
+                let progress = 1 - (distFromTop / triggerPoint);
+                progress = Math.min(Math.max(progress, 0), 1); // Clamp mezi 0 a 1
+
+                // Aplikace efektů podle typu
+                const type = block.getAttribute('data-anim');
+                
+                // Aby to fungovalo oboustranně (reverzibilně), mapujeme progress přímo na transform
+                if (type === 'fly-in-left') {
+                    // Start: x = -100px, opacity = 0
+                    // End: x = 0, opacity = 1
+                    const x = -150 * (1 - progress);
+                    block.style.opacity = progress;
+                    block.style.transform = `translate3d(${x}px, 0, 0)`;
+                } 
+                else if (type === 'fly-in-right') {
+                    const x = 150 * (1 - progress);
+                    block.style.opacity = progress;
+                    block.style.transform = `translate3d(${x}px, 0, 0)`;
+                }
+                else if (type === 'fly-in-left-hard') {
+                     // Rychlejší a delší přílet
+                     const x = -300 * (1 - progress);
+                     block.style.opacity = progress;
+                     block.style.transform = `translate3d(${x}px, 0, 0)`;
+                }
+                else if (type === 'fly-in-right-hard') {
+                     const x = 300 * (1 - progress);
+                     block.style.opacity = progress;
+                     block.style.transform = `translate3d(${x}px, 0, 0)`;
+                }
+                else if (type === 'fade-up') {
+                    const y = 100 * (1 - progress);
+                    block.style.opacity = progress;
+                    block.style.transform = `translate3d(0, ${y}px, 0)`;
+                }
+                else if (type === 'scale-up') {
+                    const s = 0.5 + (0.5 * progress); // 0.5 -> 1.0
+                    block.style.opacity = progress;
+                    block.style.transform = `scale(${s})`;
+                }
+                else if (type === 'rotate-up') {
+                    const y = 100 * (1 - progress);
+                    const r = 20 * (1 - progress);
+                    block.style.opacity = progress;
+                    block.style.transform = `translate3d(0, ${y}px, 0) rotateX(${r}deg)`;
+                }
+            });
+
+            // E. SPECIAL: Line Grow
+            if (lineGrow) {
+                let el = lineGrow;
+                let offsetTop = 0;
+                while(el && el !== main) { offsetTop += el.offsetTop; el = el.offsetParent; }
+                const dist = offsetTop - scrollY;
+                let prog = 1 - (dist / (window.innerHeight * 0.8));
+                prog = Math.min(Math.max(prog, 0), 1);
+                lineGrow.style.width = `${prog * 100}px`; // Roztáhne čáru na 100px
+            }
+        }
+
+        // Spustit smyčku
+        update();
+
     </script>
 </body>
 </html>
