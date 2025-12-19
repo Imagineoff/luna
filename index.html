@@ -1,253 +1,346 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUNA - Game Development & Tools</title>
-<meta name="description" content="LUNA - is a passionate new development studio that creates web games, Roblox experiences, and useful tools .">
-<meta name="keywords" content="Game Development, Web Games, Roblox, Dev Studio, Silent Studio, Project Luna, Price of Pain">
-<meta property="og:title" content="LUNA - Development">
-<meta property="og:description" content="a passionate new development studio that creates web games, Roblox experiences, and useful tools.">
-<meta property="og:image" content="https://i.imgur.com/BRzF9ds.jpeg">
-<meta property="og:url" content="https://your-website-url.com">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/jpeg" href="https://i.imgur.com/BRzF9ds.jpeg">
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
-    },
-  },
-}
-.text-gradient {
-  background-image: linear-gradient(to right, #4f46e5, #c026d3);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.border-gradient {
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  -webkit-background-clip: padding-box;
-  border-image: linear-gradient(to right, #4f46e5, #c026d3) 1;
-}
-.btn-gradient {
-  background-image: linear-gradient(to right, #4f46e5 0%, #c026d3 100%);
-  background-size: 200% auto;
-  transition: all 0.4s cubic-bezier(.4,0,.2,1);
-}
-.btn-gradient:hover {
-  background-position: right center;
-  box-shadow: 0 10px 20px rgba(192, 38, 211, 0.25);
-  transform: translateY(-2px);
-}
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
-::-webkit-scrollbar-thumb {
-  background: #4f46e5;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #c026d3;
-}
-.hero-text {
-    font-size: clamp(8rem, 30vw, 30rem);
-    line-height: 1;
-    will-change: transform;
-    transform-style: preserve-3d;
-    user-select:none;
-    pointer-events:none;
-}
-#hero-container {
-    height: 100vh;
-    width: 100%;
-    position: sticky;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    z-index: 10;
-}
-#main-content {
-    position: relative;
-    z-index: 20;
-    top: 0;
-}
-.flying-text {
-  position: absolute;
-  font-weight:800;
-  color:#fff;
-  text-transform:uppercase;
-  letter-spacing:0.12em;
-  font-size:clamp(1rem,3vw,2.2rem);
-  opacity:0;
-  transform:translate3d(var(--x,0),var(--y,0),0) scale(0.9);
-  will-change:transform,opacity;
-  pointer-events:none;
-  text-shadow:0 6px 30px rgba(0,0,0,0.6);
-}
-@keyframes flyIn {
-  0% { opacity:0; transform: translate3d(var(--sx,0),var(--sy,0),0) scale(0.6) rotate(var(--rot,0)); filter:blur(6px)}
-  60% { opacity:1; transform: translate3d(var(--mx,0),var(--my,0),0) scale(1.05) rotate(calc(var(--rot,0) * 0.6)); filter:blur(0)}
-  100% { opacity:0; transform: translate3d(var(--tx,0),var(--ty,0),0) scale(0.6) rotate(calc(var(--rot,0) * 0.3)); filter:blur(2px)}
-}
-.flying-anim {
-  animation: flyIn var(--dur,4s) cubic-bezier(.2,.9,.2,1) forwards;
-}
-.fade-up {
-  opacity:0;
-  transform:translateY(30px);
-  transition:all 0.7s cubic-bezier(.2,.9,.2,1);
-}
-.fade-up.in-view {
-  opacity:1;
-  transform:translateY(0);
-}
-.card {
-  transition:transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s;
-}
-.card:hover { transform:translateY(-6px) scale(1.01); box-shadow:0 20px 50px rgba(16,24,40,0.6); }
-.partner-img { width:100%; height:200px; object-fit:cover; border-radius:12px; background:#111; }
-.ad-banner { width:100%; max-width:980px; margin:0 auto; display:block; border-radius:12px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.6); }
-@media (max-width:640px) { .hero-text { font-size: clamp(6rem, 40vw, 18rem); } .flying-text{font-size:clamp(.8rem,3.6vw,1.8rem)} }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUNA - Game Development & Tools</title>
+    
+    <meta name="description" content="LUNA - is a passionate new development studio that creates web games, Roblox experiences, and useful tools.">
+    <meta name="keywords" content="Game Development, Web Games, Roblox, Dev Studio, Silent Studio, Project Luna, Price of Pain">
+    <meta property="og:title" content="LUNA - Development">
+    <meta property="og:description" content="a passionate new development studio that creates web games, Roblox experiences, and useful tools.">
+    <meta property="og:image" content="https://i.imgur.com/BRzF9ds.jpeg">
+    <meta property="og:url" content="https://your-website-url.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/jpeg" href="https://i.imgur.com/BRzF9ds.jpeg">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+              },
+            },
+          },
+        }
+
+        .text-gradient {
+          background-image: linear-gradient(to right, #4f46e5, #c026d3);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+
+        .border-gradient {
+          border: 2px solid transparent;
+          background-clip: padding-box;
+          -webkit-background-clip: padding-box;
+          border-image: linear-gradient(to right, #4f46e5, #c026d3) 1;
+        }
+
+        .btn-gradient {
+          background-image: linear-gradient(to right, #4f46e5 0%, #c026d3 100%);
+          background-size: 200% auto;
+          transition: all 0.4s cubic-bezier(.4,0,.2,1);
+        }
+        .btn-gradient:hover {
+          background-position: right center;
+          box-shadow: 0 10px 20px rgba(192, 38, 211, 0.25);
+          transform: translateY(-2px);
+        }
+
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #4f46e5;
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #c026d3;
+        }
+
+        .hero-text {
+            font-size: clamp(8rem, 30vw, 30rem);
+            line-height: 1;
+            will-change: transform, opacity;
+            transform-style: preserve-3d;
+        }
+        
+        #hero-container {
+            height: 100vh;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        #main-content {
+            position: relative;
+            z-index: 20;
+            top: 0; 
+        }
+
+        .reveal-element {
+            opacity: 0;
+            transform: scale(0.8) translateY(50px) translateZ(0);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+        }
+
+        .reveal-element.in-view {
+            opacity: 1;
+            transform: scale(1) translateY(0) translateZ(0);
+        }
+    </style>
 </head>
-<body class="bg-black text-gray-200 font-sans antialiased">
-<div id="hero-container">
-  <h1 id="luna-text" class="hero-text font-black uppercase text-gradient select-none">LUNA</h1>
-  <div id="floating-layer" style="position:absolute;inset:0;pointer-events:none;z-index:12"></div>
-</div>
-<div id="spacer-scroll-length" class="h-[150vh]"></div>
-<div id="main-content" class="bg-black relative pt-16">
-  <section id="about" class="min-h-screen flex items-center justify-center py-24 px-6">
-    <div class="container mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl md:text-5xl font-bold mb-6">We Are <span class="text-gradient">LUNA</span></h2>
-      <p class="text-lg md:text-xl text-gray-400 leading-relaxed">We are a new and passionate development studio, starting our journey in creating unique digital experiences. From captivating web games and immersive Roblox mini-games to practical, useful tools, our mission is to build projects we love. As a growing team, we're learning and evolving with every line of code.</p>
+<body class="bg-black text-gray-200 font-sans antialiased overflow-x-hidden">
+
+    <div id="hero-container">
+        <h1 id="luna-text" class="hero-text font-black uppercase text-gradient select-none">
+            LUNA
+        </h1>
     </div>
-  </section>
-  <section id="games" class="py-24 px-6">
-    <div class="container mx-auto max-w-6xl">
-      <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">Our Projects</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div class="border-gradient rounded-xl p-6 bg-gray-900/50 backdrop-blur-sm transition-all duration-300 card">
-          <h3 class="text-2xl font-bold mb-3 text-gradient">Price of Pain</h3>
-          <p class="text-gray-400 mb-6 min-h-[5rem]">A free psychological horror game playable directly in your browser. Dive into a decaying world filled with hidden secrets and a dark, evolving lore that slowly unlocks as you progress. Nothing is as it seems and the deeper you go, the more the truth twists.</p>
-          <a href="https://project-luna-off.vercel.app/countdown.html" target="_blank" rel="noopener noreferrer" class="inline-block btn-gradient text-white font-bold py-3 px-6 rounded-lg text-center w-full md:w-auto">Play Now</a>
-        </div>
-      </div>
+
+    <div id="spacer-scroll-length" class="h-[150vh]"></div>
+
+    <div id="main-content" class="bg-black relative pt-16">
+
+        <section id="about" class="min-h-screen flex items-center justify-center py-24 px-6">
+            <div class="container mx-auto max-w-3xl text-center">
+                <h2 class="reveal-element text-4xl md:text-5xl font-bold mb-6">
+                    We Are <span class="text-gradient">LUNA</span>
+                </h2>
+                <p class="reveal-element text-lg md:text-xl text-gray-400 leading-relaxed delay-100">
+                    We are a new and passionate development studio, starting our journey in creating unique digital experiences. From captivating web games and immersive Roblox mini-games to practical, useful tools, our mission is to build projects we love. As a growing team, we're learning and evolving with every line of code.
+                </p>
+            </div>
+        </section>
+
+        <section id="games" class="py-24 px-6">
+            <div class="container mx-auto max-w-6xl">
+                <h2 class="reveal-element text-4xl md:text-5xl font-bold text-center mb-16">
+                    Our Projects
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <div class="reveal-element border-gradient rounded-xl p-6 bg-gray-900/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-1">
+                        <h3 class="text-2xl font-bold mb-3 text-gradient">
+                            Price of Pain
+                        </h3>
+                        <p class="text-gray-400 mb-6 min-h-[5rem]">
+                            A free psychological horror game playable directly in your browser. Dive into a decaying world filled with hidden secrets and a dark, evolving lore that slowly unlocks as you progress. Nothing is as it seems and the deeper you go, the more the truth twists.
+                        </p>
+                        <a 
+                            href="https://project-luna-off.vercel.app/countdown.html" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="inline-block btn-gradient text-white font-bold py-3 px-6 rounded-lg text-center w-full md:w-auto"
+                        >
+                            Play Now
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="partners" class="py-24 px-6 bg-gray-900/20">
+            <div class="container mx-auto max-w-4xl text-center">
+                <h2 class="reveal-element text-4xl md:text-5xl font-bold text-center mb-16">
+                    Partners
+                </h2>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24">
+                    <div class="reveal-element hover:scale-105 transition-transform duration-300">
+                        <img 
+                            src="https://github.com/Imagineoff/Imagineweb/raw/main/NeP.PNG" 
+                            alt="Partner NeP" 
+                            class="h-32 md:h-40 w-auto object-contain drop-shadow-2xl"
+                        >
+                    </div>
+                    <div class="reveal-element hover:scale-105 transition-transform duration-300 delay-100">
+                        <img 
+                            src="https://github.com/Imagineoff/Imagineweb/raw/main/KladneskeDilny.WEBP" 
+                            alt="Partner Kladneske Dilny" 
+                            class="h-32 md:h-40 w-auto object-contain drop-shadow-2xl"
+                        >
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="connect" class="py-24 px-6">
+            <div class="container mx-auto max-w-6xl">
+                <h2 class="reveal-element text-4xl md:text-5xl font-bold text-center mb-16">
+                    Join the Community
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                    
+                    <div class="flex flex-col space-y-6">
+                        <h3 class="reveal-element text-3xl font-bold mb-4">
+                            Follow & Support
+                        </h3>
+                        
+                        <a 
+                            href="https://www.patreon.com/Silent_Studio" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="reveal-element btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg"
+                        >
+                            Support us on Patreon
+                        </a>
+                        
+                        <a 
+                            href="https://x.com/project_luna_" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="reveal-element btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg"
+                        >
+                            Follow us on X
+                        </a>
+                        <a 
+                            href="https://m.youtube.com/@studioluna_ofc" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="reveal-element btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg"
+                        >
+                            Subscribe to our YouTube channel
+                        </a>
+                        <a 
+                            href="https://www.tiktok.com/@project_luna_" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="reveal-element btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg"
+                        >
+                            Follow us on TikTok
+                        </a>
+                        <a 
+                            href="https://www.instagram.com/_project_luna/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="reveal-element btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg"
+                        >
+                            Follow us on Instagram
+                        </a>
+                        <div class="space-y-2">
+    
+                        <div class="reveal-element pt-6 text-center lg:text-left">
+                            <h4 class="text-xl font-bold text-gray-400 mb-2">Or get in touch directly:</h4>
+                            <a 
+                                href="mailto:assist.luna@proton.me"
+                                class="text-xl text-gradient font-medium hover:brightness-125 transition"
+                            >
+                                assist.luna@proton.me
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                    <div class="reveal-element w-full">
+                        <iframe 
+                            src="https://discord.com/widget?id=1433738890421997600&theme=dark" 
+                            width="100%" 
+                            height="500" 
+                            allowtransparency="true" 
+                            frameborder="0" 
+                            class="rounded-xl shadow-2xl shadow-purple-900/20"
+                            sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                        ></iframe>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+
+        <section class="py-12 px-6 flex justify-center">
+            <div class="reveal-element container max-w-4xl">
+                <img 
+                    src="https://i.imgur.com/hLCDPcl.jpeg" 
+                    alt="Advertisement" 
+                    class="w-full h-auto rounded-2xl border border-gray-800 shadow-2xl hover:shadow-purple-500/30 transition-shadow duration-500"
+                >
+            </div>
+        </section>
+
+        <footer class="text-center py-12 border-t border-gray-900">
+            <p class="text-gray-500">
+                &copy; <span id="current-year"></span> LUNA. All rights reserved.
+            </p>
+        </footer>
+
     </div>
-  </section>
-  <section id="connect" class="py-24 px-6">
-    <div class="container mx-auto max-w-6xl">
-      <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">Join the Community</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div class="flex flex-col space-y-6">
-          <h3 class="text-3xl font-bold mb-4">Follow & Support</h3>
-          <a href="https://www.patreon.com/Silent_Studio" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg">Support us on Patreon</a>
-          <a href="https://x.com/project_luna_" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg">Follow us on X</a>
-          <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg">Subscribe to our YouTube channel</a>
-          <a href="https://www.tiktok.com/@project_luna_" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg">Follow us on TikTok</a>
-          <a href="https://www.instagram.com/_project_luna/" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-bold py-4 px-8 rounded-lg text-center text-lg">Follow us on Instagram</a>
-          <div class="pt-6 text-center lg:text-left">
-            <h4 class="text-xl font-bold text-gray-400 mb-2">Or get in touch directly:</h4>
-            <a href="mailto:assist.luna@proton.me" class="text-xl text-gradient font-medium hover:brightness-125 transition">assist.luna@proton.me</a>
-          </div>
-        </div>
-        <div class="w-full">
-          <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="500" allowtransparency="true" frameborder="0" class="rounded-xl" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="partners" class="py-24 px-6 bg-gray-900/30">
-    <div class="container mx-auto max-w-6xl text-center">
-      <h2 class="text-4xl md:text-5xl font-bold mb-12">Partners</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="border-gradient rounded-xl p-6 bg-black/50 card">
-          <h3 class="text-2xl font-bold mb-4 text-gradient">NeP</h3>
-          <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/NeP.PNG" alt="NeP" class="partner-img">
-          <p class="text-gray-400 mt-4">Official partner: NeP</p>
-        </div>
-        <div class="border-gradient rounded-xl p-6 bg-black/50 card">
-          <h3 class="text-2xl font-bold mb-4 text-gradient">Kladneske Dilny</h3>
-          <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/KladneskeDilny.WEBP" alt="Kladneske Dilny" class="partner-img">
-          <p class="text-gray-400 mt-4">Official partner: Kladneske Dilny</p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="ad" class="py-12 px-6">
-    <div class="container mx-auto max-w-6xl text-center">
-      <a href="#" target="_blank" rel="noopener noreferrer" class="block">
-        <img src="https://i.imgur.com/hLCDPcl.jpeg" alt="Ad" class="ad-banner">
-      </a>
-    </div>
-  </section>
-  <footer class="text-center py-12 border-t border-gray-900">
-    <p class="text-gray-500">&copy; <span id="current-year"></span> LUNA. All rights reserved.</p>
-  </footer>
-</div>
-<script>
-document.getElementById('current-year').textContent = new Date().getFullYear();
-const lunaText = document.getElementById('luna-text');
-const spacer = document.getElementById('spacer-scroll-length');
-const maxScroll = spacer.offsetHeight;
-const MAX_SCALE = 6;
-const MIN_OPACITY = 0;
-function updateScrollEffect(){
-  const scrollY = window.scrollY;
-  let progress = Math.min(1, scrollY / maxScroll);
-  const currentScale = 1 + (MAX_SCALE - 1) * progress;
-  const currentOpacity = 1 - progress;
-  lunaText.style.transform = `scale(${currentScale})`;
-  lunaText.style.opacity = currentOpacity;
-}
-let ticking = false;
-function scrollTick(){ updateScrollEffect(); ticking=false; }
-window.addEventListener('scroll', ()=>{ if(!ticking){ window.requestAnimationFrame(scrollTick); ticking=true; } });
-updateScrollEffect();
-const floatingLayer = document.getElementById('floating-layer');
-const words = ['GAME','TOOLS','ROBLOX','STUDIO','DEV','LORE','PIXEL','SOUND','NARRATIVE','PLAY','CREATE','LUNA'];
-function spawnFloating(){
-  const el = document.createElement('div');
-  el.className = 'flying-text';
-  el.textContent = words[Math.floor(Math.random()*words.length)];
-  const startSide = Math.random() > 0.5 ? -1 : 1;
-  const sx = (Math.random()*30 + 5) * startSide + 'vw';
-  const sy = (Math.random()*40 - 20) + 'vh';
-  const tx = (Math.random()*60 - 30) + 'vw';
-  const ty = (Math.random()*40 - 20) + 'vh';
-  const mx = (parseFloat(sx) * 0.4) + 'vw';
-  const my = (parseFloat(sy) * 0.4) + 'vh';
-  el.style.setProperty('--sx', sx);
-  el.style.setProperty('--sy', sy);
-  el.style.setProperty('--mx', mx);
-  el.style.setProperty('--my', my);
-  el.style.setProperty('--tx', tx);
-  el.style.setProperty('--ty', ty);
-  el.style.setProperty('--rot', (Math.random()*60-30)+'deg');
-  el.style.setProperty('--dur', (Math.random()*2+3)+'s');
-  floatingLayer.appendChild(el);
-  void el.offsetWidth;
-  el.classList.add('flying-anim');
-  setTimeout(()=>{ el.remove(); }, 7000);
-}
-setInterval(spawnFloating, 900);
-const io = new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in-view'); }); },{threshold:0.15});
-document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));
-document.querySelectorAll('.card').forEach(el=>{ el.classList.add('fade-up'); io.observe(el); });
-</script>
+    
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        const lunaText = document.getElementById('luna-text');
+        const spacer = document.getElementById('spacer-scroll-length');
+        
+        const maxScroll = spacer.offsetHeight; 
+        const MAX_SCALE = 6;
+        const MIN_OPACITY = 0;
+
+        function updateScrollEffect() {
+            const scrollY = window.scrollY;
+            let progress = Math.min(1, scrollY / maxScroll);
+            const currentScale = 1 + (MAX_SCALE - 1) * progress;
+            const currentOpacity = 1 - progress;
+
+            lunaText.style.transform = `scale(${currentScale})`;
+            lunaText.style.opacity = currentOpacity;
+        }
+
+        let lastKnownScrollPosition = 0;
+        let ticking = false;
+
+        function scrollTick() {
+            updateScrollEffect();
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            lastKnownScrollPosition = window.scrollY;
+            if (!ticking) {
+                window.requestAnimationFrame(scrollTick);
+                ticking = true;
+            }
+        });
+        
+        updateScrollEffect();
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-element').forEach((el) => {
+            observer.observe(el);
+        });
+    </script>
+
 </body>
 </html>
