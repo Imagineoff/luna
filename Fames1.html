@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -79,25 +79,27 @@ html, body {
   justify-content: center;
   align-items: center;
   z-index: 100;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
 }
 #adCard {
-  width: min(720px, 90%);
-  height: min(480px, 75%);
+  width: min(92vw, 720px);
+  height: min(80vh, 560px);
   background: #000;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
+  padding: 0;
 }
 #adImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  background: #000;
+  z-index: 1;
 }
 #adTop {
   position: absolute;
@@ -107,6 +109,7 @@ html, body {
   background: rgba(0,0,0,0.6);
   border-radius: 6px;
   font-size: 1rem;
+  z-index: 3;
 }
 #countdown {
   position: absolute;
@@ -116,31 +119,39 @@ html, body {
   background: rgba(0,0,0,0.6);
   border-radius: 6px;
   font-size: 1rem;
+  z-index: 3;
 }
 #skipBtn {
   position: absolute;
   bottom: 12px;
   right: 12px;
   padding: 10px 14px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   color: #000;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   display: none;
+  z-index: 3;
 }
 #adClose {
   position: absolute;
   bottom: 12px;
   left: 12px;
   padding: 8px 12px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.12);
   color: #fff;
   border: none;
   border-radius: 6px;
   cursor: default;
   font-size: 0.9rem;
+  z-index: 3;
+}
+@media (orientation: portrait) {
+  #adCard { height: min(68vh, 560px); }
+  #welcome { font-size: 2.2em; }
+  #playBtn { font-size: 1.6em; padding: 14px 30px; }
 }
 </style>
 </head>
