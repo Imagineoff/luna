@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>LUNA - Project Price of Pain</title>
     <meta name="description" content="LUNA Development Studio">
-    <link rel="icon" type="image/png" href="https://i.imgur.com/J4GIbdh.png">
+    <link rel="icon" type="image/jpeg" href="https://i.imgur.com/BRzF9ds.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -79,8 +79,10 @@
 
     <section class="track" id="tr-ad">
         <div class="sticky-view flex-col">
-            <div id="ad-box" class="w-full max-w-3xl opacity-0 scale-90">
-                <img src="https://i.imgur.com/Rxk7SQN.jpeg" class="rounded-xl w-full shadow-2xl border border-white/10">
+            <div id="ad-box" class="w-full max-w-3xl opacity-0 scale-90 transition-transform duration-300 hover:scale-[0.92]">
+                <a href="https://forms.gle/Cd1EYCZLBzXzdPa4A" target="_blank" class="block">
+                    <img src="https://i.imgur.com/Rxk7SQN.jpeg" class="rounded-xl w-full shadow-2xl border border-white/10 hover:border-purple-500/50 transition-colors">
+                </a>
             </div>
             <div id="partners" class="flex gap-12 mt-12 opacity-0">
                 <img src="https://github.com/Imagineoff/Imagineweb/raw/main/NeP.PNG" class="h-16 grayscale opacity-50">
@@ -137,33 +139,6 @@
         };
         window.addEventListener('scroll', scroll);
         scroll();
-    </script>
-
-    <script>
-let text = "LUNA";
-let index = 0;
-let deleting = false; 
-
-function animateTitle() {
-
-    if (!deleting) {
-        document.title = text.substring(0, index);
-        index++;
-        if (index > text.length) {
-            deleting = true;
-            index = text.length;
-        }
-    } else {
-        document.title = text.substring(0, index);
-        index--;
-        if (index < 0) {
-            deleting = false;
-            index = 0;
-        }
-    }
-}
-
-setInterval(animateTitle, 300);
     </script>
 </body>
 </html>
