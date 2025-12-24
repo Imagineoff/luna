@@ -140,5 +140,31 @@
         window.addEventListener('scroll', scroll);
         scroll();
     </script>
+    <script>
+let text = "LUNA";
+let index = 0;
+let deleting = false;
+
+function animateTitle() {
+
+    if (!deleting) {
+        document.title = text.substring(0, index);
+        index++;
+        if (index > text.length) {
+            deleting = true;
+            index = text.length;
+        }
+    } else {
+        document.title = text.substring(0, index);
+        index--;
+        if (index < 0) {
+            deleting = false;
+            index = 0;
+        }
+    }
+}
+
+setInterval(animateTitle, 300); 
+</script>
 </body>
 </html>
