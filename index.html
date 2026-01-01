@@ -19,6 +19,12 @@
         .panel:hover { border-color: #c026d3; background: rgba(255, 255, 255, 0.08); }
         .btn-action { background: linear-gradient(90deg, #4f46e5, #c026d3); transition: transform 0.3s; }
         .btn-action:hover { transform: scale(1.05); }
+        .pulse-pink { animation: pulse-pink 2s infinite; }
+        @keyframes pulse-pink {
+            0% { box-shadow: 0 0 0 0 rgba(192, 38, 211, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(192, 38, 211, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(192, 38, 211, 0); }
+        }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #4f46e5; }
@@ -56,9 +62,25 @@
     </section>
 
     <section class="track" id="tr-comm">
-        <div class="sticky-view flex-col">
-            <h2 id="comm-h" class="text-4xl font-black mb-8 opacity-0">COMMUNITY</h2>
-            <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-6 items-start">
+        <div class="sticky-view flex-col overflow-y-auto">
+            <h2 id="comm-h" class="text-4xl font-black mb-6 opacity-0 shrink-0">COMMUNITY</h2>
+            
+            <div id="feat-proj" class="w-full max-w-6xl mb-6 opacity-0 shrink-0">
+                <div class="flex items-center gap-3 mb-2 px-2">
+                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Projects Worth Checking Out</span>
+                    <span class="bg-fuchsia-600 text-white text-[10px] font-black px-2 py-0.5 rounded pulse-pink">TOP!</span>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col md:flex-row gap-6 items-center hover:border-fuchsia-500/30 transition-colors">
+                    <iframe src="https://discord.com/widget?id=946147501239599134&theme=dark" width="320" height="150" frameborder="0" class="rounded-lg shrink-0 shadow-lg"></iframe>
+                    <div class="text-left">
+                        <p class="text-sm text-gray-300 leading-relaxed italic">
+                            "Server has a very nice community, excellent ranking system, excellent economy, beautiful channel design and absolutely amazing staff. The nicest server I've seen on Discord in almost 5 years."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-6 items-start shrink-0">
                 <div id="comm-grid" class="grid grid-cols-2 gap-3 opacity-0">
                     <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Patreon <span class="text-purple-500">↗</span></a>
                     <a href="https://x.com/project_luna_" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Twitter (X) <span class="text-purple-500">↗</span></a>
@@ -71,7 +93,7 @@
                     </div>
                 </div>
                 <div id="comm-disc" class="opacity-0 translate-y-10">
-                    <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="380" frameborder="0" class="rounded-xl border border-white/5"></iframe>
+                    <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="300" frameborder="0" class="rounded-xl border border-white/5"></iframe>
                 </div>
             </div>
         </div>
@@ -125,7 +147,11 @@
             const s4 = s3 + get('tr-game').offsetHeight;
             let p4 = (y - s4) / (h * 2.5);
             p4 = Math.max(0, Math.min(1, p4));
+            
             get('comm-h').style.opacity = p4 * 2;
+            get('feat-proj').style.opacity = p4 * 2;
+            get('feat-proj').style.transform = `translateY(${(1-p4)*20}px)`;
+            
             get('comm-grid').style.opacity = p4 * 2;
             get('comm-grid').style.transform = `translateY(${(1-p4)*30}px)`;
             get('comm-disc').style.opacity = p4 * 2;
