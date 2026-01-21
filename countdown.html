@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>LUNA</title>
-    <link rel="icon" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Poplogo.png">
+    <link rel="icon" type="image/png" href="https://github.com/Imagineoff/luna/blob/main/Poplogo.png?raw=true">
     <style>
         html, body {
             margin: 0;
@@ -16,24 +16,11 @@
             overflow: hidden;
             user-select: none;
             cursor: none;
-            transition: filter 0.1s ease;
+            transition: filter 0.2s ease;
         }
 
-        .neutral-glitch {
-            filter: grayscale(100%) contrast(1.2) brightness(0.8);
-        }
-
-        #ghost-bg {
-            position: fixed;
-            inset: 0;
-            background-image: url('https://raw.githubusercontent.com/Imagineoff/luna/main/Background%20.PNG');
-            background-position: center;
-            background-size: cover;
-            background-repeat: no-repeat;
-            opacity: 0;
-            z-index: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
+        body.neutral-mode {
+            filter: invert(1);
         }
 
         #intro-layer {
@@ -59,13 +46,44 @@
         }
         #enter-btn:hover { background:#fff; color:#000; }
 
+        #ghost-entity {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-height: 80vh;
+            max-width: 80vw;
+            opacity: 0;
+            z-index: 1;
+            pointer-events: none;
+            transition: opacity 2s ease;
+            filter: grayscale(100%);
+        }
+
+        #ghost-entity.active {
+            opacity: 0.35; 
+        }
+
+        #ghost-entity.broken-flicker {
+            animation: flicker-anim 0.15s infinite steps(2, start);
+            opacity: 0.6; 
+        }
+
+        @keyframes flicker-anim {
+            0% { opacity: 0.1; }
+            25% { opacity: 0.5; }
+            50% { opacity: 0.05; }
+            75% { opacity: 0.6; }
+            100% { opacity: 0.1; }
+        }
+
         #content-layer {
             position:fixed;
             inset:0;
             display:flex;
             justify-content:center;
             align-items:center;
-            z-index:2;
+            z-index:5;
             opacity:0;
             transition:opacity .8s ease;
         }
@@ -76,7 +94,7 @@
             gap:18px;
             align-items:center;
             pointer-events:auto;
-            z-index:3;
+            z-index:2;
         }
 
         #timer { color:#fff; font-size:4.2rem; letter-spacing:4px; }
@@ -131,11 +149,11 @@
         <source src="https://files.catbox.moe/95ya6n.mp3" type="audio/mp3">
     </audio>
 
-    <div id="ghost-bg"></div>
-
     <div id="intro-layer">
         <button id="enter-btn">ENTER</button>
     </div>
+
+    <img id="ghost-entity" src="https://github.com/Imagineoff/luna/blob/main/Background%20.PNG?raw=true" alt="">
 
     <div id="spotlight-overlay"></div>
 
@@ -167,7 +185,10 @@
     const spotlightOverlay = document.getElementById('spotlight-overlay');
     const timerElement = document.getElementById('timer');
     const playBtn = document.getElementById('play-btn');
-    const ghostBg = document.getElementById('ghost-bg');
+    const ghostEntity = document.getElementById('ghost-entity');
+
+    let ghostActive = false;
+    let ghostTimer = null;
 
     function updateCountdown(){
         const now = Date.now();
@@ -197,7 +218,7 @@
             contentLayer.style.opacity = '1';
             spotlightOverlay.style.opacity = '1';
             startSpotlight();
-            startHorrorEffects();
+            scheduleNextEvent();
         }, 700);
     });
 
@@ -233,7 +254,6 @@
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
         spotlightOverlay.style.setProperty('--y', pos.y + 'px');
         spotlightOverlay.style.setProperty('--r', radius + 'px');
-
         lastTime = performance.now();
         requestAnimationFrame(loop);
     }
@@ -257,13 +277,10 @@
         if (dist > 1) {
             const dirx = dx / dist;
             const diry = dy / dist;
-
             const moveX = dirx * currentSpeed * dt;
             const moveY = diry * currentSpeed * dt;
-
             const jitterX = (Math.random() - 0.5) * SETTINGS.jitter * dt;
             const jitterY = (Math.random() - 0.5) * SETTINGS.jitter * dt;
-
             pos.x += moveX + jitterX;
             pos.y += moveY + jitterY;
         } else {
@@ -283,6 +300,23 @@
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
         spotlightOverlay.style.setProperty('--y', pos.y + 'px');
         spotlightOverlay.style.setProperty('--r', Math.round(radius) + 'px');
+
+        if(ghostActive) {
+            const ghostRect = ghostEntity.getBoundingClientRect();
+            const ghostCx = ghostRect.left + ghostRect.width/2;
+            const ghostCy = ghostRect.top + ghostRect.height/2;
+            const distToGhost = Math.hypot(pos.x - ghostCx, pos.y - ghostCy);
+            
+            if(distToGhost < radius * 0.9) {
+                if(!ghostEntity.classList.contains('broken-flicker')) {
+                    ghostEntity.classList.add('broken-flicker');
+                }
+            } else {
+                if(ghostEntity.classList.contains('broken-flicker')) {
+                    ghostEntity.classList.remove('broken-flicker');
+                }
+            }
+        }
 
         requestAnimationFrame(loop);
     }
@@ -307,32 +341,50 @@
         target.y = clamp(target.y, 0, vh);
     });
 
-    function startHorrorEffects() {
-        scheduleGlitch();
-        scheduleGhost();
+    function scheduleNextEvent() {
+        const delay = randomInt(30000, 60000);
+        setTimeout(() => {
+            triggerRandomEvent();
+            scheduleNextEvent();
+        }, delay);
     }
 
-    function scheduleGlitch() {
-        const time = Math.random() * 8000 + 4000;
-        setTimeout(() => {
-            document.body.classList.add('neutral-glitch');
-            setTimeout(() => {
-                document.body.classList.remove('neutral-glitch');
-                scheduleGlitch();
-            }, Math.random() * 150 + 50);
-        }, time);
+    function triggerRandomEvent() {
+        if (Math.random() > 0.5) {
+            triggerNeutralEffect();
+        } else {
+            triggerGhostAppearance();
+        }
     }
 
-    function scheduleGhost() {
-        const time = Math.random() * 12000 + 5000;
+    function triggerNeutralEffect() {
+        document.body.classList.add('neutral-mode');
         setTimeout(() => {
-            ghostBg.style.opacity = Math.random() * 0.4 + 0.1;
-            setTimeout(() => {
-                ghostBg.style.opacity = '0';
-                scheduleGhost();
-            }, Math.random() * 300 + 100);
-        }, time);
+            document.body.classList.remove('neutral-mode');
+        }, 4000); 
     }
+
+    function triggerGhostAppearance() {
+        if(document.body.classList.contains('neutral-mode')) return;
+
+        const maxLeft = vw * 0.8;
+        const minLeft = vw * 0.2;
+        const randomLeft = Math.floor(Math.random() * (maxLeft - minLeft) + minLeft);
+        const randomTop = Math.floor(Math.random() * (vh * 0.7 - vh * 0.3) + vh * 0.3);
+
+        ghostEntity.style.left = randomLeft + 'px';
+        ghostEntity.style.top = randomTop + 'px';
+        
+        ghostEntity.classList.add('active');
+        ghostActive = true;
+
+        setTimeout(() => {
+            ghostEntity.classList.remove('active');
+            ghostEntity.classList.remove('broken-flicker');
+            ghostActive = false;
+        }, 12000);
+    }
+
     </script>
 </body>
 </html>
