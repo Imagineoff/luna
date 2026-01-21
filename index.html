@@ -1,390 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUNA</title>
-    <link rel="icon" type="image/png" href="https://github.com/Imagineoff/luna/blob/main/Poplogo.png?raw=true">
+    <meta name="description" content="LUNA Development Studio">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Lunalogo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            user-select: none;
-            cursor: none;
-            transition: filter 0.2s ease;
-        }
-
-        body.neutral-mode {
-            filter: invert(1);
-        }
-
-        #intro-layer {
-            position: fixed;
-            inset: 0;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            background:#000;
-            z-index:2000;
-            transition:opacity .8s ease;
-            cursor:default;
-        }
-        #enter-btn {
-            border:1px solid #fff;
-            background:transparent;
-            color:#fff;
-            padding:14px 36px;
-            font-size:1.4rem;
-            text-transform:uppercase;
-            letter-spacing:4px;
-            cursor:pointer;
-        }
-        #enter-btn:hover { background:#fff; color:#000; }
-
-        #ghost-entity {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-height: 80vh;
-            max-width: 80vw;
-            opacity: 0;
-            z-index: 1;
-            pointer-events: none;
-            transition: opacity 2s ease;
-            filter: grayscale(100%);
-        }
-
-        #ghost-entity.active {
-            opacity: 0.35; 
-        }
-
-        #ghost-entity.broken-flicker {
-            animation: flicker-anim 0.15s infinite steps(2, start);
-            opacity: 0.6; 
-        }
-
-        @keyframes flicker-anim {
-            0% { opacity: 0.1; }
-            25% { opacity: 0.5; }
-            50% { opacity: 0.05; }
-            75% { opacity: 0.6; }
-            100% { opacity: 0.1; }
-        }
-
-        #content-layer {
-            position:fixed;
-            inset:0;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            z-index:5;
-            opacity:0;
-            transition:opacity .8s ease;
-        }
-
-        #center-wrap {
-            display:flex;
-            flex-direction:column;
-            gap:18px;
-            align-items:center;
-            pointer-events:auto;
-            z-index:2;
-        }
-
-        #timer { color:#fff; font-size:4.2rem; letter-spacing:4px; }
-
-        #play-btn {
-            border: 2px solid rgba(255,255,255,0.85);
-            background: rgba(255,255,255,0.02);
-            color: #fff;
-            padding: 12px 28px;
-            font-size: 1.1rem;
-            text-transform:uppercase;
-            letter-spacing:3px;
-            cursor: pointer;
-            transition: transform .12s ease, background .18s ease, color .18s ease;
-            backdrop-filter: blur(4px);
-        }
-        #play-btn:hover {
-            transform: translateY(-3px);
-            background: rgba(255,255,255,0.95);
-            color: #000;
-        }
-
-        #enter-btn, #play-btn { cursor: pointer; }
-
-        #spotlight-overlay {
-            position:fixed;
-            inset:0;
-            pointer-events:none;
-            z-index:10;
-            opacity:0;
-            transition:opacity .8s ease;
-            background:
-              radial-gradient(
-                circle var(--r, 300px) at var(--x, 50%) var(--y, 50%),
-                rgba(255,255,255,0) 0%,
-                rgba(0,0,0,0.92) 38%,
-                black 100%
-              );
-            will-change: background;
-        }
-
-        @media (max-width:768px){
-            #timer { font-size:2.2rem; }
-            #play-btn { padding: 10px 20px; font-size:1rem; }
-            #enter-btn { padding: 10px 24px; font-size:1.1rem; }
-        }
+        :root { --accent: #810000; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        .track { height: 350vh; position: relative; }
+        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
+        .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
+        .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s; font-size: 0.9rem; }
+        .panel:hover { border-color: #810000; background: rgba(255, 255, 255, 0.08); }
+        .btn-action { background: linear-gradient(90deg, #4f46e5, #810000); transition: transform 0.3s; }
+        .btn-action:hover { transform: scale(1.05); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #810000; }
     </style>
 </head>
 <body>
 
-    <audio id="bg-music" loop>
-        <source src="https://files.catbox.moe/95ya6n.mp3" type="audio/mp3">
-    </audio>
-
-    <div id="intro-layer">
-        <button id="enter-btn">ENTER</button>
-    </div>
-
-    <img id="ghost-entity" src="https://github.com/Imagineoff/luna/blob/main/Background%20.PNG?raw=true" alt="">
-
-    <div id="spotlight-overlay"></div>
-
-    <div id="content-layer">
-        <div id="center-wrap" aria-live="polite">
-            <div id="timer">Loading...</div>
-            <button id="play-btn" aria-label="Play a game">VIEW THE GAME</button>
+    <section class="track" id="tr-hero">
+        <div class="sticky-view">
+            <h1 id="logo" class="font-black text-center" style="font-size: clamp(4rem, 20vw, 30rem);">LUNA</h1>
         </div>
-    </div>
+    </section>
+
+    <section class="track" id="tr-about">
+        <div class="sticky-view">
+            <div id="ab-cont" class="max-w-3xl text-center opacity-0 translate-y-10">
+                <h2 class="text-5xl md:text-7xl font-black mb-6 italic">ABOUT <span class="text-gradient">LUNA</span></h2>
+                <p class="text-lg md:text-xl text-gray-400 leading-relaxed">
+                    A passionate development studio creating unique digital experiences. From web games to immersive Roblox worlds and utility tools. Learning and evolving with every line of code.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="track" id="tr-game">
+        <div class="sticky-view flex-col md:flex-row gap-12">
+            <div id="pop-card" class="opacity-0"></div>
+            <div id="game-desc" class="max-w-md opacity-0 translate-x-20">
+                <h2 class="text-5xl font-black mb-2 italic">PRICE OF PAIN</h2>
+                <p class="text-[#810000] font-bold tracking-widest mb-6">PSYCHOLOGICAL HORROR</p>
+                <p class="text-gray-400 mb-8">A free browser-based experience. Dive into a decaying world where the truth twists the deeper you descend.</p>
+                <a href="https://project-luna-off.vercel.app/countdown.html" target="_blank" class="btn-action inline-block px-10 py-4 rounded-full font-black uppercase tracking-tighter">Play Game</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="track" id="tr-comm">
+        <div class="sticky-view flex-col">
+            <h2 id="comm-h" class="text-4xl font-black mb-8 opacity-0">COMMUNITY</h2>
+            <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-6 items-start">
+                <div id="comm-grid" class="grid grid-cols-2 gap-3 opacity-0">
+                    <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Patreon <span class="text-[#810000]">↗</span></a>
+                    <a href="https://studio-luna.itch.io/" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Itch.io <span class="text-[#810000]">↗</span></a>
+                    <a href="https://x.com/project_luna_" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Twitter (X) <span class="text-[#810000]">↗</span></a>
+                    <a href="https://ko-fi.com/project_luna" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Ko-fi <span class="text-[#810000]">↗</span></a>
+                    <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" class="panel p-4 flex justify-between items-center font-bold">YouTube <span class="text-[#810000]">↗</span></a>
+                    <a href="https://www.tiktok.com/@project_luna_" target="_blank" class="panel p-4 flex justify-between items-center font-bold">TikTok <span class="text-[#810000]">↗</span></a>
+                    <a href="https://www.instagram.com/_project_luna/" target="_blank" class="panel p-4 flex justify-between items-center font-bold">Instagram <span class="text-[#810000]">↗</span></a>
+                    <div class="p-2">
+                        <span class="text-[10px] text-gray-500 block uppercase font-black">Contact</span>
+                        <a href="mailto:assist.luna@proton.me" class="text-xs text-gradient font-bold">assist.luna@proton.me</a>
+                    </div>
+                </div>
+                <div id="comm-disc" class="opacity-0 translate-y-10">
+                    <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="380" frameborder="0" class="rounded-xl border border-white/5"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="track" id="tr-ad">
+        <div class="sticky-view flex-col">
+            <div id="ad-box" class="w-full max-w-3xl opacity-0 scale-90 transition-transform duration-300 hover:scale-[0.92]">
+                <a href="https://forms.gle/Cd1EYCZLBzXzdPa4A" target="_blank" class="block">
+                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Ad.jpg" class="rounded-xl w-full shadow-2xl border border-white/10 hover:border-[#810000]/50 transition-colors">
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-10 text-center text-gray-600 text-[10px] tracking-widest">
+        &copy; <span id="yr"></span> LUNA DEVELOPMENT
+    </footer>
 
     <script>
-    const targetDateString = "2026-03-07T15:00:00";
+        const scroll = () => {
+            const y = window.scrollY;
+            const h = window.innerHeight;
+            const get = (id) => document.getElementById(id);
+            get('yr').textContent = new Date().getFullYear();
 
-    const SETTINGS = {
-        baseSpeed: 180,
-        minTargetTime: 800,
-        maxTargetTime: 2600,
-        reachThreshold: 40,
-        radiusMin: 200,
-        radiusMax: 420,
-        jitter: 14,
-        changeRadiusEvery: 1200
-    };
+            const p1 = Math.min(1, y / (h * 2));
+            get('logo').style.transform = `scale(${1 + p1 * 55})`;
+            get('logo').style.opacity = 1 - (p1 * 1.2);
 
-    const introLayer = document.getElementById('intro-layer');
-    const enterBtn = document.getElementById('enter-btn');
-    const audio = document.getElementById('bg-music');
-    const contentLayer = document.getElementById('content-layer');
-    const spotlightOverlay = document.getElementById('spotlight-overlay');
-    const timerElement = document.getElementById('timer');
-    const playBtn = document.getElementById('play-btn');
-    const ghostEntity = document.getElementById('ghost-entity');
+            const s2 = get('tr-hero').offsetHeight;
+            let p2 = (y - s2) / (h * 2);
+            p2 = Math.max(0, Math.min(1, p2));
+            get('ab-cont').style.opacity = p2 * 1.5;
+            get('ab-cont').style.transform = `translateY(${(1-p2)*50}px)`;
 
-    let ghostActive = false;
-    let ghostTimer = null;
-
-    function updateCountdown(){
-        const now = Date.now();
-        const target = new Date(targetDateString).getTime();
-        const d = target - now;
-        if (d <= 0) {
-            timerElement.textContent = "00d 00h 00m 00s";
-            return;
-        }
-        const days = Math.floor(d / (1000*60*60*24));
-        const hours = Math.floor((d % (1000*60*60*24)) / (1000*60*60));
-        const minutes = Math.floor((d % (1000*60*60)) / (1000*60));
-        const seconds = Math.floor((d % (1000*60)) / 1000);
-        const pad = n => (n<10 ? "0"+n : n);
-        timerElement.textContent = `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
-    }
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
-
-    enterBtn.addEventListener('click', () => {
-        audio.volume = 0.5;
-        audio.play().catch(()=>{});
-
-        introLayer.style.opacity = '0';
-        setTimeout(()=>{
-            introLayer.style.display = 'none';
-            contentLayer.style.opacity = '1';
-            spotlightOverlay.style.opacity = '1';
-            startSpotlight();
-            scheduleNextEvent();
-        }, 700);
-    });
-
-    playBtn.addEventListener('click', () => {
-        window.location.href = 'https://studio-luna.itch.io/priceofpain';
-    });
-
-    let vw = window.innerWidth;
-    let vh = window.innerHeight;
-
-    let pos = { x: vw/2, y: vh/2 };
-    let target = randomPoint();
-    let currentSpeed = SETTINGS.baseSpeed * (0.7 + Math.random()*0.9);
-    let lastTime = performance.now();
-
-    let radius = (SETTINGS.radiusMin + SETTINGS.radiusMax) / 2;
-    let lastRadiusChange = performance.now();
-
-    let nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
-    let targetTimer = 0;
-
-    function randomInt(min, max){ return Math.floor(min + Math.random()*(max-min)); }
-    function randomPoint(){
-        return {
-            x: Math.random() * vw,
-            y: Math.random() * vh
-        };
-    }
-
-    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-
-    function startSpotlight(){
-        spotlightOverlay.style.setProperty('--x', pos.x + 'px');
-        spotlightOverlay.style.setProperty('--y', pos.y + 'px');
-        spotlightOverlay.style.setProperty('--r', radius + 'px');
-        lastTime = performance.now();
-        requestAnimationFrame(loop);
-    }
-
-    function loop(t){
-        const dt = Math.min(40, t - lastTime) / 1000;
-        lastTime = t;
-
-        const dx = target.x - pos.x;
-        const dy = target.y - pos.y;
-        const dist = Math.hypot(dx, dy);
-
-        targetTimer += dt*1000;
-        if (dist < SETTINGS.reachThreshold || targetTimer > nextTargetTimeout) {
-            target = randomPoint();
-            currentSpeed = SETTINGS.baseSpeed * (0.5 + Math.random()*1.2);
-            nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
-            targetTimer = 0;
-        }
-
-        if (dist > 1) {
-            const dirx = dx / dist;
-            const diry = dy / dist;
-            const moveX = dirx * currentSpeed * dt;
-            const moveY = diry * currentSpeed * dt;
-            const jitterX = (Math.random() - 0.5) * SETTINGS.jitter * dt;
-            const jitterY = (Math.random() - 0.5) * SETTINGS.jitter * dt;
-            pos.x += moveX + jitterX;
-            pos.y += moveY + jitterY;
-        } else {
-            pos.x += (Math.random() - 0.5) * 10 * dt;
-            pos.y += (Math.random() - 0.5) * 10 * dt;
-        }
-
-        pos.x = clamp(pos.x, 0, vw);
-        pos.y = clamp(pos.y, 0, vh);
-
-        if (t - lastRadiusChange > SETTINGS.changeRadiusEvery) {
-            lastRadiusChange = t;
-            const newR = SETTINGS.radiusMin + Math.random() * (SETTINGS.radiusMax - SETTINGS.radiusMin);
-            animateRadius(radius, newR, 450);
-        }
-
-        spotlightOverlay.style.setProperty('--x', pos.x + 'px');
-        spotlightOverlay.style.setProperty('--y', pos.y + 'px');
-        spotlightOverlay.style.setProperty('--r', Math.round(radius) + 'px');
-
-        if(ghostActive) {
-            const ghostRect = ghostEntity.getBoundingClientRect();
-            const ghostCx = ghostRect.left + ghostRect.width/2;
-            const ghostCy = ghostRect.top + ghostRect.height/2;
-            const distToGhost = Math.hypot(pos.x - ghostCx, pos.y - ghostCy);
-            
-            if(distToGhost < radius * 0.9) {
-                if(!ghostEntity.classList.contains('broken-flicker')) {
-                    ghostEntity.classList.add('broken-flicker');
-                }
-            } else {
-                if(ghostEntity.classList.contains('broken-flicker')) {
-                    ghostEntity.classList.remove('broken-flicker');
-                }
+            const s3 = s2 + get('tr-about').offsetHeight;
+            let p3 = (y - s3) / (h * 2.5);
+            p3 = Math.max(0, Math.min(1, p3));
+            if(p3 > 0) {
+                get('pop-card').style.opacity = p3 * 2;
+                get('pop-card').style.transform = `rotateY(${p3 * 360}deg) scale(${0.8 + p3 * 0.2})`;
+                get('game-desc').style.opacity = p3 * 2;
+                get('game-desc').style.transform = `translateX(${(1-p3)*50}px)`;
             }
-        }
 
-        requestAnimationFrame(loop);
-    }
+            const s4 = s3 + get('tr-game').offsetHeight;
+            let p4 = (y - s4) / (h * 2.5);
+            p4 = Math.max(0, Math.min(1, p4));
+            get('comm-h').style.opacity = p4 * 2;
+            get('comm-grid').style.opacity = p4 * 2;
+            get('comm-grid').style.transform = `translateY(${(1-p4)*30}px)`;
+            get('comm-disc').style.opacity = p4 * 2;
 
-    function animateRadius(from, to, duration){
-        const start = performance.now();
-        function tick(now){
-            const p = Math.min(1, (now - start) / duration);
-            const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
-            radius = from + (to - from) * eased;
-            if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-    }
-
-    window.addEventListener('resize', () => {
-        vw = window.innerWidth;
-        vh = window.innerHeight;
-        pos.x = clamp(pos.x, 0, vw);
-        pos.y = clamp(pos.y, 0, vh);
-        target.x = clamp(target.x, 0, vw);
-        target.y = clamp(target.y, 0, vh);
-    });
-
-    function scheduleNextEvent() {
-        const delay = randomInt(30000, 60000);
-        setTimeout(() => {
-            triggerRandomEvent();
-            scheduleNextEvent();
-        }, delay);
-    }
-
-    function triggerRandomEvent() {
-        if (Math.random() > 0.5) {
-            triggerNeutralEffect();
-        } else {
-            triggerGhostAppearance();
-        }
-    }
-
-    function triggerNeutralEffect() {
-        document.body.classList.add('neutral-mode');
-        setTimeout(() => {
-            document.body.classList.remove('neutral-mode');
-        }, 4000); 
-    }
-
-    function triggerGhostAppearance() {
-        if(document.body.classList.contains('neutral-mode')) return;
-
-        const maxLeft = vw * 0.8;
-        const minLeft = vw * 0.2;
-        const randomLeft = Math.floor(Math.random() * (maxLeft - minLeft) + minLeft);
-        const randomTop = Math.floor(Math.random() * (vh * 0.7 - vh * 0.3) + vh * 0.3);
-
-        ghostEntity.style.left = randomLeft + 'px';
-        ghostEntity.style.top = randomTop + 'px';
-        
-        ghostEntity.classList.add('active');
-        ghostActive = true;
-
-        setTimeout(() => {
-            ghostEntity.classList.remove('active');
-            ghostEntity.classList.remove('broken-flicker');
-            ghostActive = false;
-        }, 12000);
-    }
-
+            const s5 = s4 + get('tr-comm').offsetHeight;
+            let p5 = (y - s5) / (h * 1.5);
+            p5 = Math.max(0, Math.min(1, p5));
+            get('ad-box').style.opacity = p5 * 2;
+            get('ad-box').style.transform = `scale(${0.9 + p5*0.1})`;
+        };
+        window.addEventListener('scroll', scroll);
+        scroll();
     </script>
+    <script>
+let text = "LUNA";
+let index = 0;
+let deleting = false;
+
+function animateTitle() {
+
+    if (!deleting) {
+        document.title = text.substring(0, index);
+        index++;
+        if (index > text.length) {
+            deleting = true;
+            index = text.length;
+        }
+    } else {
+        document.title = text.substring(0, index);
+        index--;
+        if (index < 0) {
+            deleting = false;
+            index = 0;
+        }
+    }
+}
+
+setInterval(animateTitle, 300); 
+</script>
 </body>
 </html>
