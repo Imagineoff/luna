@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>LUNA</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Poplogo.png">
     <style>
-        /* --- GENERAL SETTINGS --- */
         html, body {
             margin: 0;
             padding: 0;
@@ -15,10 +15,27 @@
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             user-select: none;
-            cursor: none; /* keep hidden cursor for atmosphere; buttons override this */
+            cursor: none;
+            transition: filter 0.1s ease;
         }
 
-        /* INTRO */
+        .neutral-glitch {
+            filter: grayscale(100%) contrast(1.2) brightness(0.8);
+        }
+
+        #ghost-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://raw.githubusercontent.com/Imagineoff/luna/main/Background%20.PNG');
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
         #intro-layer {
             position: fixed;
             inset: 0;
@@ -42,31 +59,28 @@
         }
         #enter-btn:hover { background:#fff; color:#000; }
 
-        /* CONTENT */
         #content-layer {
             position:fixed;
             inset:0;
             display:flex;
             justify-content:center;
             align-items:center;
-            z-index:1;
+            z-index:2;
             opacity:0;
             transition:opacity .8s ease;
         }
 
-        /* center wrapper for timer + button */
         #center-wrap {
             display:flex;
             flex-direction:column;
             gap:18px;
             align-items:center;
-            pointer-events:auto; /* ensure buttons are clickable (spotlight has pointer-events:none) */
-            z-index:2;
+            pointer-events:auto;
+            z-index:3;
         }
 
         #timer { color:#fff; font-size:4.2rem; letter-spacing:4px; }
 
-        /* PLAY BUTTON */
         #play-btn {
             border: 2px solid rgba(255,255,255,0.85);
             background: rgba(255,255,255,0.02);
@@ -75,7 +89,7 @@
             font-size: 1.1rem;
             text-transform:uppercase;
             letter-spacing:3px;
-            cursor: pointer; /* override body cursor:none */
+            cursor: pointer;
             transition: transform .12s ease, background .18s ease, color .18s ease;
             backdrop-filter: blur(4px);
         }
@@ -85,10 +99,8 @@
             color: #000;
         }
 
-        /* keep enter btn and play btn showing cursor even though body cursor is none */
         #enter-btn, #play-btn { cursor: pointer; }
 
-        /* SPOTLIGHT */
         #spotlight-overlay {
             position:fixed;
             inset:0;
@@ -96,7 +108,6 @@
             z-index:10;
             opacity:0;
             transition:opacity .8s ease;
-            /* gradient uses CSS variables set from JS: --x, --y, --r, --soft */
             background:
               radial-gradient(
                 circle var(--r, 300px) at var(--x, 50%) var(--y, 50%),
@@ -120,6 +131,8 @@
         <source src="https://files.catbox.moe/95ya6n.mp3" type="audio/mp3">
     </audio>
 
+    <div id="ghost-bg"></div>
+
     <div id="intro-layer">
         <button id="enter-btn">ENTER</button>
     </div>
@@ -134,24 +147,19 @@
     </div>
 
     <script>
-    /*
-      Nastavení: upravuj tady
-    */
     const targetDateString = "2026-03-07T15:00:00";
 
-    // Movement tuning
     const SETTINGS = {
-        baseSpeed: 180,           // px/s (průměrná rychlost)
-        minTargetTime: 800,       // ms - min doba než si vybere nový cílový bod
-        maxTargetTime: 2600,      // ms - max doba
-        reachThreshold: 40,       // px - když jsme blízko cíle, vybere se nový
-        radiusMin: 200,           // px - spotlight radius min
-        radiusMax: 420,           // px - spotlight radius max
-        jitter: 14,               // px - drobný náhodný jitter pro organic pohyb
-        changeRadiusEvery: 1200   // ms - jak často míchat velikost spotu
+        baseSpeed: 180,
+        minTargetTime: 800,
+        maxTargetTime: 2600,
+        reachThreshold: 40,
+        radiusMin: 200,
+        radiusMax: 420,
+        jitter: 14,
+        changeRadiusEvery: 1200
     };
 
-    // Elements
     const introLayer = document.getElementById('intro-layer');
     const enterBtn = document.getElementById('enter-btn');
     const audio = document.getElementById('bg-music');
@@ -159,8 +167,8 @@
     const spotlightOverlay = document.getElementById('spotlight-overlay');
     const timerElement = document.getElementById('timer');
     const playBtn = document.getElementById('play-btn');
+    const ghostBg = document.getElementById('ghost-bg');
 
-    // Countdown
     function updateCountdown(){
         const now = Date.now();
         const target = new Date(targetDateString).getTime();
@@ -179,11 +187,9 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // Start interaction
     enterBtn.addEventListener('click', () => {
-        // try play audio (may be blocked by browser)
         audio.volume = 0.5;
-        audio.play().catch(()=>{ /* ignore */ });
+        audio.play().catch(()=>{});
 
         introLayer.style.opacity = '0';
         setTimeout(()=>{
@@ -191,29 +197,25 @@
             contentLayer.style.opacity = '1';
             spotlightOverlay.style.opacity = '1';
             startSpotlight();
+            startHorrorEffects();
         }, 700);
     });
 
-    // Play button: navigate in the same tab to itch game page
     playBtn.addEventListener('click', () => {
-        // simple navigation in same window:
         window.location.href = 'https://studio-luna.itch.io/priceofpain';
     });
 
-    // Spotlight physics (steering to random targets)
     let vw = window.innerWidth;
     let vh = window.innerHeight;
 
-    let pos = { x: vw/2, y: vh/2 }; // current position (px)
+    let pos = { x: vw/2, y: vh/2 };
     let target = randomPoint();
     let currentSpeed = SETTINGS.baseSpeed * (0.7 + Math.random()*0.9);
     let lastTime = performance.now();
 
-    // radius animation
     let radius = (SETTINGS.radiusMin + SETTINGS.radiusMax) / 2;
     let lastRadiusChange = performance.now();
 
-    // pick a random target timer (so it occasionally re-chooses even if not reached)
     let nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
     let targetTimer = 0;
 
@@ -228,7 +230,6 @@
     function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
     function startSpotlight(){
-        // set initial CSS vars
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
         spotlightOverlay.style.setProperty('--y', pos.y + 'px');
         spotlightOverlay.style.setProperty('--r', radius + 'px');
@@ -238,10 +239,9 @@
     }
 
     function loop(t){
-        const dt = Math.min(40, t - lastTime) / 1000; // limit dt to avoid huge jumps (s)
+        const dt = Math.min(40, t - lastTime) / 1000;
         lastTime = t;
 
-        // if reached target or timeout, pick a new one
         const dx = target.x - pos.x;
         const dy = target.y - pos.y;
         const dist = Math.hypot(dx, dy);
@@ -254,40 +254,32 @@
             targetTimer = 0;
         }
 
-        // directional movement towards target with easing
         if (dist > 1) {
             const dirx = dx / dist;
             const diry = dy / dist;
 
-            // Move: speed * dt, plus small jitter for organic feel
             const moveX = dirx * currentSpeed * dt;
             const moveY = diry * currentSpeed * dt;
 
-            // small frame-stable jitter
             const jitterX = (Math.random() - 0.5) * SETTINGS.jitter * dt;
             const jitterY = (Math.random() - 0.5) * SETTINGS.jitter * dt;
 
             pos.x += moveX + jitterX;
             pos.y += moveY + jitterY;
         } else {
-            // tiny random drift if exactly on target
             pos.x += (Math.random() - 0.5) * 10 * dt;
             pos.y += (Math.random() - 0.5) * 10 * dt;
         }
 
-        // keep inside bounds
         pos.x = clamp(pos.x, 0, vw);
         pos.y = clamp(pos.y, 0, vh);
 
-        // occasionally change radius for dynamic effect
         if (t - lastRadiusChange > SETTINGS.changeRadiusEvery) {
             lastRadiusChange = t;
             const newR = SETTINGS.radiusMin + Math.random() * (SETTINGS.radiusMax - SETTINGS.radiusMin);
-            // smooth transition of radius with a small tween
             animateRadius(radius, newR, 450);
         }
 
-        // set CSS variables
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
         spotlightOverlay.style.setProperty('--y', pos.y + 'px');
         spotlightOverlay.style.setProperty('--r', Math.round(radius) + 'px');
@@ -295,12 +287,10 @@
         requestAnimationFrame(loop);
     }
 
-    // small tween for radius to keep it smooth
     function animateRadius(from, to, duration){
         const start = performance.now();
         function tick(now){
             const p = Math.min(1, (now - start) / duration);
-            // ease in-out
             const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
             radius = from + (to - from) * eased;
             if (p < 1) requestAnimationFrame(tick);
@@ -308,7 +298,6 @@
         requestAnimationFrame(tick);
     }
 
-    // update vw/vh on resize and clamp positions/target
     window.addEventListener('resize', () => {
         vw = window.innerWidth;
         vh = window.innerHeight;
@@ -318,16 +307,32 @@
         target.y = clamp(target.y, 0, vh);
     });
 
-    // Optional: show spotlight on mouse (debug) - un-comment if you want manual control
-    /*
-    window.addEventListener('mousemove', (e)=>{
-        pos.x = e.clientX;
-        pos.y = e.clientY;
-        // disable pointer hiding if necessary:
-        // document.body.style.cursor = 'default';
-    });
-    */
+    function startHorrorEffects() {
+        scheduleGlitch();
+        scheduleGhost();
+    }
 
+    function scheduleGlitch() {
+        const time = Math.random() * 8000 + 4000;
+        setTimeout(() => {
+            document.body.classList.add('neutral-glitch');
+            setTimeout(() => {
+                document.body.classList.remove('neutral-glitch');
+                scheduleGlitch();
+            }, Math.random() * 150 + 50);
+        }, time);
+    }
+
+    function scheduleGhost() {
+        const time = Math.random() * 12000 + 5000;
+        setTimeout(() => {
+            ghostBg.style.opacity = Math.random() * 0.4 + 0.1;
+            setTimeout(() => {
+                ghostBg.style.opacity = '0';
+                scheduleGhost();
+            }, Math.random() * 300 + 100);
+        }, time);
+    }
     </script>
 </body>
 </html>
