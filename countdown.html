@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Poplogo.png">
     <title>LUNA</title>
-    <link rel="icon" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Poplogo.png">
     <style>
         html, body {
             margin: 0;
@@ -16,24 +16,11 @@
             overflow: hidden;
             user-select: none;
             cursor: none;
-            transition: filter 0.1s ease;
+            transition: filter 0.5s ease;
         }
 
-        .neutral-glitch {
-            filter: grayscale(100%) contrast(1.2) brightness(0.8);
-        }
-
-        #ghost-bg {
-            position: fixed;
-            inset: 0;
-            background-image: url('https://raw.githubusercontent.com/Imagineoff/luna/main/Background%20.PNG');
-            background-position: center;
-            background-size: cover;
-            background-repeat: no-repeat;
-            opacity: 0;
-            z-index: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
+        body.glitch-colors {
+            filter: grayscale(1) contrast(1.2);
         }
 
         #intro-layer {
@@ -65,7 +52,7 @@
             display:flex;
             justify-content:center;
             align-items:center;
-            z-index:2;
+            z-index:1;
             opacity:0;
             transition:opacity .8s ease;
         }
@@ -76,7 +63,7 @@
             gap:18px;
             align-items:center;
             pointer-events:auto;
-            z-index:3;
+            z-index:2;
         }
 
         #timer { color:#fff; font-size:4.2rem; letter-spacing:4px; }
@@ -118,6 +105,19 @@
             will-change: background;
         }
 
+        #ghost-figure {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            height: 80vh;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            transition: opacity 2s ease;
+        }
+
         @media (max-width:768px){
             #timer { font-size:2.2rem; }
             #play-btn { padding: 10px 20px; font-size:1rem; }
@@ -131,7 +131,7 @@
         <source src="https://files.catbox.moe/95ya6n.mp3" type="audio/mp3">
     </audio>
 
-    <div id="ghost-bg"></div>
+    <img id="ghost-figure" src="https://raw.githubusercontent.com/Imagineoff/luna/main/Background%20.PNG" alt="">
 
     <div id="intro-layer">
         <button id="enter-btn">ENTER</button>
@@ -167,7 +167,7 @@
     const spotlightOverlay = document.getElementById('spotlight-overlay');
     const timerElement = document.getElementById('timer');
     const playBtn = document.getElementById('play-btn');
-    const ghostBg = document.getElementById('ghost-bg');
+    const ghost = document.getElementById('ghost-figure');
 
     function updateCountdown(){
         const now = Date.now();
@@ -197,7 +197,7 @@
             contentLayer.style.opacity = '1';
             spotlightOverlay.style.opacity = '1';
             startSpotlight();
-            startHorrorEffects();
+            triggerEasterEggs();
         }, 700);
     });
 
@@ -205,36 +205,39 @@
         window.location.href = 'https://studio-luna.itch.io/priceofpain';
     });
 
-    let vw = window.innerWidth;
-    let vh = window.innerHeight;
-
-    let pos = { x: vw/2, y: vh/2 };
-    let target = randomPoint();
-    let currentSpeed = SETTINGS.baseSpeed * (0.7 + Math.random()*0.9);
-    let lastTime = performance.now();
-
-    let radius = (SETTINGS.radiusMin + SETTINGS.radiusMax) / 2;
-    let lastRadiusChange = performance.now();
-
-    let nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
-    let targetTimer = 0;
-
-    function randomInt(min, max){ return Math.floor(min + Math.random()*(max-min)); }
-    function randomPoint(){
-        return {
-            x: Math.random() * vw,
-            y: Math.random() * vh
+    function triggerEasterEggs() {
+        const scheduleNext = () => {
+            const delay = Math.floor(Math.random() * (60000 - 30000 + 1) + 30000);
+            setTimeout(() => {
+                const choice = Math.random();
+                if (choice < 0.5) {
+                    document.body.classList.add('glitch-colors');
+                    setTimeout(() => document.body.classList.remove('glitch-colors'), Math.random() * 3000 + 1000);
+                } else {
+                    ghost.style.opacity = "0.4";
+                    setTimeout(() => ghost.style.opacity = "0", Math.random() * 4000 + 2000);
+                }
+                scheduleNext();
+            }, delay);
         };
+        scheduleNext();
     }
 
-    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+    let vw = window.innerWidth;
+    let vh = window.innerHeight;
+    let pos = { x: vw/2, y: vh/2 };
+    let target = { x: Math.random() * vw, y: Math.random() * vh };
+    let currentSpeed = SETTINGS.baseSpeed;
+    let lastTime = performance.now();
+    let radius = (SETTINGS.radiusMin + SETTINGS.radiusMax) / 2;
+    let lastRadiusChange = performance.now();
+    let nextTargetTimeout = 1000;
+    let targetTimer = 0;
 
     function startSpotlight(){
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
         spotlightOverlay.style.setProperty('--y', pos.y + 'px');
         spotlightOverlay.style.setProperty('--r', radius + 'px');
-
-        lastTime = performance.now();
         requestAnimationFrame(loop);
     }
 
@@ -248,36 +251,33 @@
 
         targetTimer += dt*1000;
         if (dist < SETTINGS.reachThreshold || targetTimer > nextTargetTimeout) {
-            target = randomPoint();
+            target = { x: Math.random() * vw, y: Math.random() * vh };
             currentSpeed = SETTINGS.baseSpeed * (0.5 + Math.random()*1.2);
-            nextTargetTimeout = randomInt(SETTINGS.minTargetTime, SETTINGS.maxTargetTime);
+            nextTargetTimeout = Math.floor(SETTINGS.minTargetTime + Math.random()*(SETTINGS.maxTargetTime-SETTINGS.minTargetTime));
             targetTimer = 0;
         }
 
         if (dist > 1) {
-            const dirx = dx / dist;
-            const diry = dy / dist;
-
-            const moveX = dirx * currentSpeed * dt;
-            const moveY = diry * currentSpeed * dt;
-
-            const jitterX = (Math.random() - 0.5) * SETTINGS.jitter * dt;
-            const jitterY = (Math.random() - 0.5) * SETTINGS.jitter * dt;
-
-            pos.x += moveX + jitterX;
-            pos.y += moveY + jitterY;
-        } else {
-            pos.x += (Math.random() - 0.5) * 10 * dt;
-            pos.y += (Math.random() - 0.5) * 10 * dt;
+            pos.x += (dx / dist) * currentSpeed * dt + (Math.random() - 0.5) * SETTINGS.jitter * dt;
+            pos.y += (dy / dist) * currentSpeed * dt + (Math.random() - 0.5) * SETTINGS.jitter * dt;
         }
 
-        pos.x = clamp(pos.x, 0, vw);
-        pos.y = clamp(pos.y, 0, vh);
+        pos.x = Math.max(0, Math.min(vw, pos.x));
+        pos.y = Math.max(0, Math.min(vh, pos.y));
 
         if (t - lastRadiusChange > SETTINGS.changeRadiusEvery) {
             lastRadiusChange = t;
             const newR = SETTINGS.radiusMin + Math.random() * (SETTINGS.radiusMax - SETTINGS.radiusMin);
-            animateRadius(radius, newR, 450);
+            const startR = radius;
+            const startTime = t;
+            const dur = 450;
+            const animate = (now) => {
+                const p = Math.min(1, (now - startTime) / dur);
+                const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+                radius = startR + (newR - startR) * eased;
+                if (p < 1) requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
         }
 
         spotlightOverlay.style.setProperty('--x', pos.x + 'px');
@@ -287,52 +287,10 @@
         requestAnimationFrame(loop);
     }
 
-    function animateRadius(from, to, duration){
-        const start = performance.now();
-        function tick(now){
-            const p = Math.min(1, (now - start) / duration);
-            const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
-            radius = from + (to - from) * eased;
-            if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-    }
-
     window.addEventListener('resize', () => {
         vw = window.innerWidth;
         vh = window.innerHeight;
-        pos.x = clamp(pos.x, 0, vw);
-        pos.y = clamp(pos.y, 0, vh);
-        target.x = clamp(target.x, 0, vw);
-        target.y = clamp(target.y, 0, vh);
     });
-
-    function startHorrorEffects() {
-        scheduleGlitch();
-        scheduleGhost();
-    }
-
-    function scheduleGlitch() {
-        const time = Math.random() * 8000 + 4000;
-        setTimeout(() => {
-            document.body.classList.add('neutral-glitch');
-            setTimeout(() => {
-                document.body.classList.remove('neutral-glitch');
-                scheduleGlitch();
-            }, Math.random() * 150 + 50);
-        }, time);
-    }
-
-    function scheduleGhost() {
-        const time = Math.random() * 12000 + 5000;
-        setTimeout(() => {
-            ghostBg.style.opacity = Math.random() * 0.4 + 0.1;
-            setTimeout(() => {
-                ghostBg.style.opacity = '0';
-                scheduleGhost();
-            }, Math.random() * 300 + 100);
-        }, time);
-    }
     </script>
 </body>
 </html>
