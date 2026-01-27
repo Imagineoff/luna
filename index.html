@@ -12,7 +12,7 @@
         :root { --accent: #810000; }
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         .track { height: 350vh; position: relative; }
-        #tr-team { height: 600vh; } 
+        #tr-team { height: 300vh; } 
         .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
         .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
         #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
@@ -83,8 +83,8 @@
     <section class="track" id="tr-team">
         <div class="sticky-view flex-col">
             <h2 id="team-h" class="text-4xl font-black mb-12 opacity-0 uppercase tracking-widest">Team Luna</h2>
-            <div class="w-full max-w-5xl flex flex-col gap-10">
-                <div id="member-imagine" class="opacity-0 translate-y-10">
+            <div id="team-container" class="w-full max-w-5xl flex flex-col gap-10 opacity-0 translate-y-10">
+                <div>
                     <p class="text-[#810000] font-black uppercase tracking-[0.3em] text-[10px] text-center mb-4">Owner</p>
                     <div class="panel p-6 flex flex-col md:flex-row items-center gap-6 max-w-2xl mx-auto border-[#810000]/30 shadow-[0_0_30px_rgba(129,0,0,0.1)]">
                         <img src="https://github.com/Imagineoff/luna/blob/main/Imagine.jpg?raw=true" class="w-24 h-24 rounded-full border-2 border-[#810000] object-cover shrink-0">
@@ -96,15 +96,15 @@
                     </div>
                 </div>
                 <div class="w-full">
-                    <p id="dir-label" class="text-[#810000] font-black uppercase tracking-[0.3em] text-[10px] text-center mb-6 opacity-0">Directors</p>
+                    <p class="text-[#810000] font-black uppercase tracking-[0.3em] text-[10px] text-center mb-6">Directors</p>
                     <div class="grid md:grid-cols-2 gap-4">
-                        <div id="member-storm" class="panel p-6 text-center opacity-0 translate-y-10">
+                        <div class="panel p-6 text-center">
                             <img src="https://github.com/Imagineoff/luna/blob/main/Imagine.jpg?raw=true" class="w-16 h-16 rounded-full border border-white/20 mx-auto mb-4 object-cover grayscale opacity-50">
                             <h4 class="text-lg font-black mb-2 text-white">Storm</h4>
                             <p class="text-[11px] text-gray-400 leading-relaxed mb-4">Hey, I go by Storm. I’m incredibly passionate about our little game studio. My department focuses on the narrative and lore of our games.</p>
                             <a href="mailto:storm@studioluna.dev" class="btn-action">storm@studioluna.dev</a>
                         </div>
-                        <div id="member-potato" class="panel p-6 text-center opacity-0 translate-y-10">
+                        <div class="panel p-6 text-center">
                             <img src="https://github.com/Imagineoff/luna/blob/main/Imagine.jpg?raw=true" class="w-16 h-16 rounded-full border border-white/20 mx-auto mb-4 object-cover grayscale opacity-50">
                             <h4 class="text-lg font-black mb-2 text-white">Potato</h4>
                             <p class="text-[11px] text-gray-400 leading-relaxed mb-4 italic">No bio yet</p>
@@ -112,16 +112,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="track" id="tr-ad">
-        <div class="sticky-view flex-col">
-            <div id="ad-box" class="w-full max-w-3xl opacity-0 scale-90 transition-transform duration-300 hover:scale-[0.92]">
-                <a href="https://forms.gle/Cd1EYCZLBzXzdPa4A" target="_blank" class="block">
-                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Ad.jpg" class="rounded-xl w-full shadow-2xl border border-white/10 hover:border-[#810000]/50 transition-colors">
-                </a>
             </div>
         </div>
     </section>
@@ -166,30 +156,12 @@
             get('comm-disc').style.opacity = p4 * 2;
 
             const s5 = s4 + get('tr-comm').offsetHeight;
-            let pt = (y - s5) / (h * 4.5);
+            let pt = (y - s5) / (h * 1.5);
             pt = Math.max(0, Math.min(1, pt));
-            get('team-h').style.opacity = Math.min(1, pt * 10);
             
-            let p_im = Math.max(0, Math.min(1, (pt - 0.05) * 8));
-            get('member-imagine').style.opacity = p_im;
-            get('member-imagine').style.transform = `translateY(${(1-p_im)*30}px)`;
-
-            let p_dl = Math.max(0, Math.min(1, (pt - 0.15) * 8));
-            get('dir-label').style.opacity = p_dl;
-
-            let p_st = Math.max(0, Math.min(1, (pt - 0.25) * 8));
-            get('member-storm').style.opacity = p_st;
-            get('member-storm').style.transform = `translateY(${(1-p_st)*30}px)`;
-
-            let p_po = Math.max(0, Math.min(1, (pt - 0.35) * 8));
-            get('member-potato').style.opacity = p_po;
-            get('member-potato').style.transform = `translateY(${(1-p_po)*30}px)`;
-
-            const s6 = s5 + get('tr-team').offsetHeight;
-            let p6 = (y - s6) / (h * 1.5);
-            p6 = Math.max(0, Math.min(1, p6));
-            get('ad-box').style.opacity = p6 * 2;
-            get('ad-box').style.transform = `scale(${0.9 + p6*0.1})`;
+            get('team-h').style.opacity = pt * 2;
+            get('team-container').style.opacity = pt * 2.5;
+            get('team-container').style.transform = `translateY(${(1-pt)*30}px)`;
         };
         window.addEventListener('scroll', scroll);
         scroll();
@@ -210,4 +182,5 @@
         }
         setInterval(animateTitle, 300);
 </script>
-</body> </html>
+</body>
+</html>
