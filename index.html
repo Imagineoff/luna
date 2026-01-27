@@ -20,20 +20,21 @@
         .panel:hover { border-color: #810000; background: rgba(255, 255, 255, 0.08); }
         .btn-action { background: linear-gradient(90deg, #4f46e5, #810000); transition: transform 0.3s; }
         .btn-action:hover { transform: scale(1.05); }
-        .team-card { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; text-align: center; transition: 0.3s; height: 100%; display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .team-card:hover { border-color: #810000; box-shadow: 0 10px 30px -10px rgba(129, 0, 0, 0.2); }
-        .pfp-img { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #810000; object-fit: cover; margin: 0 auto 16px auto; background: #111; }
-        ::-webkit-scrollbar { width: 4px; }
+        .team-card { background: #0b0b0b; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 28px; text-align: center; transition: 0.3s; height: 100%; display: flex; flex-direction: column; align-items: center; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+        .team-card:hover { border-color: #810000; box-shadow: 0 14px 40px -10px rgba(129, 0, 0, 0.25); }
+        .pfp-img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #810000; object-fit: cover; margin: 0 auto 18px auto; background: #111; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #810000; }
 
-        .card-stack { position: relative; width: 100%; height: 380px; display: flex; align-items: center; justify-content: center; }
-        .stack-card { position: absolute; width: 320px; max-width: 90%; transition: transform 0.35s cubic-bezier(.2,.9,.2,1), opacity 0.25s, filter 0.25s; transform-origin: center center; opacity: 0; will-change: transform, opacity, filter; }
-        .stack-card .team-card { height: auto; padding: 22px; }
+        .card-stack { position: relative; width: 100%; height: 460px; display: flex; align-items: center; justify-content: center; }
+        .stack-card { position: absolute; width: 380px; max-width: 92%; transition: transform 0.9s cubic-bezier(.2,.9,.2,1), opacity 0.6s, filter 0.6s; transform-origin: center center; opacity: 0; will-change: transform, opacity, filter; }
+        .stack-card .team-card { height: auto; padding: 24px; }
 
         @media (max-width: 768px) {
-            .card-stack { height: 520px; }
-            .stack-card { width: 86%; position: absolute; }
+            .card-stack { height: 700px; }
+            .stack-card { width: 92%; position: absolute; }
+            .pfp-img { width: 92px; height: 92px; }
         }
     </style>
 </head>
@@ -99,7 +100,7 @@
 
                     <div id="team-owner" class="w-full opacity-0 -translate-y-10">
                         <h3 class="text-xs font-bold tracking-[0.3em] text-gray-500 text-center mb-4 uppercase">Team Luna — Owner</h3>
-                        <div class="team-card max-w-lg mx-auto backdrop-blur-md w-full">
+                        <div class="team-card max-w-lg mx-auto w-full">
                             <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/ImaginePfp.png" class="pfp-img" alt="Imagine">
                             <h4 class="text-2xl font-black mb-2">Imagine</h4>
                             <p class="text-sm text-gray-300 mb-6 leading-relaxed">
@@ -114,7 +115,7 @@
                         <div class="card-stack w-full">
 
                             <div id="stack-owner" class="stack-card" style="z-index:101">
-                                <div class="team-card backdrop-blur-md">
+                                <div class="team-card">
                                     <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/ImaginePfp.png" class="pfp-img" alt="Imagine">
                                     <h4 class="text-2xl font-black mb-2">Imagine</h4>
                                     <p class="text-sm text-gray-300 mb-6 leading-relaxed">
@@ -125,7 +126,7 @@
                             </div>
 
                             <div id="stack-storm" class="stack-card" style="z-index:102">
-                                <div class="team-card backdrop-blur-md">
+                                <div class="team-card">
                                     <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/StormPfp.png" class="pfp-img" alt="Storm">
                                     <h4 class="text-xl font-black mb-2">Storm</h4>
                                     <p class="text-sm text-gray-300 mb-6 leading-relaxed">
@@ -136,7 +137,7 @@
                             </div>
 
                             <div id="stack-potato" class="stack-card" style="z-index:103">
-                                <div class="team-card backdrop-blur-md">
+                                <div class="team-card">
                                     <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/PotatoPfp.png" class="pfp-img" alt="Potato">
                                     <h4 class="text-xl font-black mb-2">Potato</h4>
                                     <p class="text-sm text-gray-300 mb-6 leading-relaxed">
@@ -207,27 +208,27 @@
 
             const s5 = s4 + get('tr-comm').offsetHeight;
             const teamStart = s5;
-            const teamDuration = h * 0.9;
-            let t = (y - teamStart + (h * 0.18)) / teamDuration;
+            const teamDuration = h * 1.6;
+            let t = (y - teamStart + (h * 0.16)) / teamDuration;
             t = clamp(t, 0, 1);
 
             const cards = [
-                {el: get('stack-owner'), startY: 140, startR: -12, endR: -3},
-                {el: get('stack-storm'), startY: -360, startR: 14, endR: -2},
-                {el: get('stack-potato'), startY: -420, startR: 20, endR: 3}
+                {el: get('stack-owner'), startY: 300, startR: -14, endR: -2},
+                {el: get('stack-storm'), startY: -420, startR: 22, endR: -4},
+                {el: get('stack-potato'), startY: -500, startR: 28, endR: 2}
             ];
 
             const seg = 1 / cards.length;
             cards.forEach((c,i)=>{
-                const entry = i * seg;
-                const prog = clamp((t - entry) / seg, 0, 1);
+                const entry = i * seg * 0.95;
+                const prog = clamp((t - entry) / (seg * 1.05), 0, 1);
                 const eased = easeOutCubic(prog);
                 const ty = c.startY * (1 - eased);
                 const r = c.startR + (c.endR - c.startR) * eased;
-                c.el.style.transform = `translateY(${ty}px) translateX(0px) rotate(${r}deg) scale(${0.995 + 0.005 * eased})`;
-                c.el.style.opacity = prog > 0 ? Math.min(1, 0.15 + prog * 1.1) : 0;
-                c.el.style.filter = `drop-shadow(0 ${8 * eased}px ${18 * eased}px rgba(0,0,0,${0.12 * eased}))`;
-                c.el.style.zIndex = 101 + i;
+                c.el.style.transform = `translateY(${ty}px) translateX(0px) rotate(${r}deg) scale(${0.99 + 0.01 * eased})`;
+                c.el.style.opacity = prog > 0 ? clamp(0.15 + eased * 0.95, 0, 1) : 0;
+                c.el.style.filter = `drop-shadow(0 ${12 * eased}px ${26 * eased}px rgba(0,0,0,${0.18 * eased}))`;
+                c.el.style.zIndex = 110 + i;
             });
 
             if (t > 0.02) {
