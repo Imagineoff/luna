@@ -13,7 +13,8 @@
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         .track { height: 350vh; position: relative; }
         #tr-team { height: 300vh; } 
-        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
+        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
+        .sticky-view::-webkit-scrollbar { display: none; }
         .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
         #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
         .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s; font-size: 0.9rem; }
@@ -107,7 +108,7 @@
                         <div class="panel p-6 text-center">
                             <img src="https://github.com/Imagineoff/luna/blob/main/Imagine.jpg?raw=true" class="w-16 h-16 rounded-full border border-white/20 mx-auto mb-4 object-cover grayscale opacity-50">
                             <h4 class="text-lg font-black mb-2 text-white">Potato</h4>
-                            <p class="text-[11px] text-gray-400 leading-relaxed mb-4 italic">Hey, I go by Storm. I’m incredibly passionate about our little game studio. My department focuses on the narrative and lore of our games.</p>
+                            <p class="text-[11px] text-gray-400 leading-relaxed mb-4 italic">No bio yet</p>
                             <a href="mailto:no@email.yet" class="btn-action opacity-50">no@email.yet</a>
                         </div>
                     </div>
