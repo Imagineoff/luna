@@ -12,17 +12,57 @@
         :root { --accent: #810000; }
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         .track { height: 350vh; position: relative; }
-        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
-        .scrollable-content { width: 100%; height: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* Prodloužíme sekci teamu, aby byl efekt plynulejší */
+        #tr-team { height: 450vh; } 
+        
+        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 1000px; padding: 20px; }
+        
         .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        
         #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
+        
         .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s; font-size: 0.9rem; }
         .panel:hover { border-color: #810000; background: rgba(255, 255, 255, 0.08); }
+        
         .btn-action { background: linear-gradient(90deg, #4f46e5, #810000); transition: transform 0.3s; }
         .btn-action:hover { transform: scale(1.05); }
-        .team-card { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; text-align: center; transition: 0.3s; height: 100%; display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .team-card:hover { border-color: #810000; box-shadow: 0 10px 30px -10px rgba(129, 0, 0, 0.2); }
-        .pfp-img { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #810000; object-fit: cover; margin: 0 auto 16px auto; background: #111; }
+
+        /* UPRAVENO PRO STACKING EFEKT */
+        .card-stack-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-card { 
+            position: absolute; /* Důležité pro překrývání */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 150vh); /* Výchozí pozice mimo obrazovku dole */
+            width: 100%;
+            background: #050505; /* Neprůhledné pozadí, aby nebyly vidět karty pod tím */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 24px; 
+            padding: 30px; 
+            text-align: center; 
+            transition: border-color 0.3s; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            will-change: transform;
+        }
+        
+        .team-card:hover { border-color: #810000; }
+        
+        .pfp-img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #810000; object-fit: cover; margin: 0 auto 20px auto; background: #111; }
+        
+        /* Specifické barvy/styly pro karty pro lepší oddělení */
+        #card-imagine { z-index: 1; background: linear-gradient(180deg, #0a0a0a, #000); }
+        #card-storm { z-index: 2; background: linear-gradient(180deg, #0a0a0a, #000); }
+        #card-potato { z-index: 3; background: linear-gradient(180deg, #0a0a0a, #000); }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #810000; }
@@ -84,52 +124,41 @@
     </section>
 
     <section class="track" id="tr-team">
-        <div class="sticky-view">
-            <div class="scrollable-content">
-                <div class="w-full max-w-4xl py-10 px-4 space-y-12 pb-24">
-                    
-                    <div id="team-owner" class="w-full opacity-0 -translate-y-10">
-                        <h3 class="text-xs font-bold tracking-[0.3em] text-gray-500 text-center mb-4 uppercase">Team Luna — Owner</h3>
-                        <div class="team-card max-w-lg mx-auto backdrop-blur-md w-full">
-                            <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/ImaginePfp.png" class="pfp-img" alt="Imagine">
-                            <h4 class="text-2xl font-black mb-2">Imagine</h4>
-                            <p class="text-sm text-gray-300 mb-6 leading-relaxed">
-                                Hi! I’m Imagine, a developer from the Czech Republic. I’m a huge Resident Evil fan and I build Discord bots, websites and community tools. Also I am fan of Sabrina Carpenter . INFJ-A
-                            </p>
-                            <a href="mailto:imagine@studioluna.dev" class="inline-block mt-auto px-6 py-2 rounded bg-white/5 hover:bg-[#810000] text-sm font-bold transition-colors">imagine@studioluna.dev</a>
-                        </div>
-                    </div>
-
-                    <div class="w-full">
-                        <h3 class="text-xs font-bold tracking-[0.3em] text-gray-500 text-center mb-4 uppercase">Directors</h3>
-                        <div class="grid md:grid-cols-2 gap-6 w-full">
-                            
-                            <div id="team-storm" class="w-full opacity-0 -translate-x-10">
-                                <div class="team-card backdrop-blur-md w-full">
-                                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/StormPfp.png" class="pfp-img" alt="Storm">
-                                    <h4 class="text-xl font-black mb-2">Storm</h4>
-                                    <p class="text-sm text-gray-300 mb-6 leading-relaxed">
-                                        Hey, I go by Storm. I’m incredibly passionate about our little game studio. My department focuses on the narrative and lore of our games, so if you have any questions or fun theories about our projects, feel free to reach out!
-                                    </p>
-                                    <a href="mailto:storm@studioluna.dev" class="inline-block mt-auto px-6 py-2 rounded bg-white/5 hover:bg-[#810000] text-xs font-bold transition-colors">storm@studioluna.dev</a>
-                                </div>
-                            </div>
-
-                            <div id="team-potato" class="w-full opacity-0 translate-x-10">
-                                <div class="team-card backdrop-blur-md w-full">
-                                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/PotatoPfp.png" class="pfp-img" alt="Potato">
-                                    <h4 class="text-xl font-black mb-2">Potato</h4>
-                                    <p class="text-sm text-gray-300 mb-6 leading-relaxed">
-                                        no bio yet
-                                    </p>
-                                    <a href="mailto:no@email.yet" class="inline-block mt-auto px-6 py-2 rounded bg-white/5 hover:bg-[#810000] text-xs font-bold transition-colors">no@email.yet</a>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+        <div class="sticky-view flex-col">
+            <h2 class="text-4xl font-black mb-10 tracking-widest text-[#810000] uppercase opacity-80">The Team</h2>
+            
+            <div class="card-stack-container">
+                
+                <div id="card-imagine" class="team-card">
+                    <span class="absolute top-4 right-4 text-[10px] font-bold text-gray-600 border border-gray-800 px-2 py-1 rounded">OWNER</span>
+                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/ImaginePfp.png" class="pfp-img" alt="Imagine">
+                    <h4 class="text-3xl font-black mb-2">Imagine</h4>
+                    <p class="text-sm text-gray-400 mb-8 leading-relaxed max-w-sm mx-auto">
+                        Hi! I’m Imagine, a developer from the Czech Republic. I’m a huge Resident Evil fan and I build Discord bots, websites and community tools. Also I am fan of Sabrina Carpenter. INFJ-A
+                    </p>
+                    <a href="mailto:imagine@studioluna.dev" class="text-xs font-bold text-[#810000] hover:text-white transition-colors uppercase tracking-widest">imagine@studioluna.dev</a>
                 </div>
+
+                <div id="card-storm" class="team-card">
+                     <span class="absolute top-4 right-4 text-[10px] font-bold text-gray-600 border border-gray-800 px-2 py-1 rounded">DIRECTOR</span>
+                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/StormPfp.png" class="pfp-img" alt="Storm">
+                    <h4 class="text-3xl font-black mb-2">Storm</h4>
+                    <p class="text-sm text-gray-400 mb-8 leading-relaxed max-w-sm mx-auto">
+                        Hey, I go by Storm. I’m incredibly passionate about our little game studio. My department focuses on the narrative and lore of our games, so if you have any questions, reach out!
+                    </p>
+                    <a href="mailto:storm@studioluna.dev" class="text-xs font-bold text-[#810000] hover:text-white transition-colors uppercase tracking-widest">storm@studioluna.dev</a>
+                </div>
+
+                <div id="card-potato" class="team-card">
+                     <span class="absolute top-4 right-4 text-[10px] font-bold text-gray-600 border border-gray-800 px-2 py-1 rounded">DIRECTOR</span>
+                    <img src="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/PotatoPfp.png" class="pfp-img" alt="Potato">
+                    <h4 class="text-3xl font-black mb-2">Potato</h4>
+                    <p class="text-sm text-gray-400 mb-8 leading-relaxed max-w-sm mx-auto">
+                        Currently no bio available. Potato is working hard behind the scenes to bring the best experience possible.
+                    </p>
+                    <a href="mailto:no@email.yet" class="text-xs font-bold text-[#810000] hover:text-white transition-colors uppercase tracking-widest">no@email.yet</a>
+                </div>
+
             </div>
         </div>
     </section>
@@ -155,16 +184,19 @@
             const get = (id) => document.getElementById(id);
             get('yr').textContent = new Date().getFullYear();
 
+            // HERO
             const p1 = Math.min(1, y / (h * 2));
             get('logo').style.transform = `scale(${1 + p1 * 55})`;
             get('logo').style.opacity = 1 - (p1 * 1.2);
 
+            // ABOUT
             const s2 = get('tr-hero').offsetHeight;
             let p2 = (y - s2) / (h * 2);
             p2 = Math.max(0, Math.min(1, p2));
             get('ab-cont').style.opacity = p2 * 1.5;
             get('ab-cont').style.transform = `translateY(${(1-p2)*50}px)`;
 
+            // GAME POP
             const s3 = s2 + get('tr-about').offsetHeight;
             let p3 = (y - s3) / (h * 2.5);
             p3 = Math.max(0, Math.min(1, p3));
@@ -175,6 +207,7 @@
                 get('game-desc').style.transform = `translateX(${(1-p3)*50}px)`;
             }
 
+            // COMMUNITY
             const s4 = s3 + get('tr-game').offsetHeight;
             let p4 = (y - s4) / (h * 2.5);
             p4 = Math.max(0, Math.min(1, p4));
@@ -183,22 +216,48 @@
             get('comm-grid').style.transform = `translateY(${(1-p4)*30}px)`;
             get('comm-disc').style.opacity = p4 * 2;
 
+            // --- TEAM STACKING LOGIC ---
             const s5 = s4 + get('tr-comm').offsetHeight;
-            let p5 = (y - s5) / (h * 1.5);
+            // Zvýšili jsme výšku sekce, takže dělíme větším číslem pro plynulost
+            let p5 = (y - s5) / (h * 3.5); 
             p5 = Math.max(0, Math.min(1, p5));
-            
-            // Reduced distance and adjusted opacity multiplier
-            const safeP5 = Math.max(0, Math.min(1, p5 * 1.2)); // Fades in slightly faster
-            
-            get('team-owner').style.opacity = safeP5 * 2;
-            get('team-owner').style.transform = `translateY(${(1-safeP5)*-30}px)`;
-            
-            get('team-storm').style.opacity = safeP5 * 2;
-            get('team-storm').style.transform = `translateX(${(1-safeP5)*-40}px)`;
-            
-            get('team-potato').style.opacity = safeP5 * 2;
-            get('team-potato').style.transform = `translateX(${(1-safeP5)*40}px)`;
 
+            const c1 = get('card-imagine');
+            const c2 = get('card-storm');
+            const c3 = get('card-potato');
+
+            // KARTA 1 (Imagine)
+            // Přiletí, zastaví se uprostřed. Když přiletí další, lehce se zmenší a ztmavne.
+            let c1_y = (1 - p5 * 5) * 100; // Přílet
+            if (c1_y < 0) c1_y = 0; // Stop uprostřed
+            let c1_scale = 1;
+            if (p5 > 0.3) c1_scale = 1 - ((p5 - 0.3) * 0.1); // Mírné zmenšení když přilétá Storm
+            
+            c1.style.transform = `translate(-50%, calc(-50% + ${c1_y}vh)) scale(${c1_scale})`;
+            c1.style.opacity = p5 > 0.05 ? 1 : 0; // Fade in
+
+            // KARTA 2 (Storm)
+            // Začne přijíždět když je p5 > 0.25
+            let c2_progress = Math.max(0, (p5 - 0.25) * 2.5); // Normalizace 0-1
+            let c2_y = (1 - c2_progress) * 120; // Zespodu
+            if (c2_progress > 1) c2_y = 0; 
+            // Finální pozice trochu níž než Imagine (efekt balíčku)
+            const stackOffset1 = 20; 
+
+            c2.style.transform = `translate(-50%, calc(-50% + ${Math.max(stackOffset1, c2_y)}px))`;
+
+            // KARTA 3 (Potato)
+            // Začne přijíždět když je p5 > 0.55
+            let c3_progress = Math.max(0, (p5 - 0.55) * 3);
+            let c3_y = (1 - c3_progress) * 120;
+             if (c3_progress > 1) c3_y = 0;
+            // Finální pozice trochu níž než Storm
+            const stackOffset2 = 40;
+
+            c3.style.transform = `translate(-50%, calc(-50% + ${Math.max(stackOffset2, c3_y)}px))`;
+
+
+            // ADVERTISEMENT
             const s6 = s5 + get('tr-team').offsetHeight;
             let p6 = (y - s6) / (h * 1.5);
             p6 = Math.max(0, Math.min(1, p6));
