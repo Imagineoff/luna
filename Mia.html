@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
     <title>Mia</title>
+    
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -19,18 +21,29 @@
             overflow: hidden; 
         }
 
+        
         #auth-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            transition: opacity 0.5s ease;
         }
 
+        .auth-text {
+            margin-bottom: 20px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        
         #viz-container { 
             flex: 0 0 120px;
             display: flex; 
@@ -39,34 +52,19 @@
             position: relative;
         }
 
-        canvas { 
-            width: 100%; 
-            height: 80px; 
-            display: none;
-        }
+        canvas { width: 100%; height: 80px; display: none; }
 
         #voice-status-text {
-            font-size: 10px;
-            letter-spacing: 2px;
-            color: #333;
-            text-transform: uppercase;
+            font-size: 10px; letter-spacing: 2px; color: #333; text-transform: uppercase;
         }
 
         #chat-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            scroll-behavior: smooth; 
+            flex: 1; overflow-y: auto; padding: 20px; 
+            display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; 
         }
 
         .msg { 
-            max-width: 85%; 
-            padding: 10px 0;
-            line-height: 1.6; 
-            font-size: 1rem;
+            max-width: 85%; padding: 10px 0; line-height: 1.6; font-size: 1rem;
             animation: fadeIn 0.3s ease;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -74,74 +72,45 @@
         .user { align-self: flex-end; color: #fff; text-align: right; }
         .bot { align-self: flex-start; color: #ccc; } 
 
-        #controls {
-            padding: 10px 20px;
-            display: flex;
-            justify-content: flex-end;
-        }
+        #controls { padding: 10px 20px; display: flex; justify-content: flex-end; }
 
         .toggle-voice {
-            font-size: 10px;
-            letter-spacing: 1px;
-            background: none;
-            border: none;
-            color: #444;
-            cursor: pointer;
-            transition: color 0.2s;
+            font-size: 10px; letter-spacing: 1px; background: none; border: none;
+            color: #444; cursor: pointer; transition: color 0.2s;
         }
         .toggle-voice.active { color: #fff; }
 
-        #input-container { 
-            padding: 20px; 
-            display: flex; 
-            gap: 10px; 
-            align-items: center;
-        }
+        #input-container { padding: 20px; display: flex; gap: 10px; align-items: center; }
         
         input { 
-            flex: 1; 
-            background: transparent; 
-            border: none; 
-            color: #fff; 
-            padding: 10px 0; 
-            outline: none; 
-            font-size: 16px; 
-            border-bottom: 1px solid #222;
-        }
-
-        @keyframes pulsePlaceholder {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
+            flex: 1; background: transparent; border: none; color: #fff; 
+            padding: 10px 0; outline: none; font-size: 16px; border-bottom: 1px solid #222;
         }
 
         input.pulsing::placeholder {
-            animation: pulsePlaceholder 2s infinite ease-in-out;
-            color: #fff;
+            animation: pulsePlaceholder 2s infinite ease-in-out; color: #fff;
         }
+        @keyframes pulsePlaceholder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
 
         button { 
-            background: transparent; 
-            color: #fff; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 12px;
-            letter-spacing: 1px;
-            opacity: 0.5;
+            background: transparent; color: #fff; border: none; cursor: pointer; 
+            font-weight: bold; font-size: 12px; letter-spacing: 1px; opacity: 0.5;
         }
         button:hover { opacity: 1; }
         button:disabled { display: none; }
-
-        #chat-container::-webkit-scrollbar { width: 0px; }
+        
         #youtube-player { position: absolute; top: -9999px; visibility: hidden; }
     </style>
 </head>
 <body>
 
 <div id="auth-overlay">
-    <div style="color:#fff; font-size:14px; letter-spacing:1px; margin-bottom:10px;">HUMAN VERIFICATION</div>
-    <div class="cf-turnstile" data-sitekey="TVUJ_CLOUDFLARE_SITE_KEY_ZDE" data-callback="onTurnstileSuccess"></div>
+    <div class="auth-text">Security Check</div>
+    <div class="cf-turnstile" 
+         data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" 
+         data-callback="onTurnstileSuccess" 
+         data-theme="dark">
+    </div>
 </div>
 
 <div id="viz-container">
@@ -163,20 +132,70 @@
 <div id="youtube-player"></div>
 
 <script>
+    
     let turnstileToken = null;
-    let conversationHistory = [];
 
-    function onTurnstileSuccess(token) {
+  
+    window.onTurnstileSuccess = function(token) {
+        console.log("Verified successfully");
         turnstileToken = token;
-        document.getElementById('auth-overlay').style.display = 'none';
-        const input = document.getElementById('userInput');
-        input.disabled = false;
-        input.placeholder = "Let's chat!";
-        document.getElementById('sendBtn').disabled = false;
-        input.focus();
+        
+        const overlay = document.getElementById('auth-overlay');
+        overlay.style.opacity = '0'; 
+        
+        setTimeout(() => {
+            overlay.style.display = 'none'; 
+            const input = document.getElementById('userInput');
+            const btn = document.getElementById('sendBtn');
+            input.disabled = false;
+            input.placeholder = "Let's chat!";
+            btn.disabled = false;
+            input.focus();
+        }, 500);
+    };
+
+
+    let conversationHistory = [];
+    
+   
+    let voiceEnabled = true;
+    let isMusicPlaying = false;
+    let audioCtx, analyser, dataArray, source, animationId;
+    let player; 
+
+    
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtube-player', {
+            height: '0', width: '0',
+            events: { 'onStateChange': onPlayerStateChange }
+        });
     }
 
-    // --- Title Animation ---
+    function onPlayerStateChange(event) {
+        if (event.data === 0) { // Ended
+            isMusicPlaying = false;
+            if (!source) {
+                canvas.style.display = "none";
+                cancelAnimationFrame(animationId);
+            }
+        }
+    }
+
+  
+    const voiceToggle = document.getElementById('voiceToggle');
+    const voiceStatusText = document.getElementById('voice-status-text');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.getElementById('chat-container');
+
+    
     let originalTitle = "Mia - free personal AI agent";
     let titleIndex = 0;
     let deleting = false;
@@ -193,48 +212,6 @@
         setTimeout(animateTitle, speed);
     }
     animateTitle();
-
-    // --- Audio & Music Setup ---
-    let voiceEnabled = true;
-    let isMusicPlaying = false;
-    let audioCtx, analyser, dataArray, source, animationId;
-    let player; 
-
-    // Load YouTube API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtube-player', {
-            height: '0',
-            width: '0',
-            events: {
-                'onStateChange': onPlayerStateChange
-            }
-        });
-    }
-
-    function onPlayerStateChange(event) {
-        // YT.PlayerState.ENDED = 0
-        if (event.data === 0) {
-            isMusicPlaying = false;
-            // Stop animation if no voice is playing either
-            if (!source) {
-                canvas.style.display = "none";
-                cancelAnimationFrame(animationId);
-            }
-        }
-    }
-
-    const voiceToggle = document.getElementById('voiceToggle');
-    const voiceStatusText = document.getElementById('voice-status-text');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const chatContainer = document.getElementById('chat-container');
 
     voiceToggle.onclick = () => {
         voiceEnabled = !voiceEnabled;
@@ -256,20 +233,12 @@
     function playMusic(query) {
         if (!player) return;
         isMusicPlaying = true;
-        
-        // Force visualizer on even if voice is "off" because music is "on"
         canvas.style.display = "block";
         ensureAudioContext();
-        
-        // Use a dummy audio source for the visualizer pulse if only music plays
-        // or just rely on the draw loop animation logic
         if (!animationId) draw();
-
+        
         player.loadPlaylist({
-            listType: 'search',
-            list: query,
-            index: 0,
-            startSeconds: 0
+            listType: 'search', list: query, index: 0, startSeconds: 0
         });
     }
 
@@ -311,30 +280,22 @@
 
     function draw() {
         animationId = requestAnimationFrame(draw);
-        
         if (analyser && source) {
             analyser.getByteFrequencyData(dataArray);
         } else if (isMusicPlaying) {
-            // Fake visualization data for music if we can't hook into YT audio stream directly
             if (!dataArray) dataArray = new Uint8Array(128);
-            for(let i=0; i<dataArray.length; i++) {
-                dataArray[i] = Math.random() * 100 + 50; // Random pulse
-            }
+            for(let i=0; i<dataArray.length; i++) dataArray[i] = Math.random() * 100 + 50; 
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         const barWidth = (canvas.width / (dataArray ? dataArray.length : 128)) * 2;
         let x = 0;
         
-        // Visualizer Color Logic
         if (isMusicPlaying) {
-            // Cool Future Pulse (Purple/Blue/Cyan gradient simulation)
             const time = Date.now() * 0.002;
             const r = Math.sin(time) * 50 + 100;
             const g = Math.sin(time + 2) * 50 + 50;
-            const b = 255;
-            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillStyle = `rgb(${r},${g},255)`;
         } else {
             ctx.fillStyle = "#fff";
         }
@@ -342,7 +303,7 @@
         if (dataArray) {
             for (let i = 0; i < dataArray.length; i++) {
                 let barHeight = dataArray[i] / 4;
-                if (isMusicPlaying) barHeight = barHeight * 0.8 + (Math.sin(Date.now()/200 + i)*5); // Add smooth wave for music
+                if (isMusicPlaying) barHeight = barHeight * 0.8;
                 ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
                 x += barWidth;
             }
@@ -374,16 +335,13 @@
             });
             
             const data = await response.json();
-            
             if (data.error) throw new Error(data.error);
 
             appendMessage('bot', data.text);
             conversationHistory.push({ role: "assistant", content: data.text });
 
             const playMusicAction = () => {
-                if (data.musicQuery) {
-                    playMusic(data.musicQuery);
-                }
+                if (data.musicQuery) playMusic(data.musicQuery);
             };
 
             if (data.audioBase64) {
@@ -395,7 +353,7 @@
 
         } catch (err) {
             console.error(err);
-            appendMessage('bot', 'Connection error or verification failed.');
+            appendMessage('bot', 'Connection error. Try refreshing.');
         } finally {
             sendBtn.disabled = false;
             userInput.focus();
