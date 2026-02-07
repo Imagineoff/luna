@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
@@ -60,7 +62,7 @@ export default async function handler(req, res) {
 
         const replyText = groqData.choices[0].message.content;
 
-        const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
+        const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`, {
             method: 'POST',
             headers: {
                 'xi-api-key': process.env.ELEVENLABS_API_KEY,
@@ -84,6 +86,7 @@ export default async function handler(req, res) {
             audioBase64: audioBase64
         });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
 }
