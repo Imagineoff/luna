@@ -17,6 +17,7 @@
         .sticky-view::-webkit-scrollbar { display: none; }
         .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
         #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
+        #mia-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://github.com/Imagineoff/luna/blob/main/Miapposter.jpg?raw=true') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
         .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s; font-size: 0.9rem; }
         .panel:hover { border-color: #810000; background: rgba(255, 255, 255, 0.08); }
         .btn-action { background: linear-gradient(90deg, #4f46e5, #810000); transition: transform 0.3s; padding: 10px 20px; border-radius: 99px; font-weight: 900; text-transform: uppercase; text-decoration: none; color: #fff; display: inline-block; font-size: 0.7rem; letter-spacing: 1px; text-align: center; }
@@ -53,6 +54,17 @@
                 <p class="text-[#810000] font-bold tracking-widest mb-6">PSYCHOLOGICAL HORROR</p>
                 <p class="text-gray-400 mb-8">Dive into a decaying world where the truth twists the deeper you descend.</p>
                 <a href="https://studioluna.dev/countdown.html" target="_blank" class="btn-action">Play Game</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="track" id="tr-mia">
+        <div class="sticky-view flex-col md:flex-row gap-12">
+            <div id="mia-card" class="opacity-0"></div>
+            <div id="mia-desc" class="max-w-md opacity-0 translate-x-20">
+                <h2 class="text-5xl font-black mb-2 italic">Mia</h2>
+                <p class="text-[#810000] font-bold tracking-widest mb-6">free personal AI agent</p>
+                <a href="https://studioluna.dev/Mia.html" class="btn-action">let’s chat!</a>
             </div>
         </div>
     </section>
@@ -149,15 +161,25 @@
             }
 
             const s4 = s3 + get('tr-game').offsetHeight;
-            let p4 = (y - s4) / (h * 2.5);
+            let pMia = (y - s4) / (h * 2.5);
+            pMia = Math.max(0, Math.min(1, pMia));
+            if(pMia > 0) {
+                get('mia-card').style.opacity = pMia * 2;
+                get('mia-card').style.transform = `rotateY(${pMia * 360}deg) scale(${0.8 + pMia * 0.2})`;
+                get('mia-desc').style.opacity = pMia * 2;
+                get('mia-desc').style.transform = `translateX(${(1-pMia)*50}px)`;
+            }
+
+            const s5 = s4 + get('tr-mia').offsetHeight;
+            let p4 = (y - s5) / (h * 2.5);
             p4 = Math.max(0, Math.min(1, p4));
             get('comm-h').style.opacity = p4 * 2;
             get('comm-grid').style.opacity = p4 * 2;
             get('comm-grid').style.transform = `translateY(${(1-p4)*30}px)`;
             get('comm-disc').style.opacity = p4 * 2;
 
-            const s5 = s4 + get('tr-comm').offsetHeight;
-            let pt = (y - s5) / (h * 1.5);
+            const s6 = s5 + get('tr-comm').offsetHeight;
+            let pt = (y - s6) / (h * 1.5);
             pt = Math.max(0, Math.min(1, pt));
             
             get('team-h').style.opacity = pt * 2;
