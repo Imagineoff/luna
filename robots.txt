@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+User-agent: SeznamBot
+Allow: /
+
+Sitemap: https://studioluna.dev/sitemap.xml
