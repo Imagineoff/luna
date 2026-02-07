@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
-    <title>Mia</title>
+    <title>Mia AI</title>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        * { box-sizing: border-box; }
         body { 
-            background-color: #000; 
+            background-color: #050505; 
             color: #fff; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
             margin: 0; 
@@ -18,28 +16,15 @@
             height: 100dvh; 
             overflow: hidden; 
         }
-
         #viz-container { 
-            flex: 0 0 120px;
+            flex: 0 0 150px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            position: relative;
+            position: relative; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 70%);
         }
-
-        canvas { 
-            width: 100%; 
-            height: 80px; 
-            display: none;
-        }
-
-        #voice-status-text {
-            font-size: 10px;
-            letter-spacing: 2px;
-            color: #333;
-            text-transform: uppercase;
-        }
-
+        canvas { width: 100%; height: 100%; }
         #chat-container { 
             flex: 1; 
             overflow-y: auto; 
@@ -49,346 +34,198 @@
             gap: 15px; 
             scroll-behavior: smooth; 
         }
-
         .msg { 
             max-width: 85%; 
-            padding: 10px 0;
-            line-height: 1.6; 
-            font-size: 1rem;
-            animation: fadeIn 0.3s ease;
+            padding: 12px 16px; 
+            border-radius: 18px; 
+            font-size: 0.95rem; 
+            line-height: 1.5; 
+            animation: fadeIn 0.3s ease; 
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .user { align-self: flex-end; color: #fff; text-align: right; }
-        .bot { align-self: flex-start; color: #ccc; } 
-
-        #controls {
-            padding: 10px 20px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            font-size: 10px;
-            letter-spacing: 1px;
-            background: none;
-            border: none;
-            color: #444;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .toggle-btn.active { color: #fff; }
-
+        .user { align-self: flex-end; background: #333; color: #fff; border-bottom-right-radius: 4px; }
+        .bot { align-self: flex-start; background: #111; color: #ddd; border-bottom-left-radius: 4px; border: 1px solid #222; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #input-container { 
             padding: 20px; 
             display: flex; 
             gap: 10px; 
-            align-items: center;
+            background: #050505; 
+            border-top: 1px solid #222; 
         }
-        
         input { 
             flex: 1; 
-            background: transparent; 
-            border: none; 
+            background: #111; 
+            border: 1px solid #333; 
+            border-radius: 25px; 
             color: #fff; 
-            padding: 10px 0; 
+            padding: 12px 20px; 
             outline: none; 
             font-size: 16px; 
-            border-bottom: 1px solid #222;
         }
-
-        @keyframes pulsePlaceholder {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
-        }
-
-        input.pulsing::placeholder {
-            animation: pulsePlaceholder 2s infinite ease-in-out;
-            color: #fff;
-        }
-
-        button#sendBtn { 
-            background: transparent; 
-            color: #fff; 
+        button { 
+            background: #fff; 
+            color: #000; 
             border: none; 
+            border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 12px;
-            letter-spacing: 1px;
-            opacity: 0.5;
+            transition: transform 0.1s; 
         }
-        button#sendBtn:hover { opacity: 1; }
-        button:disabled { display: none; }
-
-        #chat-container::-webkit-scrollbar { width: 0px; }
-        #youtube-player { display: none; position: absolute; top: -9999px; }
+        button:active { transform: scale(0.95); }
+        button:disabled { opacity: 0.5; }
+        #youtube-player { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
+        .status-indicator {
+            position: absolute; bottom: 10px; right: 10px;
+            font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
 
 <div id="viz-container">
-    <div id="voice-status-text"></div>
     <canvas id="canvas"></canvas>
+    <div class="status-indicator" id="statusText">IDLE</div>
 </div>
 
 <div id="chat-container"></div>
 
-<div id="controls">
-    <button id="stopMusicBtn" class="toggle-btn" style="display:none;">STOP MUSIC</button>
-    <button id="voiceToggle" class="toggle-btn active">VOICE ON</button>
-</div>
-
 <div id="input-container">
-    <input type="text" id="userInput" placeholder="Let's chat!" class="pulsing" autocomplete="off">
-    <button id="sendBtn">SEND</button>
+    <input type="text" id="userInput" placeholder="Message Mia..." autocomplete="off">
+    <button id="sendBtn">➤</button>
 </div>
 
 <div id="youtube-player"></div>
 
 <script>
-    let originalTitle = "Mia - free personal AI agent";
-    let titleIndex = 0;
-    let deleting = false;
-
-    function animateTitle() {
-        const speed = deleting ? 100 : 150;
-        document.title = originalTitle.substring(0, titleIndex);
-
-        if (!deleting) {
-            titleIndex++;
-            if (titleIndex > originalTitle.length) {
-                setTimeout(() => deleting = true, 2000);
-            }
-        } else {
-            titleIndex--;
-            if (titleIndex < 0) {
-                deleting = false;
-                titleIndex = 0;
-            }
-        }
-        setTimeout(animateTitle, speed);
-    }
-    animateTitle();
-
-    let voiceEnabled = true;
-    let firstMessageSent = false;
-    let conversationHistory = []; 
-    let audioCtx, analyser, dataArray, source, animationId;
+    let audioCtx, analyser, source, dataArray, canvasCtx, animationId;
     let ytPlayer;
-    let isMusicPlaying = false;
     let isVoicePlaying = false;
+    let isMusicPlaying = false;
+    let conversationHistory = [];
 
-    const voiceToggle = document.getElementById('voiceToggle');
-    const stopMusicBtn = document.getElementById('stopMusicBtn');
-    const voiceStatusText = document.getElementById('voice-status-text');
     const canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = 150;
+    canvasCtx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const chatContainer = document.getElementById('chat-container');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
-    const chatContainer = document.getElementById('chat-container');
-    const ctx = canvas.getContext('2d');
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('youtube-player', {
-            height: '0',
-            width: '0',
-            events: {
-                'onStateChange': onPlayerStateChange
-            }
+            height: '0', width: '0',
+            playerVars: { 'autoplay': 0, 'controls': 0 },
+            events: { 'onStateChange': onPlayerStateChange }
         });
     }
 
     function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
+        if (event.data === YT.PlayerState.PLAYING) {
             isMusicPlaying = true;
-            stopMusicBtn.style.display = 'inline-block';
-            canvas.style.display = "block";
-            if (!isVoicePlaying) draw();
-        } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
+            statusText.innerText = "PLAYING MUSIC";
+            if (!isVoicePlaying) startVisualizer('music');
+        } else if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
             isMusicPlaying = false;
-            stopMusicBtn.style.display = 'none';
             if (!isVoicePlaying) {
-                canvas.style.display = "none";
-                cancelAnimationFrame(animationId);
+                stopVisualizer();
+                statusText.innerText = "IDLE";
             }
         }
     }
 
-    function playYoutubeMusic(query) {
+    function playMusic(query) {
         if (ytPlayer && ytPlayer.loadPlaylist) {
-            ytPlayer.loadPlaylist({
-                listType: 'search',
-                list: query,
-                index: 0,
-                startSeconds: 0
-            });
-            ytPlayer.setVolume(100); 
+            ytPlayer.loadPlaylist({ listType: 'search', list: query, index: 0, startSeconds: 0 });
         }
     }
 
-    stopMusicBtn.onclick = () => {
-        if (ytPlayer) ytPlayer.stopVideo();
-        isMusicPlaying = false;
-        stopMusicBtn.style.display = 'none';
-        if (!isVoicePlaying) canvas.style.display = 'none';
-    };
-
-    voiceToggle.onclick = () => {
-        voiceEnabled = !voiceEnabled;
-        voiceToggle.innerText = voiceEnabled ? "VOICE ON" : "VOICE OFF";
-        voiceToggle.classList.toggle('active');
-        if (!voiceEnabled) {
-            voiceStatusText.innerText = "Voice Off";
-            if (!isMusicPlaying) canvas.style.display = "none";
-            if (source) { try { source.stop(); } catch(e){} }
-        } else {
-            voiceStatusText.innerText = "";
-        }
-    };
-
-    function ensureAudioContext() {
+    async function initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-    }
-
-    async function playAudio(buffer) {
-        if (!voiceEnabled || !audioCtx) return;
-        
-        if (source) { try { source.stop(); } catch(e){} }
-        
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        
-        try {
-            const decodedData = await audioCtx.decodeAudioData(buffer);
-            source = audioCtx.createBufferSource();
-            source.buffer = decodedData;
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
-            canvas.style.display = "block";
-            voiceStatusText.innerText = "";
-            
-            isVoicePlaying = true;
-            if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(20); 
-
-            source.start(0);
-            draw();
-            
-            source.onended = () => {
-                isVoicePlaying = false;
-                if (ytPlayer && isMusicPlaying) {
-                    ytPlayer.setVolume(100);
-                } else {
-                    canvas.style.display = "none";
-                    cancelAnimationFrame(animationId);
-                }
-            };
-        } catch (e) {
-            console.error("Audio decode error", e);
         }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
     }
 
-    function draw() {
-        animationId = requestAnimationFrame(draw);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    async function playVoice(base64Audio) {
+        await initAudio();
         
-        let bars = 64; 
-        const barWidth = canvas.width / bars;
-
-        if (isVoicePlaying && analyser) {
-             analyser.getByteFrequencyData(dataArray);
-             ctx.fillStyle = "#fff";
-             for (let i = 0; i < bars; i++) {
-                let index = Math.floor(i * (dataArray.length / bars));
-                let value = dataArray[index] || 0;
-                let barHeight = value / 3;
-                let x = i * barWidth;
-                ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
-             }
-        } else if (isMusicPlaying) {
-             let time = Date.now() / 100;
-             for (let i = 0; i < bars; i++) {
-                let h = Math.sin(i * 0.2 + time) * 20 + Math.random() * 20 + 10;
-                let r = 100 + Math.random() * 155;
-                let g = 100 + Math.random() * 155;
-                let b = 200 + Math.random() * 55;
-                ctx.fillStyle = `rgb(${r},${g},${b})`;
-                let x = i * barWidth;
-                ctx.fillRect(x, (canvas.height / 2) - (h / 2), barWidth - 1, h);
-             }
-        }
-    }
-
-    async function sendMessage() {
-        let text = userInput.value.trim();
-        if (!text) return;
-
-        if (voiceEnabled || isMusicPlaying) {
-            ensureAudioContext();
-        }
-
-        if (!firstMessageSent) {
-            firstMessageSent = true;
-            userInput.classList.remove('pulsing');
-            userInput.placeholder = "Click to type...";
-        }
+        if (isMusicPlaying && ytPlayer) ytPlayer.setVolume(20);
         
-        appendMessage('user', text);
-        
-        const userMsgObj = { role: "user", content: text };
-        conversationHistory.push(userMsgObj);
-        
-        userInput.value = '';
-        sendBtn.disabled = true;
-        
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: conversationHistory })
-            });
-            const data = await response.json();
-            
-            let rawText = data.text;
-            let displayMessage = rawText;
-            
-            const musicRegex = /\[PLAY:\s*(.*?)\]/i;
-            const match = rawText.match(musicRegex);
-            
-            if (match) {
-                const songQuery = match[1];
-                playYoutubeMusic(songQuery);
-                displayMessage = rawText.replace(match[0], '').trim();
-            }
+        const binaryString = window.atob(base64Audio);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
 
-            if (displayMessage) {
-                appendMessage('bot', displayMessage);
-                conversationHistory.push({ role: "assistant", content: rawText }); 
+        const buffer = await audioCtx.decodeAudioData(bytes.buffer);
+        if (source) source.stop();
+        
+        source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        
+        source.onended = () => {
+            isVoicePlaying = false;
+            if (isMusicPlaying) {
+                if(ytPlayer) ytPlayer.setVolume(100);
+                startVisualizer('music');
             } else {
-                 conversationHistory.push({ role: "assistant", content: rawText });
+                stopVisualizer();
+                statusText.innerText = "IDLE";
             }
+        };
+
+        isVoicePlaying = true;
+        statusText.innerText = "SPEAKING";
+        startVisualizer('voice');
+        source.start(0);
+    }
+
+    function startVisualizer(mode) {
+        if (animationId) cancelAnimationFrame(animationId);
+        
+        function draw() {
+            animationId = requestAnimationFrame(draw);
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (voiceEnabled && data.audioBase64) {
-                const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
-                await playAudio(audioBytes.buffer);
+            const bars = 50;
+            const barWidth = canvas.width / bars;
+            const centerX = canvas.height / 2;
+
+            if (mode === 'voice') {
+                analyser.getByteFrequencyData(dataArray);
+                canvasCtx.fillStyle = '#fff';
+                for (let i = 0; i < bars; i++) {
+                    const h = (dataArray[i * 2] / 255) * 100;
+                    const x = i * barWidth;
+                    canvasCtx.fillRect(x, centerX - h/2, barWidth - 2, h);
+                }
+            } else if (mode === 'music') {
+                const time = Date.now() / 200;
+                for (let i = 0; i < bars; i++) {
+                    const h = Math.sin(i * 0.2 + time) * 30 + Math.random() * 20 + 10;
+                    const hue = (i * 5 + time * 50) % 360;
+                    canvasCtx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                    const x = i * barWidth;
+                    canvasCtx.fillRect(x, centerX - h/2, barWidth - 2, h);
+                }
             }
-        } catch (err) {
-            console.error(err);
-            appendMessage('bot', 'Connection error.');
-        } finally {
-            sendBtn.disabled = false;
         }
+        draw();
+    }
+
+    function stopVisualizer() {
+        if (animationId) cancelAnimationFrame(animationId);
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     function appendMessage(role, text) {
-        if(!text) return;
         const div = document.createElement('div');
         div.className = `msg ${role}`;
         div.innerText = text;
@@ -396,14 +233,51 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    sendBtn.onclick = sendMessage;
-    userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
 
-    window.onresize = () => {
-        canvas.width = window.innerWidth;
-        canvas.height = 80;
-    };
-    window.onresize();
+        await initAudio(); 
+
+        appendMessage('user', text);
+        userInput.value = '';
+        sendBtn.disabled = true;
+        
+        conversationHistory.push({ role: "user", content: text });
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory })
+            });
+            const data = await res.json();
+
+            // Handle Music Command
+            let displayText = data.text;
+            const musicMatch = displayText.match(/\[PLAY:(.*?)\]/);
+            if (musicMatch) {
+                const song = musicMatch[1].trim();
+                playMusic(song);
+                displayText = displayText.replace(musicMatch[0], '').trim();
+            }
+
+            conversationHistory.push({ role: "assistant", content: data.text });
+            
+            if (displayText) appendMessage('bot', displayText);
+            if (data.audio) playVoice(data.audio);
+
+        } catch (e) {
+            console.error(e);
+            appendMessage('bot', "Error connecting to Mia.");
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    sendBtn.onclick = sendMessage;
+    userInput.onkeypress = (e) => e.key === 'Enter' ? sendMessage() : null;
+    window.onresize = () => { canvas.width = window.innerWidth; };
 </script>
 </body>
 </html>
