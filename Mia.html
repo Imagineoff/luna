@@ -169,6 +169,7 @@
     let voiceEnabled = true;
     let firstMessageSent = false;
     let conversationHistory = []; 
+    let audioCtx, analyser, dataArray, source, animationId;
 
     const voiceToggle = document.getElementById('voiceToggle');
     const voiceStatusText = document.getElementById('voice-status-text');
@@ -185,34 +186,50 @@
         if (!voiceEnabled) {
             voiceStatusText.innerText = "Voice Off";
             canvas.style.display = "none";
+            if (source) { try { source.stop(); } catch(e){} }
         } else {
             voiceStatusText.innerText = "";
         }
     };
 
-    let audioCtx, analyser, dataArray, source, animationId;
+    function ensureAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
 
-    function initAudio(buffer) {
-        if (!voiceEnabled) return;
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    async function playAudio(buffer) {
+        if (!voiceEnabled || !audioCtx) return;
+        
         if (source) { try { source.stop(); } catch(e){} }
+        
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
-        audioCtx.decodeAudioData(buffer, (decodedData) => {
+        
+        try {
+            const decodedData = await audioCtx.decodeAudioData(buffer);
             source = audioCtx.createBufferSource();
             source.buffer = decodedData;
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
+            
             dataArray = new Uint8Array(analyser.frequencyBinCount);
             canvas.style.display = "block";
             voiceStatusText.innerText = "";
+            
             source.start(0);
             draw();
+            
             source.onended = () => {
                 canvas.style.display = "none";
                 cancelAnimationFrame(animationId);
             };
-        });
+        } catch (e) {
+            console.error("Audio decode error", e);
+        }
     }
 
     function draw() {
@@ -232,6 +249,11 @@
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
+
+        if (voiceEnabled) {
+            ensureAudioContext();
+        }
+
         if (!firstMessageSent) {
             firstMessageSent = true;
             userInput.classList.remove('pulsing');
@@ -257,9 +279,10 @@
             
             if (voiceEnabled && data.audioBase64) {
                 const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
-                initAudio(audioBytes.buffer);
+                await playAudio(audioBytes.buffer);
             }
         } catch (err) {
+            console.error(err);
             appendMessage('bot', 'Connection error.');
         } finally {
             sendBtn.disabled = false;
