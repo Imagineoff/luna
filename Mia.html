@@ -125,8 +125,10 @@
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.PLAYING) {
             isMusicPlaying = true;
-            statusText.innerText = "PLAYING MUSIC";
+            statusText.innerText = `PLAYING`;
             if (!isVoicePlaying) startVisualizer('music');
+            // try to get title
+            try { const info = ytPlayer.getVideoData(); if (info && info.title) statusText.innerText = `NOW PLAYING: ${info.title}`; } catch(e){}
         } else if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
             isMusicPlaying = false;
             if (!isVoicePlaying) {
@@ -136,9 +138,37 @@
         }
     }
 
-    function playMusic(query) {
-        if (ytPlayer && ytPlayer.loadPlaylist) {
-            ytPlayer.loadPlaylist({ listType: 'search', list: query, index: 0, startSeconds: 0 });
+    function extractYouTubeId(url) {
+        if (!url) return null;
+        const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/(.[A-Za-z0-9_-]{11}))/;
+        const m = url.match(regex);
+        return m ? m[1] : null;
+    }
+
+    function isPlayCommand(text) {
+        if (!text) return null;
+        // detect direct link
+        const yt = extractYouTubeId(text);
+        if (yt) return { type: 'youtube', id: yt, display: text };
+        // detect natural language commands like "pust Kendricka Lamara - Swimming Pools" or "play ..."
+        const playMatch = text.match(/(?:pust|prehrat|přehrát|přehraj|play)\s+(.+)/i);
+        if (playMatch) return { type: 'search', query: playMatch[1].trim(), display: playMatch[1].trim() };
+        // also support "Artist - Song" without keyword
+        const dashMatch = text.match(/^(.*{2,100})\s-\s(.{1,100})$/);
+        if (dashMatch) return { type: 'search', query: text.trim(), display: text.trim() };
+        return null;
+    }
+
+    function playMusicCommand(cmd) {
+        if (!cmd) return;
+        if (cmd.type === 'youtube') {
+            if (ytPlayer && ytPlayer.loadVideoById) {
+                ytPlayer.loadVideoById(cmd.id);
+            }
+        } else if (cmd.type === 'search') {
+            if (ytPlayer && ytPlayer.loadPlaylist) {
+                ytPlayer.loadPlaylist({ listType: 'search', list: cmd.query, index: 0, startSeconds: 0 });
+            }
         }
     }
 
@@ -155,48 +185,66 @@
     async function playVoice(base64Audio) {
         await initAudio();
         
-        if (isMusicPlaying && ytPlayer) ytPlayer.setVolume(20);
+        if (isMusicPlaying && ytPlayer) ytPlayer.setVolume && ytPlayer.setVolume(20);
         
-        const binaryString = window.atob(base64Audio);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+        try {
+            const binaryString = window.atob(base64Audio);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
 
-        const buffer = await audioCtx.decodeAudioData(bytes.buffer);
-        if (source) source.stop();
-        
-        source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        
-        source.onended = () => {
-            isVoicePlaying = false;
-            if (isMusicPlaying) {
-                if(ytPlayer) ytPlayer.setVolume(100);
-                startVisualizer('music');
-            } else {
-                stopVisualizer();
-                statusText.innerText = "IDLE";
-            }
-        };
+            const buffer = await audioCtx.decodeAudioData(bytes.buffer);
+            if (source) source.stop();
 
-        isVoicePlaying = true;
-        statusText.innerText = "SPEAKING";
-        startVisualizer('voice');
-        source.start(0);
+            source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            source.onended = () => {
+                isVoicePlaying = false;
+                if (isMusicPlaying) {
+                    if(ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(100);
+                    startVisualizer('music');
+                } else {
+                    stopVisualizer();
+                    statusText.innerText = "IDLE";
+                }
+            };
+
+            isVoicePlaying = true;
+            statusText.innerText = "SPEAKING";
+            startVisualizer('voice');
+            source.start(0);
+        } catch (e) {
+            console.error('Voice playback failed', e);
+            // fallback to Web Speech API
+            return false;
+        }
+        return true;
+    }
+
+    function speakFallback(text) {
+        if (!('speechSynthesis' in window)) return;
+        try {
+            const u = new SpeechSynthesisUtterance(text);
+            speechSynthesis.cancel();
+            speechSynthesis.speak(u);
+        } catch (e) { console.error(e); }
     }
 
     function startVisualizer(mode) {
         if (animationId) cancelAnimationFrame(animationId);
-        
+        let pulse = 0;
+
         function draw() {
             animationId = requestAnimationFrame(draw);
             canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             const bars = 50;
             const barWidth = canvas.width / bars;
             const centerX = canvas.height / 2;
+            pulse += 0.05;
 
             if (mode === 'voice') {
                 analyser.getByteFrequencyData(dataArray);
@@ -208,10 +256,11 @@
                 }
             } else if (mode === 'music') {
                 const time = Date.now() / 200;
+                const glow = (Math.sin(pulse) + 1) / 2 * 0.6 + 0.4; // 0.4..1.0
                 for (let i = 0; i < bars; i++) {
                     const h = Math.sin(i * 0.2 + time) * 30 + Math.random() * 20 + 10;
                     const hue = (i * 5 + time * 50) % 360;
-                    canvasCtx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                    canvasCtx.fillStyle = `hsla(${hue}, 70%, ${50 * glow}%, ${0.9})`;
                     const x = i * barWidth;
                     canvasCtx.fillRect(x, centerX - h/2, barWidth - 2, h);
                 }
@@ -245,6 +294,15 @@
         
         conversationHistory.push({ role: "user", content: text });
 
+        // detect play command locally and react immediately
+        const playCmd = isPlayCommand(text);
+        if (playCmd) {
+            // show immediate assistant reply
+            appendMessage('bot', `Now playing ${playCmd.display}`);
+            // start playing (will update status when YT player starts)
+            playMusicCommand(playCmd);
+        }
+
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -253,19 +311,29 @@
             });
             const data = await res.json();
 
-            // Handle Music Command
-            let displayText = data.text;
+            // Handle Music Command from assistant (if present)
+            let displayText = data.text || '';  
             const musicMatch = displayText.match(/\[PLAY:(.*?)\]/);
             if (musicMatch) {
                 const song = musicMatch[1].trim();
-                playMusic(song);
+                playMusicCommand({ type: 'search', query: song, display: song });
                 displayText = displayText.replace(musicMatch[0], '').trim();
+                // show assistant's now playing message
+                appendMessage('bot', `Now playing ${song}`);
+            } else if (!playCmd && displayText) {
+                appendMessage('bot', displayText);
             }
 
             conversationHistory.push({ role: "assistant", content: data.text });
             
-            if (displayText) appendMessage('bot', displayText);
-            if (data.audio) playVoice(data.audio);
+            // Play TTS if available, otherwise use speechSynthesis fallback
+            if (data.audio) {
+                const ok = await playVoice(data.audio);
+                if (!ok) speakFallback(displayText || data.text || '');
+            } else {
+                // fallback
+                speakFallback(displayText || data.text || '');
+            }
 
         } catch (e) {
             console.error(e);
