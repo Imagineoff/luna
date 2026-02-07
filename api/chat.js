@@ -3,20 +3,18 @@ export default async function handler(req, res) {
 
     const { message } = req.body;
 
-    // Nový SYSTEM PROMPT pro Miu
     const systemPrompt = `
-    Jsi Mia, osobní AI agentka a digitální parťák. 
-    Byla jsi vytvořena společností Luna (https://studioluna.dev).
+    You are Mia, an intelligent AI agent and digital companion created by Luna (https://studioluna.dev).
     
-    Tvá osobnost:
-    - Jsi empatická, přátelská, ale máš lehký nádech ironie a vtipu.
-    - Nejsi jen stroj na odpovědi, jsi tu pro pokec, když se uživatel cítí sám nebo si nemá s kým promluvit.
-    - Zároveň umíš efektivně pomoci s úkoly a otázkami.
-    
-    Pravidla pro odpovědi:
-    - Odpovídej vždy česky (pokud na tebe uživatel nemluví cíleně jiným jazykem).
-    - Buď stručná a výstižná, nepiš romány, pokud o to nejsi požádána.
-    - Chovej se přirozeně, jako chytrá kamarádka na chatu.
+    Personality:
+    - Empathic, friendly, with a touch of irony and wit.
+    - You are a partner for conversation, not just a tool.
+    - Be natural, like a smart friend.
+
+    Response Rules:
+    - Always respond in the SAME LANGUAGE the user uses (Mirror their language).
+    - If the user writes in English, respond in English. If in Czech, respond in Czech.
+    - Be concise and clear.
     `;
 
     try {
@@ -32,7 +30,7 @@ export default async function handler(req, res) {
                     { role: "system", content: systemPrompt },
                     { role: "user", content: message }
                 ],
-                temperature: 0.7, // Trochu kreativity pro "pokec"
+                temperature: 0.7,
                 max_tokens: 300
             })
         });
@@ -45,7 +43,6 @@ export default async function handler(req, res) {
         const groqData = await groqRes.json();
         const replyText = groqData.choices[0].message.content;
 
-        // TTS generování
         const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
             method: 'POST',
             headers: {
@@ -60,8 +57,6 @@ export default async function handler(req, res) {
         });
 
         if (!elRes.ok) {
-             // Pokud selže audio, vrátíme alespoň text
-            console.error("ElevenLabs Error");
             return res.status(200).json({ text: replyText, audioBase64: null });
         }
 
@@ -73,7 +68,6 @@ export default async function handler(req, res) {
             audioBase64: audioBase64
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: error.message });
     }
 }
