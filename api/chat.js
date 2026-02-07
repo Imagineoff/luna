@@ -3,44 +3,47 @@ export default async function handler(req, res) {
 
     const { history, turnstileToken } = req.body;
 
-    // 1. Cloudflare Turnstile Verification
-    const cfVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            secret: process.env.CLOUDFLARE_SECRET_KEY,
-            response: turnstileToken
-        })
-    });
-    const cfData = await cfVerify.json();
-    if (!cfData.success) {
-        return res.status(403).json({ error: 'Human verification failed' });
+
+    if (!turnstileToken) {
+        return res.status(403).json({ error: 'Missing Cloudflare token' });
     }
 
-    const systemPrompt = `
-    You are Mia, an intelligent AI agent and digital companion created by Luna.
-    
-    Personality:
-    - Empathic, friendly, with a touch of irony and wit.
-    - Be natural, like a smart friend.
-
-    Instructions:
-    1. Memory: You now receive the full conversation history. Use it to maintain context.
-    2. Language: Always respond in the SAME LANGUAGE the user uses.
-    3. Music Player Control:
-       - If the user explicitly asks to play music (e.g., "Play Kendrick Lamar", "Pust tam Nirvanu"), you MUST trigger the music player.
-       - To do this, start your response strictly with: ###MUSIC: Search Query###
-       - Example: User: "Play Swimming Pools" -> You: "###MUSIC: Kendrick Lamar Swimming Pools### Sure, playing that banger for you."
-       - Keep the text part brief if playing music.
-    `;
-
-    // Construct messages for LLM (System + History)
-    const messages = [
-        { role: "system", content: systemPrompt },
-        ...(history || [])
-    ];
-
     try {
+        const cfVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                secret: process.env.CLOUDFLARE_SECRET_KEY, // Tady volame SECRET key z ENV
+                response: turnstileToken
+            })
+        });
+
+        const cfData = await cfVerify.json();
+        if (!cfData.success) {
+            console.error("Cloudflare Validation Failed:", cfData);
+            return res.status(403).json({ error: 'Human verification failed' });
+        }
+
+   
+        const systemPrompt = `
+        You are Mia, an intelligent AI agent by Luna.
+        
+        Guidelines:
+        1. Memory: Use the provided conversation history for context.
+        2. Language: Always mirror the user's language (Czech/English).
+        3. Music Control:
+           - If user asks to play music (e.g. "Play X", "Pust Y", "Zahraj něco od Z"), START your response with:
+             ###MUSIC: Search Query###
+           - Follow with a short confirmation text.
+           - Example: "###MUSIC: Nirvana Smells Like Teen Spirit### Playing Nirvana for you."
+        `;
+
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...(history || [])
+        ];
+
+        
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -55,15 +58,13 @@ export default async function handler(req, res) {
             })
         });
 
-        if (!groqRes.ok) throw new Error(`Groq API Error`);
-
+        if (!groqRes.ok) throw new Error(`Groq API Error: ${groqRes.statusText}`);
         const groqData = await groqRes.json();
-        let rawReply = groqData.choices[0].message.content;
+        const rawReply = groqData.choices[0].message.content;
 
-        // Extract Music Command
+ 
         let musicQuery = null;
         let finalSpeechText = rawReply;
-
         const musicRegex = /###MUSIC:\s*(.*?)###/;
         const match = rawReply.match(musicRegex);
 
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
             finalSpeechText = rawReply.replace(match[0], '').trim();
         }
 
-        // ElevenLabs Generation
+       
         let audioBase64 = null;
         if (finalSpeechText) {
             const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
