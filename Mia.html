@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
     <title>Mia</title>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -65,9 +66,10 @@
             padding: 10px 20px;
             display: flex;
             justify-content: flex-end;
+            gap: 10px;
         }
 
-        .toggle-voice {
+        .toggle-btn {
             font-size: 10px;
             letter-spacing: 1px;
             background: none;
@@ -76,7 +78,7 @@
             cursor: pointer;
             transition: color 0.2s;
         }
-        .toggle-voice.active { color: #fff; }
+        .toggle-btn.active { color: #fff; }
 
         #input-container { 
             padding: 20px; 
@@ -107,7 +109,7 @@
             color: #fff;
         }
 
-        button { 
+        button#sendBtn { 
             background: transparent; 
             color: #fff; 
             border: none; 
@@ -117,10 +119,11 @@
             letter-spacing: 1px;
             opacity: 0.5;
         }
-        button:hover { opacity: 1; }
+        button#sendBtn:hover { opacity: 1; }
         button:disabled { display: none; }
 
         #chat-container::-webkit-scrollbar { width: 0px; }
+        #youtube-player { display: none; position: absolute; top: -9999px; }
     </style>
 </head>
 <body>
@@ -133,13 +136,16 @@
 <div id="chat-container"></div>
 
 <div id="controls">
-    <button id="voiceToggle" class="toggle-voice active">VOICE ON</button>
+    <button id="stopMusicBtn" class="toggle-btn" style="display:none;">STOP MUSIC</button>
+    <button id="voiceToggle" class="toggle-btn active">VOICE ON</button>
 </div>
 
 <div id="input-container">
     <input type="text" id="userInput" placeholder="Let's chat!" class="pulsing" autocomplete="off">
     <button id="sendBtn">SEND</button>
 </div>
+
+<div id="youtube-player"></div>
 
 <script>
     let originalTitle = "Mia - free personal AI agent";
@@ -170,8 +176,12 @@
     let firstMessageSent = false;
     let conversationHistory = []; 
     let audioCtx, analyser, dataArray, source, animationId;
+    let ytPlayer;
+    let isMusicPlaying = false;
+    let isVoicePlaying = false;
 
     const voiceToggle = document.getElementById('voiceToggle');
+    const stopMusicBtn = document.getElementById('stopMusicBtn');
     const voiceStatusText = document.getElementById('voice-status-text');
     const canvas = document.getElementById('canvas');
     const userInput = document.getElementById('userInput');
@@ -179,13 +189,58 @@
     const chatContainer = document.getElementById('chat-container');
     const ctx = canvas.getContext('2d');
 
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('youtube-player', {
+            height: '0',
+            width: '0',
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            isMusicPlaying = true;
+            stopMusicBtn.style.display = 'inline-block';
+            canvas.style.display = "block";
+            if (!isVoicePlaying) draw();
+        } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
+            isMusicPlaying = false;
+            stopMusicBtn.style.display = 'none';
+            if (!isVoicePlaying) {
+                canvas.style.display = "none";
+                cancelAnimationFrame(animationId);
+            }
+        }
+    }
+
+    function playYoutubeMusic(query) {
+        if (ytPlayer && ytPlayer.loadPlaylist) {
+            ytPlayer.loadPlaylist({
+                listType: 'search',
+                list: query,
+                index: 0,
+                startSeconds: 0
+            });
+            ytPlayer.setVolume(100); 
+        }
+    }
+
+    stopMusicBtn.onclick = () => {
+        if (ytPlayer) ytPlayer.stopVideo();
+        isMusicPlaying = false;
+        stopMusicBtn.style.display = 'none';
+        if (!isVoicePlaying) canvas.style.display = 'none';
+    };
+
     voiceToggle.onclick = () => {
         voiceEnabled = !voiceEnabled;
         voiceToggle.innerText = voiceEnabled ? "VOICE ON" : "VOICE OFF";
         voiceToggle.classList.toggle('active');
         if (!voiceEnabled) {
             voiceStatusText.innerText = "Voice Off";
-            canvas.style.display = "none";
+            if (!isMusicPlaying) canvas.style.display = "none";
             if (source) { try { source.stop(); } catch(e){} }
         } else {
             voiceStatusText.innerText = "";
@@ -220,12 +275,20 @@
             canvas.style.display = "block";
             voiceStatusText.innerText = "";
             
+            isVoicePlaying = true;
+            if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(20); 
+
             source.start(0);
             draw();
             
             source.onended = () => {
-                canvas.style.display = "none";
-                cancelAnimationFrame(animationId);
+                isVoicePlaying = false;
+                if (ytPlayer && isMusicPlaying) {
+                    ytPlayer.setVolume(100);
+                } else {
+                    canvas.style.display = "none";
+                    cancelAnimationFrame(animationId);
+                }
             };
         } catch (e) {
             console.error("Audio decode error", e);
@@ -234,23 +297,40 @@
 
     function draw() {
         animationId = requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2;
-        let x = 0;
-        ctx.fillStyle = "#fff";
-        for (let i = 0; i < dataArray.length; i++) {
-            let barHeight = dataArray[i] / 4;
-            ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
-            x += barWidth;
+        
+        let bars = 64; 
+        const barWidth = canvas.width / bars;
+
+        if (isVoicePlaying && analyser) {
+             analyser.getByteFrequencyData(dataArray);
+             ctx.fillStyle = "#fff";
+             for (let i = 0; i < bars; i++) {
+                let index = Math.floor(i * (dataArray.length / bars));
+                let value = dataArray[index] || 0;
+                let barHeight = value / 3;
+                let x = i * barWidth;
+                ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
+             }
+        } else if (isMusicPlaying) {
+             let time = Date.now() / 100;
+             for (let i = 0; i < bars; i++) {
+                let h = Math.sin(i * 0.2 + time) * 20 + Math.random() * 20 + 10;
+                let r = 100 + Math.random() * 155;
+                let g = 100 + Math.random() * 155;
+                let b = 200 + Math.random() * 55;
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                let x = i * barWidth;
+                ctx.fillRect(x, (canvas.height / 2) - (h / 2), barWidth - 1, h);
+             }
         }
     }
 
     async function sendMessage() {
-        const text = userInput.value.trim();
+        let text = userInput.value.trim();
         if (!text) return;
 
-        if (voiceEnabled) {
+        if (voiceEnabled || isMusicPlaying) {
             ensureAudioContext();
         }
 
@@ -261,7 +341,9 @@
         }
         
         appendMessage('user', text);
-        conversationHistory.push({ role: "user", content: text });
+        
+        const userMsgObj = { role: "user", content: text };
+        conversationHistory.push(userMsgObj);
         
         userInput.value = '';
         sendBtn.disabled = true;
@@ -274,8 +356,24 @@
             });
             const data = await response.json();
             
-            appendMessage('bot', data.text);
-            conversationHistory.push({ role: "assistant", content: data.text });
+            let rawText = data.text;
+            let displayMessage = rawText;
+            
+            const musicRegex = /\[PLAY:\s*(.*?)\]/i;
+            const match = rawText.match(musicRegex);
+            
+            if (match) {
+                const songQuery = match[1];
+                playYoutubeMusic(songQuery);
+                displayMessage = rawText.replace(match[0], '').trim();
+            }
+
+            if (displayMessage) {
+                appendMessage('bot', displayMessage);
+                conversationHistory.push({ role: "assistant", content: rawText }); 
+            } else {
+                 conversationHistory.push({ role: "assistant", content: rawText });
+            }
             
             if (voiceEnabled && data.audioBase64) {
                 const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
@@ -290,6 +388,7 @@
     }
 
     function appendMessage(role, text) {
+        if(!text) return;
         const div = document.createElement('div');
         div.className = `msg ${role}`;
         div.innerText = text;
