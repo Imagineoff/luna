@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mia AI</title>
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
+    <title>Mia</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
+        * { box-sizing: border-box; }
         body { 
-            background-color: #050505; 
+            background-color: #000; 
             color: #fff; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
             margin: 0; 
@@ -16,15 +18,40 @@
             height: 100dvh; 
             overflow: hidden; 
         }
+
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
         #viz-container { 
-            flex: 0 0 150px; 
+            flex: 0 0 120px;
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            position: relative; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 70%);
+            position: relative;
         }
-        canvas { width: 100%; height: 100%; }
+
+        canvas { 
+            width: 100%; 
+            height: 80px; 
+            display: none;
+        }
+
+        #voice-status-text {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #333;
+            text-transform: uppercase;
+        }
+
         #chat-container { 
             flex: 1; 
             overflow-y: auto; 
@@ -34,244 +61,345 @@
             gap: 15px; 
             scroll-behavior: smooth; 
         }
+
         .msg { 
             max-width: 85%; 
-            padding: 12px 16px; 
-            border-radius: 18px; 
-            font-size: 0.95rem; 
-            line-height: 1.5; 
-            animation: fadeIn 0.3s ease; 
+            padding: 10px 0;
+            line-height: 1.6; 
+            font-size: 1rem;
+            animation: fadeIn 0.3s ease;
         }
-        .user { align-self: flex-end; background: #333; color: #fff; border-bottom-right-radius: 4px; }
-        .bot { align-self: flex-start; background: #111; color: #ddd; border-bottom-left-radius: 4px; border: 1px solid #222; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .user { align-self: flex-end; color: #fff; text-align: right; }
+        .bot { align-self: flex-start; color: #ccc; } 
+
+        #controls {
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .toggle-voice {
+            font-size: 10px;
+            letter-spacing: 1px;
+            background: none;
+            border: none;
+            color: #444;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .toggle-voice.active { color: #fff; }
+
         #input-container { 
             padding: 20px; 
             display: flex; 
             gap: 10px; 
-            background: #050505; 
-            border-top: 1px solid #222; 
+            align-items: center;
         }
+        
         input { 
             flex: 1; 
-            background: #111; 
-            border: 1px solid #333; 
-            border-radius: 25px; 
+            background: transparent; 
+            border: none; 
             color: #fff; 
-            padding: 12px 20px; 
+            padding: 10px 0; 
             outline: none; 
             font-size: 16px; 
+            border-bottom: 1px solid #222;
         }
+
+        @keyframes pulsePlaceholder {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
+
+        input.pulsing::placeholder {
+            animation: pulsePlaceholder 2s infinite ease-in-out;
+            color: #fff;
+        }
+
         button { 
-            background: #fff; 
-            color: #000; 
+            background: transparent; 
+            color: #fff; 
             border: none; 
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px; 
             cursor: pointer; 
             font-weight: bold; 
-            transition: transform 0.1s; 
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.5;
         }
-        button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; }
-        #youtube-player { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
-        .status-indicator {
-            position: absolute; bottom: 10px; right: 10px;
-            font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px;
-        }
+        button:hover { opacity: 1; }
+        button:disabled { display: none; }
+
+        #chat-container::-webkit-scrollbar { width: 0px; }
+        #youtube-player { position: absolute; top: -9999px; visibility: hidden; }
     </style>
 </head>
 <body>
 
+<div id="auth-overlay">
+    <div style="color:#fff; font-size:14px; letter-spacing:1px; margin-bottom:10px;">HUMAN VERIFICATION</div>
+    <div class="cf-turnstile" data-sitekey="TVUJ_CLOUDFLARE_SITE_KEY_ZDE" data-callback="onTurnstileSuccess"></div>
+</div>
+
 <div id="viz-container">
+    <div id="voice-status-text"></div>
     <canvas id="canvas"></canvas>
-    <div class="status-indicator" id="statusText">IDLE</div>
 </div>
 
 <div id="chat-container"></div>
 
+<div id="controls">
+    <button id="voiceToggle" class="toggle-voice active">VOICE ON</button>
+</div>
+
 <div id="input-container">
-    <input type="text" id="userInput" placeholder="Message Mia..." autocomplete="off">
-    <button id="sendBtn">➤</button>
+    <input type="text" id="userInput" placeholder="Waiting for verification..." class="pulsing" autocomplete="off" disabled>
+    <button id="sendBtn" disabled>SEND</button>
 </div>
 
 <div id="youtube-player"></div>
 
 <script>
-    let audioCtx, analyser, source, dataArray, canvasCtx, animationId;
-    let ytPlayer;
-    let isVoicePlaying = false;
-    let isMusicPlaying = false;
+    let turnstileToken = null;
     let conversationHistory = [];
 
-    const canvas = document.getElementById('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = 150;
-    canvasCtx = canvas.getContext('2d');
-    const statusText = document.getElementById('statusText');
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
+    function onTurnstileSuccess(token) {
+        turnstileToken = token;
+        document.getElementById('auth-overlay').style.display = 'none';
+        const input = document.getElementById('userInput');
+        input.disabled = false;
+        input.placeholder = "Let's chat!";
+        document.getElementById('sendBtn').disabled = false;
+        input.focus();
+    }
+
+    // --- Title Animation ---
+    let originalTitle = "Mia - free personal AI agent";
+    let titleIndex = 0;
+    let deleting = false;
+    function animateTitle() {
+        const speed = deleting ? 100 : 150;
+        document.title = originalTitle.substring(0, titleIndex);
+        if (!deleting) {
+            titleIndex++;
+            if (titleIndex > originalTitle.length) setTimeout(() => deleting = true, 2000);
+        } else {
+            titleIndex--;
+            if (titleIndex < 0) { deleting = false; titleIndex = 0; }
+        }
+        setTimeout(animateTitle, speed);
+    }
+    animateTitle();
+
+    // --- Audio & Music Setup ---
+    let voiceEnabled = true;
+    let isMusicPlaying = false;
+    let audioCtx, analyser, dataArray, source, animationId;
+    let player; 
+
+    // Load YouTube API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('youtube-player', {
-            height: '0', width: '0',
-            playerVars: { 'autoplay': 0, 'controls': 0 },
-            events: { 'onStateChange': onPlayerStateChange }
+        player = new YT.Player('youtube-player', {
+            height: '0',
+            width: '0',
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
         });
     }
 
     function onPlayerStateChange(event) {
-        if (event.data === YT.PlayerState.PLAYING) {
-            isMusicPlaying = true;
-            statusText.innerText = `PLAYING`;
-            if (!isVoicePlaying) startVisualizer('music');
-            // try to get title
-            try { const info = ytPlayer.getVideoData(); if (info && info.title) statusText.innerText = `NOW PLAYING: ${info.title}`; } catch(e){}
-        } else if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+        // YT.PlayerState.ENDED = 0
+        if (event.data === 0) {
             isMusicPlaying = false;
-            if (!isVoicePlaying) {
-                stopVisualizer();
-                statusText.innerText = "IDLE";
+            // Stop animation if no voice is playing either
+            if (!source) {
+                canvas.style.display = "none";
+                cancelAnimationFrame(animationId);
             }
         }
     }
 
-    function extractYouTubeId(url) {
-        if (!url) return null;
-        const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/(.[A-Za-z0-9_-]{11}))/;
-        const m = url.match(regex);
-        return m ? m[1] : null;
-    }
+    const voiceToggle = document.getElementById('voiceToggle');
+    const voiceStatusText = document.getElementById('voice-status-text');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.getElementById('chat-container');
 
-    function isPlayCommand(text) {
-        if (!text) return null;
-        // detect direct link
-        const yt = extractYouTubeId(text);
-        if (yt) return { type: 'youtube', id: yt, display: text };
-        // detect natural language commands like "pust Kendricka Lamara - Swimming Pools" or "play ..."
-        const playMatch = text.match(/(?:pust|prehrat|přehrát|přehraj|play)\s+(.+)/i);
-        if (playMatch) return { type: 'search', query: playMatch[1].trim(), display: playMatch[1].trim() };
-        // also support "Artist - Song" without keyword
-        const dashMatch = text.match(/^(.*{2,100})\s-\s(.{1,100})$/);
-        if (dashMatch) return { type: 'search', query: text.trim(), display: text.trim() };
-        return null;
-    }
-
-    function playMusicCommand(cmd) {
-        if (!cmd) return;
-        if (cmd.type === 'youtube') {
-            if (ytPlayer && ytPlayer.loadVideoById) {
-                ytPlayer.loadVideoById(cmd.id);
-            }
-        } else if (cmd.type === 'search') {
-            if (ytPlayer && ytPlayer.loadPlaylist) {
-                ytPlayer.loadPlaylist({ listType: 'search', list: cmd.query, index: 0, startSeconds: 0 });
-            }
+    voiceToggle.onclick = () => {
+        voiceEnabled = !voiceEnabled;
+        voiceToggle.innerText = voiceEnabled ? "VOICE ON" : "VOICE OFF";
+        voiceToggle.classList.toggle('active');
+        if (!voiceEnabled && !isMusicPlaying) {
+            voiceStatusText.innerText = "Voice Off";
+            canvas.style.display = "none";
+        } else {
+            voiceStatusText.innerText = "";
         }
+    };
+
+    function ensureAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    async function initAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-        }
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
-    }
-
-    async function playVoice(base64Audio) {
-        await initAudio();
+    function playMusic(query) {
+        if (!player) return;
+        isMusicPlaying = true;
         
-        if (isMusicPlaying && ytPlayer) ytPlayer.setVolume && ytPlayer.setVolume(20);
+        // Force visualizer on even if voice is "off" because music is "on"
+        canvas.style.display = "block";
+        ensureAudioContext();
         
-        try {
-            const binaryString = window.atob(base64Audio);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+        // Use a dummy audio source for the visualizer pulse if only music plays
+        // or just rely on the draw loop animation logic
+        if (!animationId) draw();
 
-            const buffer = await audioCtx.decodeAudioData(bytes.buffer);
-            if (source) source.stop();
+        player.loadPlaylist({
+            listType: 'search',
+            list: query,
+            index: 0,
+            startSeconds: 0
+        });
+    }
 
+    function initAudio(buffer, onEndedCallback) {
+        if (!voiceEnabled) {
+            if (onEndedCallback) onEndedCallback();
+            return;
+        }
+        ensureAudioContext();
+        if (source) { try { source.stop(); } catch(e){} }
+        
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        
+        audioCtx.decodeAudioData(buffer, (decodedData) => {
             source = audioCtx.createBufferSource();
-            source.buffer = buffer;
+            source.buffer = decodedData;
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
-
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            canvas.style.display = "block";
+            voiceStatusText.innerText = "";
+            source.start(0);
+            
+            if (!animationId) draw();
+            
             source.onended = () => {
-                isVoicePlaying = false;
-                if (isMusicPlaying) {
-                    if(ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(100);
-                    startVisualizer('music');
-                } else {
-                    stopVisualizer();
-                    statusText.innerText = "IDLE";
+                source = null;
+                if (onEndedCallback) onEndedCallback();
+                if (!isMusicPlaying) {
+                    canvas.style.display = "none";
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            };
+        });
+    }
+
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        
+        if (analyser && source) {
+            analyser.getByteFrequencyData(dataArray);
+        } else if (isMusicPlaying) {
+            // Fake visualization data for music if we can't hook into YT audio stream directly
+            if (!dataArray) dataArray = new Uint8Array(128);
+            for(let i=0; i<dataArray.length; i++) {
+                dataArray[i] = Math.random() * 100 + 50; // Random pulse
+            }
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / (dataArray ? dataArray.length : 128)) * 2;
+        let x = 0;
+        
+        // Visualizer Color Logic
+        if (isMusicPlaying) {
+            // Cool Future Pulse (Purple/Blue/Cyan gradient simulation)
+            const time = Date.now() * 0.002;
+            const r = Math.sin(time) * 50 + 100;
+            const g = Math.sin(time + 2) * 50 + 50;
+            const b = 255;
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+        } else {
+            ctx.fillStyle = "#fff";
+        }
+
+        if (dataArray) {
+            for (let i = 0; i < dataArray.length; i++) {
+                let barHeight = dataArray[i] / 4;
+                if (isMusicPlaying) barHeight = barHeight * 0.8 + (Math.sin(Date.now()/200 + i)*5); // Add smooth wave for music
+                ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
+                x += barWidth;
+            }
+        }
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        userInput.classList.remove('pulsing');
+        userInput.placeholder = "Click to type...";
+        
+        appendMessage('user', text);
+        conversationHistory.push({ role: "user", content: text });
+        
+        userInput.value = '';
+        sendBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    history: conversationHistory,
+                    voiceEnabled: voiceEnabled,
+                    turnstileToken: turnstileToken
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) throw new Error(data.error);
+
+            appendMessage('bot', data.text);
+            conversationHistory.push({ role: "assistant", content: data.text });
+
+            const playMusicAction = () => {
+                if (data.musicQuery) {
+                    playMusic(data.musicQuery);
                 }
             };
 
-            isVoicePlaying = true;
-            statusText.innerText = "SPEAKING";
-            startVisualizer('voice');
-            source.start(0);
-        } catch (e) {
-            console.error('Voice playback failed', e);
-            // fallback to Web Speech API
-            return false;
-        }
-        return true;
-    }
-
-    function speakFallback(text) {
-        if (!('speechSynthesis' in window)) return;
-        try {
-            const u = new SpeechSynthesisUtterance(text);
-            speechSynthesis.cancel();
-            speechSynthesis.speak(u);
-        } catch (e) { console.error(e); }
-    }
-
-    function startVisualizer(mode) {
-        if (animationId) cancelAnimationFrame(animationId);
-        let pulse = 0;
-
-        function draw() {
-            animationId = requestAnimationFrame(draw);
-            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const bars = 50;
-            const barWidth = canvas.width / bars;
-            const centerX = canvas.height / 2;
-            pulse += 0.05;
-
-            if (mode === 'voice') {
-                analyser.getByteFrequencyData(dataArray);
-                canvasCtx.fillStyle = '#fff';
-                for (let i = 0; i < bars; i++) {
-                    const h = (dataArray[i * 2] / 255) * 100;
-                    const x = i * barWidth;
-                    canvasCtx.fillRect(x, centerX - h/2, barWidth - 2, h);
-                }
-            } else if (mode === 'music') {
-                const time = Date.now() / 200;
-                const glow = (Math.sin(pulse) + 1) / 2 * 0.6 + 0.4; // 0.4..1.0
-                for (let i = 0; i < bars; i++) {
-                    const h = Math.sin(i * 0.2 + time) * 30 + Math.random() * 20 + 10;
-                    const hue = (i * 5 + time * 50) % 360;
-                    canvasCtx.fillStyle = `hsla(${hue}, 70%, ${50 * glow}%, ${0.9})`;
-                    const x = i * barWidth;
-                    canvasCtx.fillRect(x, centerX - h/2, barWidth - 2, h);
-                }
+            if (data.audioBase64) {
+                const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
+                initAudio(audioBytes.buffer, playMusicAction);
+            } else {
+                playMusicAction();
             }
-        }
-        draw();
-    }
 
-    function stopVisualizer() {
-        if (animationId) cancelAnimationFrame(animationId);
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        } catch (err) {
+            console.error(err);
+            appendMessage('bot', 'Connection error or verification failed.');
+        } finally {
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
     }
 
     function appendMessage(role, text) {
@@ -282,70 +410,14 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    async function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
-
-        await initAudio(); 
-
-        appendMessage('user', text);
-        userInput.value = '';
-        sendBtn.disabled = true;
-        
-        conversationHistory.push({ role: "user", content: text });
-
-        // detect play command locally and react immediately
-        const playCmd = isPlayCommand(text);
-        if (playCmd) {
-            // show immediate assistant reply
-            appendMessage('bot', `Now playing ${playCmd.display}`);
-            // start playing (will update status when YT player starts)
-            playMusicCommand(playCmd);
-        }
-
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: conversationHistory })
-            });
-            const data = await res.json();
-
-            // Handle Music Command from assistant (if present)
-            let displayText = data.text || '';  
-            const musicMatch = displayText.match(/\[PLAY:(.*?)\]/);
-            if (musicMatch) {
-                const song = musicMatch[1].trim();
-                playMusicCommand({ type: 'search', query: song, display: song });
-                displayText = displayText.replace(musicMatch[0], '').trim();
-                // show assistant's now playing message
-                appendMessage('bot', `Now playing ${song}`);
-            } else if (!playCmd && displayText) {
-                appendMessage('bot', displayText);
-            }
-
-            conversationHistory.push({ role: "assistant", content: data.text });
-            
-            // Play TTS if available, otherwise use speechSynthesis fallback
-            if (data.audio) {
-                const ok = await playVoice(data.audio);
-                if (!ok) speakFallback(displayText || data.text || '');
-            } else {
-                // fallback
-                speakFallback(displayText || data.text || '');
-            }
-
-        } catch (e) {
-            console.error(e);
-            appendMessage('bot', "Error connecting to Mia.");
-        } finally {
-            sendBtn.disabled = false;
-        }
-    }
-
     sendBtn.onclick = sendMessage;
-    userInput.onkeypress = (e) => e.key === 'Enter' ? sendMessage() : null;
-    window.onresize = () => { canvas.width = window.innerWidth; };
+    userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+    window.onresize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = 80;
+    };
+    window.onresize();
 </script>
 </body>
 </html>
