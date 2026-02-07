@@ -1,73 +1,46 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mia AI</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
+    <title>Mia</title>
     <style>
-        /* Reset a základní layout pro mobile-first */
         * { box-sizing: border-box; }
         body { 
-            background-color: #050505; 
-            color: #e0e0e0; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #000; 
+            color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
             margin: 0; 
             display: flex; 
             flex-direction: column; 
-            height: 100dvh; /* Dynamic viewport height pro mobily */
+            height: 100dvh; 
             overflow: hidden; 
         }
 
-        /* Sekce vizuálu (Logo + Typewriter + Vizualizér) */
+        /* Top Visualization Area */
         #viz-container { 
-            flex: 0 0 auto;
-            padding: 20px 0 10px 0;
+            flex: 0 0 120px;
             display: flex; 
-            flex-direction: column;
             align-items: center; 
             justify-content: center; 
-            border-bottom: 1px solid #222; 
-            background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+            position: relative;
         }
 
-        /* Avatar */
-        .avatar-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            object-fit: cover;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            margin-bottom: 10px;
-        }
-
-        /* Typewriter text */
-        #typewriter {
-            font-size: 0.9rem;
-            color: #888;
-            font-weight: 400;
-            height: 1.2em; /* Fixní výška aby to neskákalo */
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Blikající kurzor */
-        .cursor {
-            display: inline-block;
-            width: 2px;
-            background-color: #fff;
-            animation: blink 1s infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* Canvas pro vizualizaci */
         canvas { 
             width: 100%; 
-            height: 60px; /* Menší výška pro čistší vzhled */
-            display: block;
+            height: 80px; 
+            display: none; /* Hidden by default, shown when speaking */
         }
 
-        /* Chat oblast */
+        #voice-status-text {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        /* Chat Area */
         #chat-container { 
             flex: 1; 
             overflow-y: auto; 
@@ -76,143 +49,150 @@
             flex-direction: column; 
             gap: 15px; 
             scroll-behavior: smooth; 
-            background: #000;
         }
 
-        /* Bubliny zpráv */
         .msg { 
             max-width: 85%; 
-            padding: 12px 16px; 
-            border-radius: 18px; 
-            line-height: 1.5; 
-            font-size: 0.95rem;
-            position: relative;
-            word-wrap: break-word;
+            padding: 10px 0; /* Clean look without bubbles */
+            line-height: 1.6; 
+            font-size: 1rem;
+            animation: fadeIn 0.3s ease;
         }
-        .user { 
-            align-self: flex-end; 
-            background: #fff; 
-            color: #000; 
-            border-bottom-right-radius: 4px;
-        }
-        .bot { 
-            align-self: flex-start; 
-            background: #1a1a1a; 
-            color: #fff; 
-            border: 1px solid #333;
-            border-bottom-left-radius: 4px;
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .user { align-self: flex-end; color: #fff; text-align: right; }
+        .bot { align-self: flex-start; color: #888; }
+
+        /* Bottom Controls */
+        #controls {
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        /* Input oblast */
+        .toggle-voice {
+            font-size: 10px;
+            letter-spacing: 1px;
+            background: none;
+            border: none;
+            color: #444;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .toggle-voice.active { color: #fff; }
+
+        /* Input Area */
         #input-container { 
-            flex: 0 0 auto;
-            padding: 15px; 
-            border-top: 1px solid #222; 
+            padding: 20px; 
             display: flex; 
             gap: 10px; 
-            background: #050505;
+            align-items: center;
         }
         
         input { 
             flex: 1; 
-            background: #111; 
-            border: 1px solid #333; 
-            color: #fff; 
-            padding: 12px 15px; 
-            border-radius: 25px;
-            outline: none; 
-            font-size: 16px; /* Prevence zoomu na iOS */
-            transition: border 0.3s, background 0.3s; 
-        }
-        input:focus { 
-            border-color: #666; 
-            background: #1a1a1a;
-        }
-        
-        button { 
-            background: #fff; 
-            color: #000; 
+            background: transparent; 
             border: none; 
-            padding: 0 20px; 
-            border-radius: 25px;
-            cursor: pointer; 
-            font-weight: 700; 
-            font-size: 0.9rem;
-            transition: opacity 0.2s;
+            color: #fff; 
+            padding: 10px 0; 
+            outline: none; 
+            font-size: 16px; 
+            border-bottom: 1px solid #222;
         }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Skrytí scrollbaru ale zachování funkčnosti */
-        #chat-container::-webkit-scrollbar { width: 6px; }
-        #chat-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        /* Placeholder Pulse Animation */
+        @keyframes pulsePlaceholder {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
+
+        input.pulsing::placeholder {
+            animation: pulsePlaceholder 2s infinite ease-in-out;
+            color: #fff;
+        }
+
+        button { 
+            background: transparent; 
+            color: #fff; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.5;
+        }
+        button:hover { opacity: 1; }
+        button:disabled { display: none; }
+
+        #chat-container::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body>
 
 <div id="viz-container">
-    <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png" alt="Mia AI" class="avatar-img">
-    
-    <div id="typewriter"><span id="type-text"></span><span class="cursor">&nbsp;</span></div>
-    
+    <div id="voice-status-text"></div>
     <canvas id="canvas"></canvas>
 </div>
 
-<div id="chat-container">
-    <div class="msg bot">Ahoj, já jsem Mia. Co máš na srdci? 🖤</div>
+<div id="chat-container"></div>
+
+<div id="controls">
+    <button id="voiceToggle" class="toggle-voice active">VOICE ON</button>
 </div>
 
 <div id="input-container">
-    <input type="text" id="userInput" placeholder="Napiš zprávu..." autocomplete="off">
-    <button id="sendBtn">ODESLAT</button>
+    <input type="text" id="userInput" placeholder="Let's chat!" class="pulsing" autocomplete="off">
+    <button id="sendBtn">SEND</button>
 </div>
 
 <script>
-    // --- TYPEWRITER EFFECT ---
-    const textToType = "Mia - inteligentní parťák - free personal AI agent";
-    const typeSpeed = 50; // ms per char
-    let charIndex = 0;
-
-    function typeWriter() {
-        if (charIndex < textToType.length) {
-            document.getElementById("type-text").textContent += textToType.charAt(charIndex);
-            charIndex++;
-            setTimeout(typeWriter, typeSpeed);
-        } else {
-            // Volitelně: zastavit blikání kurzoru po dopsání
-            document.querySelector('.cursor').style.animation = 'none';
-            document.querySelector('.cursor').style.opacity = '0';
+    // --- TAB TITLE TYPEWRITER ---
+    const tabTitle = "Mia - free personal AI agent";
+    let titleIdx = 0;
+    function typeTitle() {
+        document.title = tabTitle.substring(0, titleIdx);
+        titleIdx++;
+        if (titleIdx <= tabTitle.length) {
+            setTimeout(typeTitle, 150);
         }
     }
-    // Spustit psaní po načtení
-    window.onload = typeWriter;
+    typeTitle();
 
-    // --- AUDIO & CHAT LOGIC ---
+    // --- STATE MANAGEMENT ---
+    let voiceEnabled = true;
+    let firstMessageSent = false;
+    const voiceToggle = document.getElementById('voiceToggle');
+    const voiceStatusText = document.getElementById('voice-status-text');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const chatContainer = document.getElementById('chat-container');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.getElementById('chat-container');
+    const ctx = canvas.getContext('2d');
 
-    // Resize canvas pro lepší ostrost
-    function resizeCanvas() {
-        canvas.width = canvas.parentElement.offsetWidth;
-        canvas.height = 100; // Interní rozlišení
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    voiceToggle.onclick = () => {
+        voiceEnabled = !voiceEnabled;
+        voiceToggle.innerText = voiceEnabled ? "VOICE ON" : "VOICE OFF";
+        voiceToggle.classList.toggle('active');
+        if (!voiceEnabled) {
+            voiceStatusText.innerText = "Voice Off";
+            canvas.style.display = "none";
+        } else {
+            voiceStatusText.innerText = "";
+        }
+    };
 
-    let audioCtx, analyser, dataArray, source;
-    let animationId;
+    // --- AUDIO VISUALIZER LOGIC ---
+    let audioCtx, analyser, dataArray, source, animationId;
 
     function initAudio(buffer) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (!voiceEnabled) return;
         
-        // Zastavit předchozí zvuk pokud hraje
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (source) { try { source.stop(); } catch(e){} }
         
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.7; // Plynulejší pohyb
         
         audioCtx.decodeAudioData(buffer, (decodedData) => {
             source = audioCtx.createBufferSource();
@@ -220,77 +200,70 @@
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
             
-            const bufferLength = analyser.frequencyBinCount;
-            dataArray = new Uint8Array(bufferLength);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
             
+            canvas.style.display = "block";
+            voiceStatusText.innerText = "";
             source.start(0);
             draw();
+            
+            source.onended = () => {
+                canvas.style.display = "none";
+                cancelAnimationFrame(animationId);
+            };
         });
     }
 
     function draw() {
-        if (!analyser) return;
         animationId = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        const barCount = 40; // Zobrazíme jen spodní frekvence pro hezčí efekt
-        const barWidth = canvas.width / barCount;
-        
-        // Gradient pro sloupce
-        let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#ffffff');
-        gradient.addColorStop(1, '#555555');
-        ctx.fillStyle = gradient;
+        const barWidth = (canvas.width / dataArray.length) * 2;
+        let x = 0;
 
-        for (let i = 0; i < barCount; i++) {
-            // Zobrazujeme trochu širší spektrum
-            let value = dataArray[i + 5] || 0; 
-            let percent = value / 255;
-            let height = canvas.height * percent * 0.8; // Max výška 80%
-            
-            // Centrování sloupců vertikálně
-            let y = (canvas.height - height) / 2;
-            
-            // Zaoblené sloupce (jednoduché)
-            ctx.fillRect(i * barWidth + 1, y, barWidth - 2, height);
+        ctx.fillStyle = "#fff";
+        for (let i = 0; i < dataArray.length; i++) {
+            let barHeight = dataArray[i] / 4;
+            // Center the bars vertically
+            ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
+            x += barWidth;
         }
     }
 
+    // --- CHAT LOGIC ---
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
+        if (!firstMessageSent) {
+            firstMessageSent = true;
+            userInput.classList.remove('pulsing');
+            userInput.placeholder = "Click to type...";
+        }
+
         appendMessage('user', text);
         userInput.value = '';
         sendBtn.disabled = true;
-        sendBtn.innerText = '...';
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ message: text, voiceEnabled: voiceEnabled })
             });
 
             const data = await response.json();
-            
-            if (data.error) throw new Error(data.error);
-
             appendMessage('bot', data.text);
 
-            if (data.audioBase64) {
+            if (voiceEnabled && data.audioBase64) {
                 const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
                 initAudio(audioBytes.buffer);
             }
         } catch (err) {
-            console.error(err);
-            appendMessage('bot', 'Promiň, něco se pokazilo. Zkus to znovu.');
+            appendMessage('bot', 'Connection error.');
         } finally {
             sendBtn.disabled = false;
-            sendBtn.innerText = 'ODESLAT';
-            userInput.focus();
         }
     }
 
@@ -304,6 +277,13 @@
 
     sendBtn.onclick = sendMessage;
     userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+    // Handle Resize
+    window.onresize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = 80;
+    };
+    window.onresize();
 </script>
 
 </body>
