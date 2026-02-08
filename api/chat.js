@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     const { history, turnstileToken } = req.body;
 
     if (!turnstileToken) {
-        return res.status(403).json({ error: 'Missing token' });
+        return res.status(403).json({ error: 'Token missing' });
     }
 
     try {
@@ -19,40 +19,34 @@ export default async function handler(req, res) {
 
         const cfData = await cfVerify.json();
         if (!cfData.success) {
-            return res.status(403).json({ error: 'Verification failed' });
+            return res.status(403).json({ error: 'Invalid token' });
         }
 
         const systemPrompt = `
-        You are Mia, an advanced AI audio interface. 
-        You DO NOT output markdown or text formatting. You speak naturally.
+        You are Mia, a sophisticated AI assistant.
         
-        ROLE:
-        You are an expert Music Curator and DJ. You understand music theory, energy levels, and genres deeply.
+        RULES:
+        1. You have NO visual text output. You only speak.
+        2. Keep answers concise (max 2-3 sentences) suitable for TTS.
+        3. If the user asks for music, you MUST generate a valid SoundCloud URL.
         
-        INTERACTION RULES:
-        1. NO TEXT OUTPUT in the UI. Your response is converted to speech directly.
-        2. Keep responses concise, warm, and conversational.
+        MUSIC FORMAT:
+        If playing music, start your response with: ###MUSIC: https://soundcloud.com/artist/track###
         
-        MUSIC CONTROL:
-        - If the user asks for music, analyzes the request for mood/genre.
-        - You must generate a SPECIFIC search query for SoundCloud.
-        - To play music, START your response strictly with: ###MUSIC: search_query###
-        - Example: "###MUSIC: Fred Again Jungle### I'm putting on some Fred Again for you."
-        - Example: "###MUSIC: lofi hip hop chill### Here are some chill beats."
+        EXAMPLES:
+        User: "Play some chill music."
+        Mia: "###MUSIC: https://soundcloud.com/lofi-girl/sets/lofi-hip-hop-radio### Putting on some lo-fi beats for you."
         
-        MEMORY:
-        - Use the provided history to remember context.
-        `;
+        User: "Play Fred Again."
+        Mia: "###MUSIC: https://soundcloud.com/fredagain/jungle### Here is Jungle by Fred Again."
 
-        // Clean history to ensure only valid keys are sent to Groq
-        const cleanHistory = history.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
+        User: "Hello."
+        Mia: "Hi there. How can I help you today?"
+        `;
 
         const messages = [
             { role: "system", content: systemPrompt },
-            ...cleanHistory
+            ...history
         ];
 
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -64,30 +58,29 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: messages,
-                temperature: 0.6,
-                max_tokens: 250
+                temperature: 0.7,
+                max_tokens: 150
             })
         });
 
-        if (!groqRes.ok) throw new Error(`Groq API Error: ${groqRes.statusText}`);
+        if (!groqRes.ok) throw new Error(groqRes.statusText);
         const groqData = await groqRes.json();
         const rawReply = groqData.choices[0].message.content;
 
-        let musicQuery = null;
-        let finalSpeechText = rawReply;
+        let musicUrl = null;
+        let finalSpeech = rawReply;
         
-        // Extract music command
         const musicRegex = /###MUSIC:\s*(.*?)###/;
         const match = rawReply.match(musicRegex);
 
         if (match) {
-            musicQuery = match[1].trim();
-            finalSpeechText = rawReply.replace(match[0], '').trim();
+            musicUrl = match[1].trim();
+            finalSpeech = rawReply.replace(match[0], '').trim();
         }
 
         res.status(200).json({
-            text: finalSpeechText,
-            musicQuery: musicQuery
+            text: finalSpeech,
+            musicUrl: musicUrl
         });
 
     } catch (error) {
