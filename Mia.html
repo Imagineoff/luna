@@ -6,8 +6,55 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png" />
     <title>Mia</title>
 
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        window.__turnstileReady = false;
+        window.turnstileWidgetId = null;
+        function onTurnstileSuccess(token) {
+            window.__turnstileToken = token;
+            const overlay = document.getElementById('auth-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                const input = document.getElementById('userInput');
+                const btn = document.getElementById('sendBtn');
+                if (input) {
+                    input.disabled = false;
+                    input.placeholder = "Let's chat!";
+                    input.focus();
+                }
+                if (btn) btn.disabled = false;
+            }, 500);
+        }
+        function onTurnstileLoadAttempt() {
+            if (window.turnstile && !window.__turnstileReady) {
+                window.__turnstileReady = true;
+                try {
+                    window.turnstileWidgetId = window.turnstile.render('turnstile-container', {
+                        sitekey: '0x4AAAAAACY_ilRmHF1IfQfP',
+                        callback: onTurnstileSuccess,
+                        theme: 'dark'
+                    });
+                } catch(e) {}
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var check = setInterval(function() {
+                if (window.turnstile) {
+                    clearInterval(check);
+                    onTurnstileLoadAttempt();
+                }
+            }, 200);
+            setTimeout(function() {
+                if (!window.__turnstileReady) {
+                    var container = document.getElementById('turnstile-container');
+                    if (container) container.innerHTML = '<div style="color:#888;font-size:13px;">Security load failed. Try refresh.</div>';
+                }
+            }, 8000);
+        });
+    </script>
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+    <script src="https://www.youtube.com/iframe_api" defer></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -128,7 +175,6 @@
 <div id="youtube-player"></div>
 
 <script>
-    let widgetId = null;
     let turnstileToken = null;
     let conversationHistory = [];
     let voiceEnabled = true;
@@ -151,42 +197,17 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const stopMusicBtn = document.getElementById('stopMusicBtn');
     const stopSpeechBtn = document.getElementById('stopSpeechBtn');
-    const authOverlay = document.getElementById('auth-overlay');
 
     function showOverlay() {
+        const authOverlay = document.getElementById('auth-overlay');
         authOverlay.style.display = 'flex';
         authOverlay.style.opacity = '1';
     }
     function hideOverlay() {
+        const authOverlay = document.getElementById('auth-overlay');
         authOverlay.style.opacity = '0';
         setTimeout(() => { authOverlay.style.display = 'none'; }, 500);
     }
-
-    function renderTurnstile() {
-        if (window.turnstile && !widgetId) {
-            widgetId = window.turnstile.render('turnstile-container', {
-                sitekey: '0x4AAAAAACY_ilRmHF1IfQfP',
-                callback: onTurnstileSuccess,
-                theme: 'dark'
-            });
-        }
-    }
-
-    function onTurnstileSuccess(token) {
-        turnstileToken = token;
-        hideOverlay();
-        userInput.disabled = false;
-        userInput.placeholder = "Let's chat!";
-        sendBtn.disabled = false;
-        userInput.focus();
-    }
-
-    const turnstileInterval = setInterval(() => {
-        if (window.turnstile) {
-            renderTurnstile();
-            clearInterval(turnstileInterval);
-        }
-    }, 250);
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('youtube-player', {
@@ -394,7 +415,9 @@
     async function sendMessage() {
         if (awaitingResponse) return;
         if (isSpeaking) return;
-        if (!turnstileToken) { showOverlay(); return; }
+        if (!window.__turnstileToken && !turnstileToken) { showOverlay(); return; }
+        const token = window.__turnstileToken || turnstileToken;
+        if (!token) { showOverlay(); return; }
         const text = userInput.value.trim();
         if (!text) return;
         userInput.classList.remove('pulsing');
@@ -413,7 +436,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     history: conversationHistory,
-                    turnstileToken: turnstileToken
+                    turnstileToken: token
                 })
             });
             const data = await response.json();
@@ -436,8 +459,9 @@
                 if (musicQuery) queuePlayMusic(musicQuery);
                 sendBtn.disabled = false;
                 try {
-                    if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+                    if (window.turnstile && window.turnstileWidgetId != null) window.turnstile.reset(window.turnstileWidgetId);
                 } catch(e){}
+                window.__turnstileToken = null;
                 turnstileToken = null;
             });
         } catch (err) {
@@ -446,8 +470,9 @@
             try { player.setVolume(100); } catch(e){}
             appendTemporaryBotMessage('Connection error. Try verifying again.');
             try {
-                if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+                if (window.turnstile && window.turnstileWidgetId != null) window.turnstile.reset(window.turnstileWidgetId);
             } catch(e){}
+            window.__turnstileToken = null;
             turnstileToken = null;
         } finally {
             sendBtn.disabled = false;
