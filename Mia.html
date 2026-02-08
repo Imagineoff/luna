@@ -7,6 +7,7 @@
     <title>Mia</title>
     
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -21,7 +22,6 @@
             overflow: hidden; 
         }
 
-        
         #auth-overlay {
             position: fixed;
             top: 0; left: 0; 
@@ -43,7 +43,6 @@
             text-transform: uppercase;
         }
 
-        
         #viz-container { 
             flex: 0 0 120px;
             display: flex; 
@@ -72,13 +71,25 @@
         .user { align-self: flex-end; color: #fff; text-align: right; }
         .bot { align-self: flex-start; color: #ccc; } 
 
-        #controls { padding: 10px 20px; display: flex; justify-content: flex-end; }
-
-        .toggle-voice {
-            font-size: 10px; letter-spacing: 1px; background: none; border: none;
-            color: #444; cursor: pointer; transition: color 0.2s;
+        #controls { 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center;
+            gap: 15px;
         }
-        .toggle-voice.active { color: #fff; }
+
+        .control-btn {
+            font-size: 10px; letter-spacing: 1px; background: none; border: none;
+            color: #444; cursor: pointer; transition: color 0.2s; text-transform: uppercase;
+        }
+        .control-btn.active { color: #fff; }
+        .control-btn:hover { color: #fff; }
+
+        #music-controls {
+            display: none;
+            gap: 15px;
+        }
 
         #input-container { padding: 20px; display: flex; gap: 10px; align-items: center; }
         
@@ -92,11 +103,11 @@
         }
         @keyframes pulsePlaceholder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
 
-        button { 
+        button#sendBtn { 
             background: transparent; color: #fff; border: none; cursor: pointer; 
             font-weight: bold; font-size: 12px; letter-spacing: 1px; opacity: 0.5;
         }
-        button:hover { opacity: 1; }
+        button#sendBtn:hover { opacity: 1; }
         button:disabled { display: none; }
         
         #youtube-player { position: absolute; top: -9999px; visibility: hidden; }
@@ -121,7 +132,11 @@
 <div id="chat-container"></div>
 
 <div id="controls">
-    <button id="voiceToggle" class="toggle-voice active">VOICE ON</button>
+    <div id="music-controls">
+        <button id="pauseBtn" class="control-btn active">PAUSE</button>
+        <button id="stopBtn" class="control-btn active">STOP</button>
+    </div>
+    <button id="voiceToggle" class="control-btn active">VOICE ON</button>
 </div>
 
 <div id="input-container">
@@ -132,61 +147,15 @@
 <div id="youtube-player"></div>
 
 <script>
-    
     let turnstileToken = null;
-
-  
-    window.onTurnstileSuccess = function(token) {
-        console.log("Verified successfully");
-        turnstileToken = token;
-        
-        const overlay = document.getElementById('auth-overlay');
-        overlay.style.opacity = '0'; 
-        
-        setTimeout(() => {
-            overlay.style.display = 'none'; 
-            const input = document.getElementById('userInput');
-            const btn = document.getElementById('sendBtn');
-            input.disabled = false;
-            input.placeholder = "Let's chat!";
-            btn.disabled = false;
-            input.focus();
-        }, 500);
-    };
-
-
     let conversationHistory = [];
-    
-   
     let voiceEnabled = true;
     let isMusicPlaying = false;
-    let audioCtx, analyser, dataArray, source, animationId;
+    let isSpeaking = false;
+    let animationId;
     let player; 
+    let synth = window.speechSynthesis;
 
-    
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtube-player', {
-            height: '0', width: '0',
-            events: { 'onStateChange': onPlayerStateChange }
-        });
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data === 0) { // Ended
-            isMusicPlaying = false;
-            if (!source) {
-                canvas.style.display = "none";
-                cancelAnimationFrame(animationId);
-            }
-        }
-    }
-
-  
     const voiceToggle = document.getElementById('voiceToggle');
     const voiceStatusText = document.getElementById('voice-status-text');
     const canvas = document.getElementById('canvas');
@@ -194,119 +163,174 @@
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatContainer = document.getElementById('chat-container');
+    const musicControls = document.getElementById('music-controls');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
 
-    
-    let originalTitle = "Mia - free personal AI agent";
-    let titleIndex = 0;
-    let deleting = false;
-    function animateTitle() {
-        const speed = deleting ? 100 : 150;
-        document.title = originalTitle.substring(0, titleIndex);
-        if (!deleting) {
-            titleIndex++;
-            if (titleIndex > originalTitle.length) setTimeout(() => deleting = true, 2000);
-        } else {
-            titleIndex--;
-            if (titleIndex < 0) { deleting = false; titleIndex = 0; }
-        }
-        setTimeout(animateTitle, speed);
+    window.onTurnstileSuccess = function(token) {
+        turnstileToken = token;
+        const overlay = document.getElementById('auth-overlay');
+        overlay.style.opacity = '0'; 
+        setTimeout(() => {
+            overlay.style.display = 'none'; 
+            userInput.disabled = false;
+            userInput.placeholder = "Let's chat!";
+            sendBtn.disabled = false;
+            userInput.focus();
+        }, 500);
+    };
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtube-player', {
+            height: '0', width: '0',
+            events: { 
+                'onStateChange': onPlayerStateChange,
+                'onError': onPlayerError
+            }
+        });
     }
-    animateTitle();
+
+    function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.PLAYING) {
+            isMusicPlaying = true;
+            musicControls.style.display = "flex";
+            pauseBtn.innerText = "PAUSE";
+            canvas.style.display = "block";
+            if (!animationId) draw();
+        } else if (event.data === YT.PlayerState.PAUSED) {
+            pauseBtn.innerText = "RESUME";
+        } else if (event.data === YT.PlayerState.ENDED) {
+            stopMusicUI();
+        }
+    }
+
+    function onPlayerError(event) {
+        console.error("YouTube Player Error:", event.data);
+        stopMusicUI();
+    }
+
+    function stopMusicUI() {
+        isMusicPlaying = false;
+        musicControls.style.display = "none";
+        if (player && typeof player.stopVideo === 'function') {
+            player.stopVideo();
+        }
+        if (!isSpeaking) {
+            canvas.style.display = "none";
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+    }
+
+    pauseBtn.onclick = () => {
+        if (!player) return;
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+        } else {
+            player.playVideo();
+        }
+    };
+
+    stopBtn.onclick = stopMusicUI;
 
     voiceToggle.onclick = () => {
         voiceEnabled = !voiceEnabled;
         voiceToggle.innerText = voiceEnabled ? "VOICE ON" : "VOICE OFF";
         voiceToggle.classList.toggle('active');
-        if (!voiceEnabled && !isMusicPlaying) {
+        if (!voiceEnabled) {
+            synth.cancel();
+            if (!isMusicPlaying) {
+                canvas.style.display = "none";
+            }
             voiceStatusText.innerText = "Voice Off";
-            canvas.style.display = "none";
         } else {
             voiceStatusText.innerText = "";
         }
     };
 
-    function ensureAudioContext() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
     function playMusic(query) {
         if (!player) return;
-        isMusicPlaying = true;
-        canvas.style.display = "block";
-        ensureAudioContext();
-        if (!animationId) draw();
-        
         player.loadPlaylist({
-            listType: 'search', list: query, index: 0, startSeconds: 0
+            listType: 'search',
+            list: query,
+            index: 0,
+            startSeconds: 0
         });
+        player.setVolume(100);
     }
 
-    function initAudio(buffer, onEndedCallback) {
+    function speak(text, callback) {
         if (!voiceEnabled) {
-            if (onEndedCallback) onEndedCallback();
+            if (callback) callback();
             return;
         }
-        ensureAudioContext();
-        if (source) { try { source.stop(); } catch(e){} }
+
+        synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
         
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
+        let voices = synth.getVoices();
+        let selectedVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Female')) || 
+                           voices.find(v => v.lang.includes('en')) || 
+                           voices[0];
         
-        audioCtx.decodeAudioData(buffer, (decodedData) => {
-            source = audioCtx.createBufferSource();
-            source.buffer = decodedData;
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            
+        if (selectedVoice) utterance.voice = selectedVoice;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => {
+            isSpeaking = true;
             canvas.style.display = "block";
             voiceStatusText.innerText = "";
-            source.start(0);
-            
             if (!animationId) draw();
-            
-            source.onended = () => {
-                source = null;
-                if (onEndedCallback) onEndedCallback();
-                if (!isMusicPlaying) {
-                    canvas.style.display = "none";
-                    cancelAnimationFrame(animationId);
-                    animationId = null;
-                }
-            };
-        });
+        };
+
+        utterance.onend = () => {
+            isSpeaking = false;
+            if (!isMusicPlaying) {
+                canvas.style.display = "none";
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            if (callback) callback();
+        };
+
+        utterance.onerror = () => {
+            isSpeaking = false;
+            if (callback) callback();
+        };
+
+        synth.speak(utterance);
     }
 
     function draw() {
         animationId = requestAnimationFrame(draw);
-        if (analyser && source) {
-            analyser.getByteFrequencyData(dataArray);
-        } else if (isMusicPlaying) {
-            if (!dataArray) dataArray = new Uint8Array(128);
-            for(let i=0; i<dataArray.length; i++) dataArray[i] = Math.random() * 100 + 50; 
-        }
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / (dataArray ? dataArray.length : 128)) * 2;
-        let x = 0;
         
+        const bars = 64;
+        const barWidth = canvas.width / bars;
+        let x = 0;
+
+        let r, g, b;
         if (isMusicPlaying) {
             const time = Date.now() * 0.002;
-            const r = Math.sin(time) * 50 + 100;
-            const g = Math.sin(time + 2) * 50 + 50;
-            ctx.fillStyle = `rgb(${r},${g},255)`;
+            r = Math.sin(time) * 50 + 100;
+            g = Math.sin(time + 2) * 50 + 50;
+            b = 255;
         } else {
-            ctx.fillStyle = "#fff";
+            r = 255; g = 255; b = 255;
         }
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
 
-        if (dataArray) {
-            for (let i = 0; i < dataArray.length; i++) {
-                let barHeight = dataArray[i] / 4;
-                if (isMusicPlaying) barHeight = barHeight * 0.8;
-                ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth - 1, barHeight);
-                x += barWidth;
+        for (let i = 0; i < bars; i++) {
+            let height = 0;
+            if (isSpeaking || isMusicPlaying) {
+                height = Math.random() * 50 + 10;
+            } else {
+                height = 2;
             }
+            
+            ctx.fillRect(x, (canvas.height / 2) - (height / 2), barWidth - 1, height);
+            x += barWidth;
         }
     }
 
@@ -323,13 +347,16 @@
         userInput.value = '';
         sendBtn.disabled = true;
 
+        if (isMusicPlaying) { 
+            player.setVolume(20); 
+        }
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     history: conversationHistory,
-                    voiceEnabled: voiceEnabled,
                     turnstileToken: turnstileToken
                 })
             });
@@ -340,20 +367,17 @@
             appendMessage('bot', data.text);
             conversationHistory.push({ role: "assistant", content: data.text });
 
-            const playMusicAction = () => {
-                if (data.musicQuery) playMusic(data.musicQuery);
-            };
-
-            if (data.audioBase64) {
-                const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
-                initAudio(audioBytes.buffer, playMusicAction);
-            } else {
-                playMusicAction();
-            }
+            speak(data.text, () => {
+                if (isMusicPlaying) player.setVolume(100);
+                if (data.musicQuery) {
+                    playMusic(data.musicQuery);
+                }
+            });
 
         } catch (err) {
             console.error(err);
             appendMessage('bot', 'Connection error. Try refreshing.');
+            if (isMusicPlaying) player.setVolume(100);
         } finally {
             sendBtn.disabled = false;
             userInput.focus();
@@ -376,6 +400,23 @@
         canvas.height = 80;
     };
     window.onresize();
+
+    let originalTitle = "Mia - free personal AI agent";
+    let titleIndex = 0;
+    let deleting = false;
+    function animateTitle() {
+        const speed = deleting ? 100 : 150;
+        document.title = originalTitle.substring(0, titleIndex);
+        if (!deleting) {
+            titleIndex++;
+            if (titleIndex > originalTitle.length) setTimeout(() => deleting = true, 2000);
+        } else {
+            titleIndex--;
+            if (titleIndex < 0) { deleting = false; titleIndex = 0; }
+        }
+        setTimeout(animateTitle, speed);
+    }
+    animateTitle();
 </script>
 </body>
 </html>
