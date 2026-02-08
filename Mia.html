@@ -26,7 +26,7 @@
             position: fixed;
             top: 0; left: 0; 
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: #000;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -44,88 +44,78 @@
         }
 
         #viz-container { 
-            flex: 0 0 150px;
+            flex: 0 0 120px;
             display: flex; 
             align-items: center; 
             justify-content: center; 
             position: relative;
-            background: radial-gradient(circle at center, #111 0%, #000 70%);
         }
 
-        canvas { width: 100%; height: 100%; display: block; }
+        canvas { width: 100%; height: 80px; display: none; }
+
+        #voice-status-text {
+            font-size: 10px; letter-spacing: 2px; color: #333; text-transform: uppercase;
+        }
 
         #chat-container { 
             flex: 1; overflow-y: auto; padding: 20px; 
             display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; 
-            position: relative;
         }
 
         .msg { 
-            max-width: 85%; padding: 10px 15px; line-height: 1.6; font-size: 1.1rem;
-            border-radius: 8px;
-            transition: all 1s ease;
+            max-width: 85%; padding: 10px 0; line-height: 1.6; font-size: 1rem;
+            animation: fadeIn 0.3s ease;
+            transition: filter 1s ease, opacity 1s ease;
         }
         
-        .user { 
-            align-self: flex-end; 
-            color: #fff; 
-            text-align: right;
-            border-right: 2px solid #333;
-        }
-        
-        .bot { 
-            align-self: flex-start; 
-            color: #ccc; 
-            border-left: 2px solid #333;
-        } 
-
         .msg.blur-out {
-            filter: blur(8px);
+            filter: blur(5px);
             opacity: 0;
-            transform: scale(0.98);
         }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .user { align-self: flex-end; color: #fff; text-align: right; }
+        .bot { align-self: flex-start; color: #ccc; } 
 
         #controls { 
             padding: 10px 20px; 
             display: flex; 
-            justify-content: center; 
+            justify-content: flex-end; 
             align-items: center;
-            gap: 20px;
-            background: #050505;
-            border-top: 1px solid #111;
-        }
-
-        .control-group {
-            display: flex; gap: 10px;
+            gap: 15px;
         }
 
         .control-btn {
-            font-size: 11px; letter-spacing: 1px; background: #111; border: 1px solid #222;
-            color: #666; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
-            padding: 8px 12px; border-radius: 4px;
+            font-size: 10px; letter-spacing: 1px; background: none; border: none;
+            color: #444; cursor: pointer; transition: color 0.2s; text-transform: uppercase;
         }
-        .control-btn:hover { color: #fff; border-color: #444; }
-        .control-btn.active { color: #fff; border-color: #fff; }
+        .control-btn.active { color: #fff; }
+        .control-btn:hover { color: #fff; }
 
-        #input-container { 
-            padding: 20px; display: flex; gap: 10px; align-items: center; 
-            background: #000;
+        #music-controls {
+            display: none;
+            gap: 15px;
         }
+
+        #input-container { padding: 20px; display: flex; gap: 10px; align-items: center; }
         
         input { 
             flex: 1; background: transparent; border: none; color: #fff; 
-            padding: 15px 10px; outline: none; font-size: 16px; border-bottom: 1px solid #222;
-            transition: border-color 0.3s;
+            padding: 10px 0; outline: none; font-size: 16px; border-bottom: 1px solid #222;
         }
-        input:focus { border-bottom-color: #555; }
+
+        input.pulsing::placeholder {
+            animation: pulsePlaceholder 2s infinite ease-in-out; color: #fff;
+        }
+        @keyframes pulsePlaceholder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
 
         button#sendBtn { 
-            background: #fff; color: #000; border: none; cursor: pointer; 
-            font-weight: bold; font-size: 12px; letter-spacing: 1px; 
-            padding: 10px 20px; border-radius: 20px;
-            transition: opacity 0.3s;
+            background: transparent; color: #fff; border: none; cursor: pointer; 
+            font-weight: bold; font-size: 12px; letter-spacing: 1px; opacity: 0.5;
         }
-        button#sendBtn:disabled { opacity: 0.2; cursor: not-allowed; }
+        button#sendBtn:hover { opacity: 1; }
+        button:disabled { display: none; }
         
         #youtube-player { position: absolute; top: -9999px; visibility: hidden; }
     </style>
@@ -133,7 +123,7 @@
 <body>
 
 <div id="auth-overlay">
-    <div class="auth-text">System Verification</div>
+    <div class="auth-text">Security Check</div>
     <div class="cf-turnstile" 
          data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" 
          data-callback="onTurnstileSuccess" 
@@ -142,24 +132,21 @@
 </div>
 
 <div id="viz-container">
+    <div id="voice-status-text"></div>
     <canvas id="canvas"></canvas>
 </div>
 
 <div id="chat-container"></div>
 
 <div id="controls">
-    <div class="control-group">
-        <button id="stopMusicBtn" class="control-btn" style="display:none;">STOP MUSIC</button>
-        <button id="pauseMusicBtn" class="control-btn" style="display:none;">PAUSE</button>
+    <div id="music-controls">
+        <button id="stopMusicBtn" class="control-btn active">STOP MUSIC</button>
     </div>
-    <div class="control-group">
-        <button id="stopVoiceBtn" class="control-btn">SILENCE</button>
-        <button id="clearMemBtn" class="control-btn">RESET MEMORY</button>
-    </div>
+    <button id="stopVoiceBtn" class="control-btn active">SILENCE</button>
 </div>
 
 <div id="input-container">
-    <input type="text" id="userInput" placeholder="Initializing..." autocomplete="off" disabled>
+    <input type="text" id="userInput" placeholder="Waiting for verification..." class="pulsing" autocomplete="off" disabled>
     <button id="sendBtn" disabled>SEND</button>
 </div>
 
@@ -173,27 +160,15 @@
     let animationId;
     let player; 
     let synth = window.speechSynthesis;
-    let visualizerCtx;
-    let dataArray;
-    let analyser;
-    
-    // Load memory
-    try {
-        const saved = localStorage.getItem('mia_history');
-        if (saved) conversationHistory = JSON.parse(saved);
-    } catch(e) { console.log('Memory error'); }
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatContainer = document.getElementById('chat-container');
-    
-    // Controls
+    const musicControls = document.getElementById('music-controls');
     const stopMusicBtn = document.getElementById('stopMusicBtn');
-    const pauseMusicBtn = document.getElementById('pauseMusicBtn');
     const stopVoiceBtn = document.getElementById('stopVoiceBtn');
-    const clearMemBtn = document.getElementById('clearMemBtn');
 
     window.onTurnstileSuccess = function(token) {
         turnstileToken = token;
@@ -202,31 +177,21 @@
         setTimeout(() => {
             overlay.style.display = 'none'; 
             userInput.disabled = false;
-            userInput.placeholder = "Type to Mia...";
+            userInput.placeholder = "Talk to Mia...";
+            sendBtn.disabled = false;
             userInput.focus();
-            if (userInput.value.trim().length > 0) sendBtn.disabled = false;
         }, 500);
     };
-
-    function resetTurnstile() {
-        if (window.turnstile) {
-            turnstile.reset();
-            // We do not show overlay immediately, we wait for next send attempt logic
-        }
-    }
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('youtube-player', {
             height: '0', width: '0',
             playerVars: {
                 'autoplay': 1,
-                'controls': 0,
-                'disablekb': 1,
-                'fs': 0
+                'controls': 0
             },
             events: { 
-                'onStateChange': onPlayerStateChange,
-                'onError': onPlayerError
+                'onStateChange': onPlayerStateChange
             }
         });
     }
@@ -234,53 +199,48 @@
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.PLAYING) {
             isMusicPlaying = true;
-            stopMusicBtn.style.display = 'block';
-            pauseMusicBtn.style.display = 'block';
-            pauseMusicBtn.innerText = "PAUSE";
+            musicControls.style.display = "flex";
+            canvas.style.display = "block";
             if (!animationId) draw();
-        } else if (event.data === YT.PlayerState.PAUSED) {
-            pauseMusicBtn.innerText = "RESUME";
-        } else if (event.data === YT.PlayerState.ENDED) {
-            isMusicPlaying = false;
-            stopMusicBtn.style.display = 'none';
-            pauseMusicBtn.style.display = 'none';
+        } else if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+            if(event.data === YT.PlayerState.ENDED) stopMusicUI();
         }
     }
 
-    function onPlayerError(e) { console.error("YT Error:", e); }
-
-    stopMusicBtn.onclick = () => {
-        if (player) player.stopVideo();
+    function stopMusicUI() {
         isMusicPlaying = false;
-        stopMusicBtn.style.display = 'none';
-        pauseMusicBtn.style.display = 'none';
-    };
+        musicControls.style.display = "none";
+        if (player && typeof player.stopVideo === 'function') {
+            player.stopVideo();
+        }
+        if (!isSpeaking) {
+            canvas.style.display = "none";
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+    }
 
-    pauseMusicBtn.onclick = () => {
-        if (!player) return;
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
-        else player.playVideo();
-    };
-
+    stopMusicBtn.onclick = stopMusicUI;
+    
     stopVoiceBtn.onclick = () => {
         synth.cancel();
         isSpeaking = false;
-    };
-
-    clearMemBtn.onclick = () => {
-        localStorage.removeItem('mia_history');
-        conversationHistory = [];
-        location.reload();
+        if(!isMusicPlaying) {
+             canvas.style.display = "none";
+             cancelAnimationFrame(animationId);
+             animationId = null;
+        }
     };
 
     function playMusic(query) {
         if (!player) return;
-        // Search and play first result
         player.loadPlaylist({
             listType: 'search',
             list: query,
-            index: 0
+            index: 0,
+            startSeconds: 0
         });
+        player.setVolume(100);
     }
 
     function speak(text) {
@@ -288,82 +248,70 @@
         const utterance = new SpeechSynthesisUtterance(text);
         
         let voices = synth.getVoices();
-        let selectedVoice = voices.find(v => v.name.includes('Google US English')) || 
-                           voices.find(v => v.lang.includes('en-US')) || 
+        let selectedVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Female')) || 
+                           voices.find(v => v.lang.includes('en')) || 
                            voices[0];
         
         if (selectedVoice) utterance.voice = selectedVoice;
-        utterance.rate = 1.0;
+        utterance.rate = 1.0; 
         utterance.pitch = 1.0;
 
         utterance.onstart = () => {
             isSpeaking = true;
-            sendBtn.disabled = true; // Block input while speaking
-            userInput.disabled = true;
-            userInput.placeholder = "Mia is speaking...";
+            canvas.style.display = "block";
             
-            // Fade out text bubbles
-            const bubbles = document.querySelectorAll('.msg.bot');
-            bubbles.forEach(b => b.classList.add('blur-out'));
-            
+            const messages = document.querySelectorAll('.msg.bot');
+            if (messages.length > 0) {
+                setTimeout(() => {
+                    messages[messages.length - 1].classList.add('blur-out');
+                }, 2000); 
+            }
+
             if (!animationId) draw();
         };
 
         utterance.onend = () => {
             isSpeaking = false;
-            sendBtn.disabled = false;
-            userInput.disabled = false;
-            userInput.placeholder = "Type to Mia...";
+            sendBtn.disabled = false; 
             userInput.focus();
-            
             if (!isMusicPlaying) {
+                canvas.style.display = "none";
                 cancelAnimationFrame(animationId);
                 animationId = null;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         };
-        
+
         synth.speak(utterance);
     }
 
     function draw() {
         animationId = requestAnimationFrame(draw);
-        const w = canvas.width;
-        const h = canvas.height;
-        ctx.clearRect(0, 0, w, h);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const bars = 50;
-        const barWidth = w / bars;
-        const time = Date.now() * 0.003;
+        const bars = 64;
+        const barWidth = canvas.width / bars;
+        let x = 0;
 
         for (let i = 0; i < bars; i++) {
-            let height = 5;
-            let r, g, b;
-
-            // Logic: Voice = White, Music = Colored Pulse
-            if (isSpeaking && !isMusicPlaying) {
-                height = Math.random() * (h * 0.6) + 5;
-                ctx.fillStyle = "#ffffff";
-            } else if (isMusicPlaying) {
-                // Music visualizer simulation (sine waves)
-                const offset = i * 0.2;
-                const wave = Math.sin(time + offset) * (h * 0.3) + (h * 0.2);
-                height = isSpeaking ? wave + (Math.random() * 20) : wave;
-                
-                // Color cycle
-                const hue = (time * 20 + i * 5) % 360;
-                ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
-            } else {
-                ctx.fillStyle = "#222"; 
-            }
-
-            const x = i * barWidth;
-            const y = (h - height) / 2;
+            let height = 0;
             
-            // Draw rounded pill shape
-            ctx.beginPath();
-            ctx.roundRect(x + 2, y, barWidth - 4, height, 4);
-            ctx.fill();
+            if (isMusicPlaying) {
+                const time = Date.now() * 0.005;
+                const r = Math.sin(time + (i * 0.1)) * 127 + 128;
+                const g = Math.sin(time + (i * 0.1) + 2) * 127 + 128;
+                const b = Math.sin(time + (i * 0.1) + 4) * 127 + 128;
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                height = Math.random() * 50 + 20;
+            } else if (isSpeaking) {
+                ctx.fillStyle = "#ffffff";
+                height = Math.random() * 40 + 10;
+            } else {
+                height = 2;
+                ctx.fillStyle = "#333";
+            }
+            
+            ctx.fillRect(x, (canvas.height / 2) - (height / 2), barWidth - 1, height);
+            x += barWidth;
         }
     }
 
@@ -371,22 +319,25 @@
         const text = userInput.value.trim();
         if (!text) return;
         
-        // Check verification
         if (!turnstileToken) {
-            alert("Please complete security check.");
+            turnstile.reset();
             document.getElementById('auth-overlay').style.display = 'flex';
             document.getElementById('auth-overlay').style.opacity = '1';
             return;
         }
 
+        userInput.classList.remove('pulsing');
+        userInput.placeholder = "Listening...";
+        
         appendMessage('user', text);
         conversationHistory.push({ role: "user", content: text });
-        localStorage.setItem('mia_history', JSON.stringify(conversationHistory));
         
         userInput.value = '';
         sendBtn.disabled = true;
 
-        if (isMusicPlaying) player.setVolume(15); 
+        if (isMusicPlaying) { 
+            player.setVolume(20); 
+        }
 
         try {
             const response = await fetch('/api/chat', {
@@ -400,39 +351,31 @@
             
             const data = await response.json();
             
-            // Refresh token immediately after use for next message
-            resetTurnstile(); 
-            turnstileToken = null; // Force user to re-verify or wait for auto-verify if needed, 
-            // but usually we want silent reset. Since user asked for "checkbox again" on spam, 
-            // setting token to null ensures next click requires a valid token.
-            
-            if (data.error) {
-                // If token invalid, show overlay
-                document.getElementById('auth-overlay').style.display = 'flex';
-                document.getElementById('auth-overlay').style.opacity = '1';
-                throw new Error(data.error);
-            }
+            turnstile.reset();
+            turnstileToken = null;
+
+            if (data.error) throw new Error(data.error);
 
             appendMessage('bot', data.text);
             conversationHistory.push({ role: "assistant", content: data.text });
-            localStorage.setItem('mia_history', JSON.stringify(conversationHistory));
 
             speak(data.text);
             
             if (data.musicQuery) {
                 playMusic(data.musicQuery);
+                setTimeout(() => {
+                     if(isMusicPlaying) player.setVolume(100);
+                }, 4000);
+            } else {
+                if (isMusicPlaying) player.setVolume(100);
             }
-            
-            // Restore volume after delay handled by speak() end
-            setTimeout(() => {
-                if (isMusicPlaying && !isSpeaking) player.setVolume(100);
-            }, 1000);
 
         } catch (err) {
             console.error(err);
-            appendMessage('bot', 'Connection interrupted. Verification required.');
-            if (isMusicPlaying) player.setVolume(100);
-            sendBtn.disabled = false;
+            appendMessage('bot', 'Connection refreshed. Verify again.');
+            turnstile.reset();
+            document.getElementById('auth-overlay').style.display = 'flex';
+            document.getElementById('auth-overlay').style.opacity = '1';
         }
     }
 
@@ -444,18 +387,12 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    userInput.oninput = () => {
-        sendBtn.disabled = userInput.value.trim().length === 0;
-    }
-    
     sendBtn.onclick = sendMessage;
-    userInput.onkeypress = (e) => { 
-        if (e.key === 'Enter' && !sendBtn.disabled) sendMessage(); 
-    };
+    userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
     window.onresize = () => {
-        canvas.width = document.getElementById('viz-container').clientWidth;
-        canvas.height = document.getElementById('viz-container').clientHeight;
+        canvas.width = window.innerWidth;
+        canvas.height = 80;
     };
     window.onresize();
 </script>
