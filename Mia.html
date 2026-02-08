@@ -12,7 +12,7 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            background-color: #050505; 
+            background-color: #000; 
             color: #fff; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
             margin: 0; 
@@ -22,43 +22,32 @@
             overflow: hidden; 
         }
 
-        #loading-overlay {
+        #loading-screen {
             position: fixed;
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
-            z-index: 10000;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 20px;
             transition: opacity 0.5s ease;
         }
 
         .loading-text {
-            font-size: 14px;
-            letter-spacing: 3px;
-            color: #666;
-            text-transform: uppercase;
-            animation: blink 1.5s infinite;
+            font-size: 14px; letter-spacing: 4px; color: #fff; text-transform: uppercase;
+            margin-bottom: 20px; animation: pulse 2s infinite;
         }
 
         #start-btn {
             display: none;
-            padding: 15px 40px;
-            background: #fff;
-            color: #000;
-            border: none;
-            font-weight: bold;
-            font-size: 16px;
-            letter-spacing: 2px;
-            cursor: pointer;
-            text-transform: uppercase;
+            background: #fff; color: #000; border: none;
+            padding: 15px 40px; font-size: 14px; letter-spacing: 2px;
+            font-weight: bold; cursor: pointer; text-transform: uppercase;
         }
-        #start-btn:hover { background: #ccc; }
+        #start-btn:hover { opacity: 0.8; }
 
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
         #viz-container { 
             flex: 0 0 150px;
@@ -66,345 +55,295 @@
             align-items: center; 
             justify-content: center; 
             position: relative;
-            margin-top: 20px;
+            margin-top: 40px;
         }
 
         canvas { width: 100%; height: 100px; }
 
-        #chat-display { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
+        #chat-space {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
             text-align: center;
-            overflow: hidden;
         }
 
-        #current-user-text {
+        .user-message {
             font-size: 1.5rem;
             color: #fff;
-            transition: opacity 2s ease, filter 2s ease;
-            opacity: 0;
-            max-width: 800px;
+            animation: fadeBlur 6s forwards;
         }
 
-        #current-user-text.visible { opacity: 1; filter: blur(0px); }
-        #current-user-text.fading { opacity: 0; filter: blur(10px); }
+        @keyframes fadeBlur {
+            0% { opacity: 1; filter: blur(0); }
+            50% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; filter: blur(20px); }
+        }
 
         #controls { 
-            padding: 10px 20px; 
+            padding: 20px; 
             display: flex; 
-            justify-content: space-between; 
-            align-items: center;
+            justify-content: center; 
+            gap: 20px;
         }
 
-        .control-group { display: flex; gap: 15px; }
-
-        .control-btn {
-            font-size: 11px; letter-spacing: 1px; background: none; border: 1px solid #333;
-            color: #666; cursor: pointer; padding: 5px 10px; text-transform: uppercase;
-            transition: all 0.2s;
+        .ctrl-btn {
+            background: transparent; border: 1px solid #333; color: #555;
+            padding: 8px 15px; font-size: 10px; letter-spacing: 1px;
+            cursor: pointer; text-transform: uppercase; transition: all 0.3s;
         }
-        .control-btn:hover { color: #fff; border-color: #666; }
-        .control-btn.active { color: #fff; border-color: #fff; }
+        .ctrl-btn:hover { border-color: #fff; color: #fff; }
 
-        #input-container { padding: 30px; display: flex; gap: 10px; align-items: center; position: relative; }
+        #input-container { padding: 30px; display: flex; gap: 10px; align-items: center; justify-content: center; }
         
         input { 
-            flex: 1; background: transparent; border: none; color: #fff; 
-            padding: 15px 0; outline: none; font-size: 18px; border-bottom: 1px solid #333;
-            text-align: center; transition: border-color 0.3s;
+            width: 100%; max-width: 600px;
+            background: transparent; border: none; color: #fff; 
+            padding: 15px 0; outline: none; font-size: 18px; 
+            border-bottom: 1px solid #222; text-align: center;
+            transition: border-color 0.3s;
         }
-        input:focus { border-bottom-color: #fff; }
-        input:disabled { color: #444; border-bottom-color: #111; cursor: not-allowed; }
 
-        button#sendBtn { 
-            position: absolute; right: 30px;
-            background: transparent; color: #fff; border: none; cursor: pointer; 
-            font-weight: bold; font-size: 12px; letter-spacing: 1px; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        input:not(:placeholder-shown) + button#sendBtn { opacity: 1; pointer-events: auto; }
+        input:focus { border-bottom-color: #fff; }
+        input:disabled { opacity: 0.3; cursor: wait; border-bottom-color: transparent; }
+        
+        input.pulsing::placeholder { animation: pulsePlaceholder 2s infinite ease-in-out; }
+        @keyframes pulsePlaceholder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
 
         #sc-widget { display: none; }
-        
-        .cf-container { display: none; } 
+        .turnstile-box { margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay">
-    <div class="loading-text" id="status-text">Initializing Systems...</div>
-    <div class="cf-container">
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+<div id="loading-screen">
+    <div class="loading-text" id="status-text">System Initialization</div>
+    <div class="turnstile-box">
+        <div class="cf-turnstile" 
+             data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" 
+             data-callback="onTurnstileSuccess" 
+             data-theme="dark">
+        </div>
     </div>
-    <button id="start-btn">START SESSION</button>
+    <button id="start-btn">START SYSTEM</button>
 </div>
 
 <div id="viz-container">
     <canvas id="canvas"></canvas>
 </div>
 
-<div id="chat-display">
-    <div id="current-user-text"></div>
-</div>
+<div id="chat-space"></div>
 
 <div id="controls">
-    <div class="control-group">
-        <button id="stopAudioBtn" class="control-btn">STOP MUSIC</button>
-        <button id="stopTalkBtn" class="control-btn">STOP TALKING</button>
-    </div>
-    <div class="control-group">
-        <button id="resetBtn" class="control-btn">RESET MEMORY</button>
-    </div>
+    <button id="stopTalk" class="ctrl-btn">STOP VOICE</button>
+    <button id="stopMusic" class="ctrl-btn">STOP MUSIC</button>
 </div>
 
 <div id="input-container">
-    <input type="text" id="userInput" placeholder="Waiting..." autocomplete="off" disabled>
-    <button id="sendBtn">SEND</button>
+    <input type="text" id="userInput" placeholder="Waiting for start..." class="pulsing" autocomplete="off" disabled>
 </div>
 
 <iframe id="sc-widget" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
-        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false">
+        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/199042296&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false">
 </iframe>
 
 <script>
     let turnstileToken = null;
-    let conversationHistory = []; 
+    let conversationHistory = [];
     let scWidget;
     let isMusicPlaying = false;
     let isSpeaking = false;
-    let animationId;
-    let synth = window.speechSynthesis;
-    let currentUtterance = null;
+    let audioCtx, analyser, dataArray;
+    let currentAudio = null;
 
-    const overlay = document.getElementById('loading-overlay');
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
-    const cfContainer = document.querySelector('.cf-container');
-    
+    const loadingScreen = document.getElementById('loading-screen');
+    const userInput = document.getElementById('userInput');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const userTextDisplay = document.getElementById('current-user-text');
-    
-    const stopAudioBtn = document.getElementById('stopAudioBtn');
-    const stopTalkBtn = document.getElementById('stopTalkBtn');
-    const resetBtn = document.getElementById('resetBtn');
-
-    window.onTurnstileSuccess = function(token) {
-        turnstileToken = token;
-        statusText.innerText = "System Ready";
-        cfContainer.style.display = 'none';
-        checkReady();
-    };
+    const chatSpace = document.getElementById('chat-space');
 
     function initSoundCloud() {
         const iframe = document.getElementById('sc-widget');
         scWidget = SC.Widget(iframe);
-        
-        scWidget.bind(SC.Widget.Events.READY, function() {
-            console.log("SoundCloud Ready");
+        scWidget.bind(SC.Widget.Events.READY, () => {
+            console.log("SC Ready");
             checkReady();
         });
-
         scWidget.bind(SC.Widget.Events.PLAY, () => isMusicPlaying = true);
         scWidget.bind(SC.Widget.Events.PAUSE, () => isMusicPlaying = false);
         scWidget.bind(SC.Widget.Events.FINISH, () => isMusicPlaying = false);
     }
 
+    window.onTurnstileSuccess = function(token) {
+        turnstileToken = token;
+        document.querySelector('.turnstile-box').style.display = 'none';
+        checkReady();
+    };
+
     function checkReady() {
         if (turnstileToken && scWidget) {
             statusText.style.display = 'none';
             startBtn.style.display = 'block';
-        } else {
-            cfContainer.style.display = 'block';
         }
     }
 
     startBtn.onclick = () => {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.style.display = 'none', 500);
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => loadingScreen.style.display = 'none', 500);
         userInput.disabled = false;
-        userInput.placeholder = "Type to Mia...";
+        userInput.placeholder = "Type here...";
         userInput.focus();
+        
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
         draw();
     };
 
-    function playSoundCloud(query) {
-        if (!scWidget) return;
-        // Search hack for Widget API: Load url with search query
-        const searchUrl = 'https://api.soundcloud.com/tracks?q=' + encodeURIComponent(query);
-        scWidget.load(searchUrl, {
-            auto_play: true,
-            show_artwork: false
-        });
-        isMusicPlaying = true;
-    }
-
-    stopAudioBtn.onclick = () => {
-        if (scWidget) scWidget.pause();
-        isMusicPlaying = false;
-    };
-
-    stopTalkBtn.onclick = () => {
-        if (synth.speaking) {
-            synth.cancel();
+    document.getElementById('stopTalk').onclick = () => {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
             isSpeaking = false;
-            unlockInput(); 
+            userInput.disabled = false;
+            userInput.placeholder = "Type here...";
+            userInput.focus();
         }
     };
 
-    resetBtn.onclick = () => {
-        conversationHistory = [];
-        alert("Memory Reset");
+    document.getElementById('stopMusic').onclick = () => {
+        if (scWidget) scWidget.pause();
     };
-
-    function speak(text) {
-        synth.cancel();
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        
-        // Voice selection logic
-        let voices = synth.getVoices();
-        let selectedVoice = voices.find(v => v.name.includes("Google US English")) || 
-                           voices.find(v => v.lang.includes('en') && v.name.includes('Female')) || 
-                           voices[0];
-        
-        if (selectedVoice) currentUtterance.voice = selectedVoice;
-        currentUtterance.rate = 1;
-        currentUtterance.pitch = 1;
-
-        currentUtterance.onstart = () => {
-            isSpeaking = true;
-            // Blur user text immediately when AI starts talking
-            userTextDisplay.classList.add('fading');
-            userTextDisplay.classList.remove('visible');
-        };
-
-        currentUtterance.onend = () => {
-            isSpeaking = false;
-            unlockInput();
-        };
-
-        currentUtterance.onerror = () => {
-            isSpeaking = false;
-            unlockInput();
-        };
-
-        synth.speak(currentUtterance);
-    }
-
-    function lockInput() {
-        userInput.disabled = true;
-        userInput.placeholder = "Mia is speaking...";
-        userInput.value = '';
-    }
-
-    function unlockInput() {
-        userInput.disabled = false;
-        userInput.placeholder = "Type to Mia...";
-        userInput.focus();
-    }
 
     function draw() {
         requestAnimationFrame(draw);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const bars = 50;
+        const bars = 60;
         const step = canvas.width / bars;
         const time = Date.now() * 0.005;
 
         for (let i = 0; i < bars; i++) {
             let h = 2;
-            
-            // Logic: Music creates colored pulses, Voice creates white amplitude
+            let r = 50, g = 50, b = 50;
+
             if (isMusicPlaying) {
-                // Smooth sine wave for music
-                h += Math.sin((i * 0.5) + time) * 20 + 20;
+                h = Math.sin((i * 0.3) + time) * 20 + 25;
+                h += Math.random() * 10;
                 
-                // Color Logic
-                const r = Math.sin(time) * 100 + 155;
-                const g = Math.sin(time + 2) * 100 + 155;
-                const b = 200; 
-                ctx.fillStyle = `rgb(${r},${g},${b})`;
-            } else if (isSpeaking) {
-                // Erratic random for voice
-                h += Math.random() * 60;
-                ctx.fillStyle = "#fff";
-            } else {
-                // Idle
-                h = 2;
-                ctx.fillStyle = "#333";
+                r = Math.sin(time * 0.5) * 60 + 100;
+                g = Math.sin(time * 0.7 + 2) * 60 + 100;
+                b = 255;
+            } 
+            
+            if (isSpeaking) {
+                if (isMusicPlaying) {
+                    h += Math.random() * 40;
+                    r = 255; g = 255; b = 255;
+                } else {
+                    h = Math.random() * 50 + 5;
+                    r = 255; g = 255; b = 255;
+                }
             }
 
-            // If speaking AND music, mix (Voice overrides height, Music overrides color)
-            if (isMusicPlaying && isSpeaking) {
-                 h = Math.random() * 60 + 20;
-            }
-
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
             const x = i * step;
             const y = (canvas.height - h) / 2;
-            
             ctx.fillRect(x, y, step - 2, h);
         }
     }
 
-    async function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
-
-        // UI Updates
-        userTextDisplay.innerText = text;
-        userTextDisplay.classList.remove('fading');
-        userTextDisplay.classList.add('visible');
-        
-        conversationHistory.push({ role: "user", content: text });
-        lockInput();
-
+    async function playTTS(text) {
         try {
-            const response = await fetch('/api/chat', {
+            const response = await fetch('https://tts.puter.com/v2/synthesize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    history: conversationHistory,
-                    turnstileToken: turnstileToken
-                })
+                body: JSON.stringify({ text: text, language: 'en-US' })
             });
+
+            if (!response.ok) throw new Error('TTS Failed');
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
             
-            const data = await response.json();
+            if (currentAudio) currentAudio.pause();
+            currentAudio = new Audio(url);
             
-            // Handle error logic (token expiry, spam)
-            if (response.status === 403 || data.error) {
-                // If token invalid, ask for refresh (refresh page usually easiest for security)
-                alert("Security check failed or timed out. Please refresh.");
-                unlockInput();
-                return;
-            }
+            currentAudio.onplay = () => { isSpeaking = true; };
+            currentAudio.onended = () => { 
+                isSpeaking = false; 
+                userInput.disabled = false; 
+                userInput.placeholder = "Type here...";
+                userInput.focus();
+            };
+            
+            currentAudio.play();
 
-            // Save AI response to history so it remembers what it said next time
-            conversationHistory.push({ role: "assistant", content: data.text });
-
-            if (data.musicQuery) {
-                // Lower volume or stop previous is handled by widget auto logic usually
-                playSoundCloud(data.musicQuery);
-            }
-
-            speak(data.text);
-
-        } catch (err) {
-            console.error(err);
-            unlockInput();
+        } catch (e) {
+            console.error(e);
+            isSpeaking = false;
+            userInput.disabled = false;
         }
     }
 
-    sendBtn.onclick = sendMessage;
-    userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    function playSoundCloud(url) {
+        if (!scWidget) return;
+        scWidget.load(url, { auto_play: true });
+    }
+
+    userInput.onkeypress = async (e) => {
+        if (e.key === 'Enter') {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'user-message';
+            msgDiv.innerText = text;
+            chatSpace.innerHTML = ''; 
+            chatSpace.appendChild(msgDiv);
+
+            userInput.value = '';
+            userInput.disabled = true;
+            userInput.placeholder = "Listening...";
+            
+            conversationHistory.push({ role: "user", content: text });
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        history: conversationHistory,
+                        turnstileToken: turnstileToken
+                    })
+                });
+
+                const data = await res.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                conversationHistory.push({ role: "assistant", content: data.text });
+                
+                if (data.musicUrl) {
+                    playSoundCloud(data.musicUrl);
+                }
+
+                playTTS(data.text);
+
+            } catch (err) {
+                console.error(err);
+                userInput.disabled = false;
+                userInput.placeholder = "Error. Try again.";
+            }
+        }
+    };
 
     window.onresize = () => {
-        canvas.width = window.innerWidth > 800 ? 800 : window.innerWidth;
+        canvas.width = Math.min(window.innerWidth, 800);
         canvas.height = 100;
     };
     window.onresize();
