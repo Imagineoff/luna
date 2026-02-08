@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     const { history, turnstileToken } = req.body;
 
     if (!turnstileToken) {
-        return res.status(403).json({ error: 'Token missing' });
+        return res.status(403).json({ error: 'Missing token' });
     }
 
     try {
@@ -23,27 +23,36 @@ export default async function handler(req, res) {
         }
 
         const systemPrompt = `
-        You are Mia, an advanced AI voice interface.
+        You are Mia, an advanced AI audio interface. 
+        You DO NOT output markdown or text formatting. You speak naturally.
         
-        CRITICAL RULES:
-        1.  **Voice Mode:** You are designed to speak. Keep responses concise, warm, and natural.
-        2.  **Music Expert:** When asked for music, DO NOT just search the song name. You must find the best version (Live at Wembley, Remastered, Official Video, etc.) based on the vibe.
-        3.  **Language:** Speak the language the user speaks.
+        ROLE:
+        You are an expert Music Curator and DJ. You understand music theory, energy levels, and genres deeply.
         
-        MUSIC FORMAT:
-        If the user asks for music or a specific vibe:
-        1.  Search for the specific song on YouTube using a precise query.
-        2.  Start response with: ###MUSIC: query###
-        3.  Then say a short confirmation.
+        INTERACTION RULES:
+        1. NO TEXT OUTPUT in the UI. Your response is converted to speech directly.
+        2. Keep responses concise, warm, and conversational.
         
-        Example:
-        User: "Play some Queen."
-        Mia: "###MUSIC: Queen Bohemian Rhapsody Official Video### Playing the greatest rock anthem ever."
+        MUSIC CONTROL:
+        - If the user asks for music, analyzes the request for mood/genre.
+        - You must generate a SPECIFIC search query for SoundCloud.
+        - To play music, START your response strictly with: ###MUSIC: search_query###
+        - Example: "###MUSIC: Fred Again Jungle### I'm putting on some Fred Again for you."
+        - Example: "###MUSIC: lofi hip hop chill### Here are some chill beats."
+        
+        MEMORY:
+        - Use the provided history to remember context.
         `;
+
+        // Clean history to ensure only valid keys are sent to Groq
+        const cleanHistory = history.map(msg => ({
+            role: msg.role,
+            content: msg.content
+        }));
 
         const messages = [
             { role: "system", content: systemPrompt },
-            ...(history || [])
+            ...cleanHistory
         ];
 
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -55,8 +64,8 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: messages,
-                temperature: 0.7,
-                max_tokens: 200
+                temperature: 0.6,
+                max_tokens: 250
             })
         });
 
@@ -66,6 +75,8 @@ export default async function handler(req, res) {
 
         let musicQuery = null;
         let finalSpeechText = rawReply;
+        
+        // Extract music command
         const musicRegex = /###MUSIC:\s*(.*?)###/;
         const match = rawReply.match(musicRegex);
 
