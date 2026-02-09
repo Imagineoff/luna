@@ -13,9 +13,14 @@ export default async function handler(req, res) {
   };
 
   if (req.method === 'GET') {
-    const r = await fetch(`${URL}/lrange/luna_posts/0/-1`, { headers: { Authorization: `Bearer ${TK}` } });
-    const d = await r.json();
-    return res.status(200).json((d.result || []).map(i => JSON.parse(i)));
+    try {
+      const r = await fetch(`${URL}/lrange/luna_posts/0/-1`, { headers: { Authorization: `Bearer ${TK}` } });
+      const d = await r.json();
+      const posts = (d.result || []).map(i => JSON.parse(i));
+      return res.status(200).json(posts);
+    } catch (e) {
+      return res.status(200).json([]);
+    }
   }
 
   if (req.method === 'POST') {
