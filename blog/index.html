@@ -6,25 +6,23 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png">
     <title>Luna</title>
     <style>
-        :root { --bg: #000; --txt: #fff; --acc: #222; }
+        :root { --bg: #000; --txt: #e0e0e0; --acc: #222; }
         body { background: var(--bg); color: var(--txt); font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 600px; }
         header { width: 100%; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--acc); padding-bottom: 10px; }
         h1 { font-size: 1.5rem; margin: 0; letter-spacing: 2px; }
         #lgn { font-size: 0.8rem; color: #555; cursor: pointer; }
-        #ia { display: none; background: #0a0a0a; padding: 20px; border: 1px solid var(--acc); margin-bottom: 30px; border-radius: 4px; }
+        #ia { display: none; background: #0a0a0a; padding: 15px; border: 1px solid var(--acc); margin-bottom: 30px; }
         textarea { width: 100%; background: transparent; border: none; color: var(--txt); font-family: inherit; resize: none; min-height: 80px; outline: none; font-size: 1rem; }
         .ab { display: flex; justify-content: flex-end; margin-top: 10px; }
-        button { background: var(--txt); color: var(--bg); border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 2px; }
-        #pc { width: 100%; }
-        .pst { display: flex; gap: 15px; margin-bottom: 30px; animation: in 0.3s ease; }
-        @keyframes in { from { opacity: 0; } to { opacity: 1; } }
-        .pfp { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid #1a1a1a; flex-shrink: 0; }
+        button { background: var(--txt); color: var(--bg); border: none; padding: 6px 20px; cursor: pointer; font-weight: bold; }
+        .pst { display: flex; gap: 15px; margin-bottom: 30px; }
+        .pfp { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #1a1a1a; }
         .cnt { flex-grow: 1; }
-        .mt { font-size: 0.7rem; color: #666; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .mt { font-size: 0.7rem; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .txt { line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
         .del { cursor: pointer; color: #444; padding: 0 5px; }
-        .del:hover { color: #ff4444; }
+        .del:hover { color: red; }
     </style>
 </head>
 <body>
@@ -34,14 +32,13 @@
             <span id="lgn">login</span>
         </header>
         <div id="ia">
-            <textarea id="pt" placeholder="Co máš na srdci?"></textarea>
-            <div class="ab"><button onclick="send()">Publikovat</button></div>
+            <textarea id="pt" placeholder="..."></textarea>
+            <div class="ab"><button onclick="send()">POST</button></div>
         </div>
         <div id="pc"></div>
     </div>
     <script>
-        let k = null;
-        let r = null;
+        let k = null, r = null;
         const titles = ["Luna", "Official Dev Blog"];
         let ti = 0, ci = 0, id = false;
 
@@ -55,7 +52,7 @@
         tw();
 
         document.getElementById('lgn').onclick = async () => {
-            const p = prompt("Heslo:");
+            const p = prompt("Password:");
             if (!p) return;
             const res = await fetch('/api/blog', {
                 method: 'POST',
@@ -63,59 +60,56 @@
                 body: JSON.stringify({ action: 'login', password: p })
             });
             const d = await res.json();
-            if (d.success) { k = p; r = d.role; ui(); } else { alert("Špatné heslo."); }
+            if (d.success) { k = p; r = d.role; ui(); }
         };
 
         function ui() {
-            if (r) {
-                document.getElementById('ia').style.display = 'block';
-                document.getElementById('lgn').style.display = 'none';
-            }
+            if (r) { document.getElementById('ia').style.display = 'block'; document.getElementById('lgn').style.display = 'none'; }
             load();
         }
 
         async function load() {
-            const res = await fetch('/api/blog');
-            const data = await res.json();
-            const cont = document.getElementById('pc');
-            cont.innerHTML = '';
-            data.forEach(p => {
-                let img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png';
-                if(p.roleType === 'admin') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Imagine.jpg';
-                else if(p.roleType === 'manager1') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Storm.JPG';
-                else if(p.roleType === 'manager2') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Potato.PNG';
-                
-                cont.innerHTML += `
-                    <div class="pst">
-                        <img src="${img}" class="pfp">
-                        <div class="cnt">
-                            <div class="mt">
-                                <span>${new Date(p.timestamp).toLocaleString('cs-CZ')}</span>
-                                ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">smazat</span>` : ''}
+            try {
+                const res = await fetch('/api/blog');
+                const data = await res.json();
+                const cont = document.getElementById('pc');
+                cont.innerHTML = '';
+                if (!Array.isArray(data)) return;
+                data.forEach(p => {
+                    let img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png';
+                    if(p.roleType === 'admin') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Imagine.jpg';
+                    else if(p.roleType === 'manager1') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Storm.JPG';
+                    else if(p.roleType === 'manager2') img = 'https://raw.githubusercontent.com/Imagineoff/luna/main/Potato.PNG';
+                    
+                    cont.innerHTML += `
+                        <div class="pst">
+                            <img src="${img}" class="pfp">
+                            <div class="cnt">
+                                <div class="mt">
+                                    <span>${new Date(p.timestamp).toLocaleString('cs-CZ')}</span>
+                                    ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">×</span>` : ''}
+                                </div>
+                                <div class="txt">${p.text}</div>
                             </div>
-                            <div class="txt">${p.text}</div>
-                        </div>
-                    </div>`;
-            });
+                        </div>`;
+                });
+            } catch (e) { console.error(e); }
         }
 
         async function send() {
             const v = document.getElementById('pt').value;
             if (!v.trim()) return;
-            const b = document.querySelector('#ia button');
-            b.disabled = true;
             await fetch('/api/blog', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'post', password: k, text: v })
             });
             document.getElementById('pt').value = '';
-            b.disabled = false;
             load();
         }
 
         async function rem(id) {
-            if (!confirm("Opravdu smazat?")) return;
+            if (!confirm("Delete?")) return;
             await fetch('/api/blog', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
