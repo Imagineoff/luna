@@ -13,14 +13,10 @@ export default async function handler(req, res) {
   };
 
   if (req.method === 'GET') {
-    try {
-      const r = await fetch(`${URL}/lrange/luna_posts/0/-1`, { headers: { Authorization: `Bearer ${TK}` } });
-      const d = await r.json();
-      const posts = (d.result || []).map(i => JSON.parse(i));
-      return res.status(200).json(posts);
-    } catch (e) {
-      return res.status(200).json([]);
-    }
+    const r = await fetch(`${URL}/lrange/luna_posts/0/-1`, { headers: { Authorization: `Bearer ${TK}` } });
+    const d = await r.json();
+    const data = (d.result || []).map(i => JSON.parse(i));
+    return res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
@@ -33,18 +29,28 @@ export default async function handler(req, res) {
 
     if (action === 'post' && u) {
       const p = JSON.stringify({ id: Date.now().toString(), text, timestamp: Date.now(), roleType: u.t });
-      await fetch(`${URL}/lpush/luna_posts`, { method: 'POST', headers: { Authorization: `Bearer ${TK}` }, body: p });
+      await fetch(`${URL}/lpush/luna_posts`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${TK}` },
+        body: p
+      });
       return res.status(200).json({ success: true });
     }
 
     if (action === 'delete' && u?.r === 'admin') {
       const r = await fetch(`${URL}/lrange/luna_posts/0/-1`, { headers: { Authorization: `Bearer ${TK}` } });
       const d = await r.json();
-      const f = (d.result || []).map(i => JSON.parse(i)).filter(p => p.id !== id).map(i => JSON.stringify(i));
+      const filtered = (d.result || []).map(i => JSON.parse(i)).filter(item => item.id !== id).map(i => JSON.stringify(i));
+      
       await fetch(`${URL}/del/luna_posts`, { headers: { Authorization: `Bearer ${TK}` } });
-      if (f.length > 0) {
-        for (const p of f.reverse()) {
-          await fetch(`${URL}/lpush/luna_posts`, { method: 'POST', headers: { Authorization: `Bearer ${TK}` }, body: p });
+      
+      if (filtered.length > 0) {
+        for (const item of filtered.reverse()) {
+          await fetch(`${URL}/lpush/luna_posts`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${TK}` },
+            body: item
+          });
         }
       }
       return res.status(200).json({ success: true });
