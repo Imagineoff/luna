@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png">
     <title>Luna</title>
     <style>
-        :root { --bg: #000; --txt: #e0e0e0; --acc: #333; }
+        :root { --bg: #000; --txt: #e0e0e0; --acc: #222; }
         body { background: var(--bg); color: var(--txt); font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 600px; }
         header { width: 100%; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--acc); padding-bottom: 10px; }
         h1 { font-size: 1.5rem; margin: 0; letter-spacing: 2px; }
-        #lgn { font-size: 0.8rem; color: var(--acc); cursor: pointer; }
-        #ia { display: none; background: #111; padding: 15px; border: 1px solid var(--acc); margin-bottom: 30px; }
+        #lgn { font-size: 0.8rem; color: #444; cursor: pointer; text-decoration: none; }
+        #ia { display: none; background: #080808; padding: 15px; border: 1px solid var(--acc); margin-bottom: 30px; }
         textarea { width: 100%; background: transparent; border: none; color: var(--txt); font-family: inherit; resize: vertical; min-height: 60px; outline: none; font-size: 1rem; }
         .ab { display: flex; justify-content: flex-end; margin-top: 10px; }
         button { background: var(--txt); color: var(--bg); border: none; padding: 5px 15px; cursor: pointer; font-weight: bold; }
-        .pst { display: flex; gap: 15px; margin-bottom: 25px; }
-        .pfp { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #222; }
+        .pst { display: flex; gap: 15px; margin-bottom: 30px; }
+        .pfp { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #111; flex-shrink: 0; }
         .cnt { flex-grow: 1; }
-        .mt { font-size: 0.75rem; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .txt { line-height: 1.5; white-space: pre-wrap; }
-        .del { cursor: pointer; color: #444; }
-        .del:hover { color: red; }
+        .mt { font-size: 0.7rem; color: #555; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .txt { line-height: 1.4; white-space: pre-wrap; font-size: 0.95rem; }
+        .del { cursor: pointer; color: #333; font-size: 1rem; }
+        .del:hover { color: #f00; }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
             <span id="lgn">login</span>
         </header>
         <div id="ia">
-            <textarea id="pt" placeholder="..."></textarea>
+            <textarea id="pt" placeholder="Type message..."></textarea>
             <div class="ab"><button onclick="send()">+</button></div>
         </div>
         <div id="pc"></div>
@@ -40,15 +40,15 @@
     <script>
         let k = null; 
         let r = null;
-        const t = ["Luna", "Official Dev Blog"];
+        const titles = ["Luna", "Official Dev Blog"];
         let ti = 0, ci = 0, id = false;
 
         function tw() {
-            const c = t[ti];
+            const c = titles[ti];
             document.title = id ? c.substring(0, ci--) : c.substring(0, ci++);
-            let s = id ? 100 : 200;
+            let s = id ? 80 : 150;
             if (!id && ci > c.length) { s = 2000; id = true; }
-            else if (id && ci === 0) { id = false; ti = (ti + 1) % t.length; s = 500; }
+            else if (id && ci === 0) { id = false; ti = (ti + 1) % titles.length; s = 500; }
             setTimeout(tw, s);
         }
         tw();
@@ -89,8 +89,8 @@
                         <img src="${img}" class="pfp">
                         <div class="cnt">
                             <div class="mt">
-                                <span>${new Date(p.timestamp).toLocaleString()}</span>
-                                ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">✖</span>` : ''}
+                                <span>${new Date(p.timestamp).toLocaleString('cs-CZ')}</span>
+                                ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">×</span>` : ''}
                             </div>
                             <div class="txt">${p.text}</div>
                         </div>
@@ -111,7 +111,7 @@
         }
 
         async function rem(id) {
-            if (!confirm("Delete?")) return;
+            if (!confirm("Delete permanently?")) return;
             await fetch('/api/blog', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
