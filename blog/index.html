@@ -6,23 +6,25 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png">
     <title>Luna</title>
     <style>
-        :root { --bg: #000; --txt: #e0e0e0; --acc: #222; }
+        :root { --bg: #000; --txt: #fff; --acc: #222; }
         body { background: var(--bg); color: var(--txt); font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 600px; }
         header { width: 100%; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--acc); padding-bottom: 10px; }
         h1 { font-size: 1.5rem; margin: 0; letter-spacing: 2px; }
-        #lgn { font-size: 0.8rem; color: #444; cursor: pointer; text-decoration: none; }
-        #ia { display: none; background: #080808; padding: 15px; border: 1px solid var(--acc); margin-bottom: 30px; }
-        textarea { width: 100%; background: transparent; border: none; color: var(--txt); font-family: inherit; resize: vertical; min-height: 60px; outline: none; font-size: 1rem; }
+        #lgn { font-size: 0.8rem; color: #555; cursor: pointer; }
+        #ia { display: none; background: #0a0a0a; padding: 20px; border: 1px solid var(--acc); margin-bottom: 30px; border-radius: 4px; }
+        textarea { width: 100%; background: transparent; border: none; color: var(--txt); font-family: inherit; resize: none; min-height: 80px; outline: none; font-size: 1rem; }
         .ab { display: flex; justify-content: flex-end; margin-top: 10px; }
-        button { background: var(--txt); color: var(--bg); border: none; padding: 5px 15px; cursor: pointer; font-weight: bold; }
-        .pst { display: flex; gap: 15px; margin-bottom: 30px; }
-        .pfp { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #111; flex-shrink: 0; }
+        button { background: var(--txt); color: var(--bg); border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 2px; }
+        #pc { width: 100%; }
+        .pst { display: flex; gap: 15px; margin-bottom: 30px; animation: in 0.3s ease; }
+        @keyframes in { from { opacity: 0; } to { opacity: 1; } }
+        .pfp { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid #1a1a1a; flex-shrink: 0; }
         .cnt { flex-grow: 1; }
-        .mt { font-size: 0.7rem; color: #555; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .txt { line-height: 1.4; white-space: pre-wrap; font-size: 0.95rem; }
-        .del { cursor: pointer; color: #333; font-size: 1rem; }
-        .del:hover { color: #f00; }
+        .mt { font-size: 0.7rem; color: #666; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .txt { line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .del { cursor: pointer; color: #444; padding: 0 5px; }
+        .del:hover { color: #ff4444; }
     </style>
 </head>
 <body>
@@ -32,13 +34,13 @@
             <span id="lgn">login</span>
         </header>
         <div id="ia">
-            <textarea id="pt" placeholder="Type message..."></textarea>
-            <div class="ab"><button onclick="send()">+</button></div>
+            <textarea id="pt" placeholder="Co máš na srdci?"></textarea>
+            <div class="ab"><button onclick="send()">Publikovat</button></div>
         </div>
         <div id="pc"></div>
     </div>
     <script>
-        let k = null; 
+        let k = null;
         let r = null;
         const titles = ["Luna", "Official Dev Blog"];
         let ti = 0, ci = 0, id = false;
@@ -46,15 +48,14 @@
         function tw() {
             const c = titles[ti];
             document.title = id ? c.substring(0, ci--) : c.substring(0, ci++);
-            let s = id ? 80 : 150;
-            if (!id && ci > c.length) { s = 2000; id = true; }
-            else if (id && ci === 0) { id = false; ti = (ti + 1) % titles.length; s = 500; }
-            setTimeout(tw, s);
+            if (!id && ci > c.length) { id = true; setTimeout(tw, 2000); return; }
+            if (id && ci === 0) { id = false; ti = (ti + 1) % titles.length; }
+            setTimeout(tw, id ? 70 : 150);
         }
         tw();
 
         document.getElementById('lgn').onclick = async () => {
-            const p = prompt("Password:");
+            const p = prompt("Heslo:");
             if (!p) return;
             const res = await fetch('/api/blog', {
                 method: 'POST',
@@ -62,7 +63,7 @@
                 body: JSON.stringify({ action: 'login', password: p })
             });
             const d = await res.json();
-            if (d.success) { k = p; r = d.role; ui(); }
+            if (d.success) { k = p; r = d.role; ui(); } else { alert("Špatné heslo."); }
         };
 
         function ui() {
@@ -90,7 +91,7 @@
                         <div class="cnt">
                             <div class="mt">
                                 <span>${new Date(p.timestamp).toLocaleString('cs-CZ')}</span>
-                                ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">×</span>` : ''}
+                                ${r === 'admin' ? `<span class="del" onclick="rem('${p.id}')">smazat</span>` : ''}
                             </div>
                             <div class="txt">${p.text}</div>
                         </div>
@@ -101,17 +102,20 @@
         async function send() {
             const v = document.getElementById('pt').value;
             if (!v.trim()) return;
+            const b = document.querySelector('#ia button');
+            b.disabled = true;
             await fetch('/api/blog', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'post', password: k, text: v })
             });
             document.getElementById('pt').value = '';
+            b.disabled = false;
             load();
         }
 
         async function rem(id) {
-            if (!confirm("Delete permanently?")) return;
+            if (!confirm("Opravdu smazat?")) return;
             await fetch('/api/blog', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
