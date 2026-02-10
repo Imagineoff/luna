@@ -235,6 +235,38 @@
             }
         }
     };
+    let titleWords = ["Mia", "Free personal AI agent"];
+let wordIdx = 0;
+let charIdx = 0;
+let isDeletingWord = false;
+
+function animateTitle() {
+    const currentFullText = titleWords[wordIdx];
+    
+    if (isDeletingWord) {
+        document.title = currentFullText.substring(0, charIdx - 1);
+        charIdx--;
+    } else {
+        document.title = currentFullText.substring(0, charIdx + 1);
+        charIdx++;
+    }
+
+    let typeSpeed = isDeletingWord ? 100 : 150;
+
+    if (!isDeletingWord && charIdx === currentFullText.length) {
+        typeSpeed = 2000; 
+        isDeletingWord = true;
+    } else if (isDeletingWord && charIdx === 0) {
+        isDeletingWord = false;
+        wordIdx = (wordIdx + 1) % titleWords.length;
+        typeSpeed = 500;
+    }
+
+    setTimeout(animateTitle, typeSpeed);
+}
+
+animateTitle();
+
 </script>
 </body>
 </html>
