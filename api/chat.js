@@ -3,26 +3,27 @@ export default async function handler(req, res) {
 
     const { history, turnstileToken } = req.body;
 
-    if (!turnstileToken) {
-        return res.status(403).json({ error: 'Token missing' });
-    }
-
     try {
-        const cfVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                secret: process.env.CLOUDFLARE_SECRET_KEY,
-                response: turnstileToken
-            })
-        });
+        if (!history || history.length === 0) {
+            if (!turnstileToken) {
+                return res.status(403).json({ error: 'Token missing' });
+            }
+            const cfVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: process.env.CLOUDFLARE_SECRET_KEY,
+                    response: turnstileToken
+                })
+            });
 
-        const cfData = await cfVerify.json();
-        if (!cfData.success) {
-            return res.status(403).json({ error: 'Invalid token' });
+            const cfData = await cfVerify.json();
+            if (!cfData.success) {
+                return res.status(403).json({ error: 'Invalid token' });
+            }
         }
 
-        const systemPrompt = `You are Mia, a sophisticated AI assistant. you provide helpful, clear text responses.`;
+        const systemPrompt = `You are Mia, a sophisticated AI assistant. Respond with clear text only.`;
 
         const messages = [
             { role: "system", content: systemPrompt },
