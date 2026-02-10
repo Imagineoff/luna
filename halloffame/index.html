@@ -1,1 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUNA</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Lunalogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Lato', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 60px auto;
+            text-align: center;
+            z-index: 1;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 4s linear infinite;
+            text-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 50px;
+            font-style: italic;
+            border-top: 1px solid rgba(218, 165, 32, 0.3);
+            border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+            padding: 20px 0;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #d4af37;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            margin: 10px auto 0;
+        }
+
+        .card {
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(218, 165, 32, 0.2);
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(218, 165, 32, 0.6);
+            box-shadow: 0 5px 15px rgba(218, 165, 32, 0.1);
+        }
+
+        .name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #fcf6ba;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .role-desc {
+            font-size: 1rem;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .special-block {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid rgba(218, 165, 32, 0.1);
+            border-radius: 8px;
+        }
+
+        .outro-text {
+            margin-top: 60px;
+            font-size: 1rem;
+            color: #bbb;
+            line-height: 1.6;
+        }
+
+        .signature {
+            font-family: 'Cinzel', serif;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #d4af37;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 50px;
+            padding: 12px 30px;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            background: #d4af37;
+            color: #000;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            .container { margin: 30px auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <div class="container">
+        <h1>Luna’s Hall of Fame</h1>
+
+        <div class="intro-text">
+            Thank you to everyone who helps Luna grow and gives her strength. Without all of you who care about Luna, we would never have achieved this.
+        </div>
+
+        <h2 class="section-title">Special Thanks To</h2>
+
+        <h3 class="section-title" style="font-size: 1.5rem; margin-top: 10px;">Directors</h3>
+
+        <div class="card">
+            <div class="name">Storm</div>
+            <div class="role-desc">
+                For creating the <i>Price of Pain</i> lore and leading several Luna events.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="name">Potato</div>
+            <div class="role-desc">
+                For the complete game art, including promo art etc. Also for expanding the lore, promo, and many other things.
+            </div>
+        </div>
+
+        <h3 class="section-title" style="font-size: 1.5rem;">Devs</h3>
+
+        <div class="card">
+            <div class="name">Jonymin</div>
+            <div class="role-desc">
+                Thank you for not just the coding help during the development of <i>Price of Pain</i>. Without you, we would never have managed to release the game on time.
+            </div>
+        </div>
+
+        <h3 class="section-title" style="font-size: 1.5rem;">Other Thanks</h3>
+
+        <div class="special-block">
+            <div class="role-desc">
+                We thank other people who help us at Luna, such as Testers, Voice Actors, Social Team, Discord Supervisors, Discord Moderators, Partners, Contributors, and more for their tremendous dedication to Luna. You all have our great thanks.
+            </div>
+        </div>
+
+        <h3 class="section-title" style="font-size: 1.5rem;">Special Thanks</h3>
+
+        <div class="card">
+            <div class="name">Jd Walker - Walker Music</div>
+            <div class="role-desc">
+                For the complete composition of music for the game <i>Price of Pain</i>. Your work is amazing and helped us a lot. We will definitely continue our collaboration in future works of Studio Luna thanks to the great communication and work.
+            </div>
+        </div>
+
+        <div class="outro-text">
+            Thank you very much to all the people mentioned above for their incredible help. Thank you to everyone else for your favor and support. Without you, Luna would be nothing.
+        </div>
+
+        <div class="signature">
+            - For Studio Luna - Imagine, Owner
+        </div>
+
+        <a href="https://studioluna.dev" class="btn-back">Back to Main Page</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.reset(true);
+            }
+
+            reset(initial) {
+                this.x = Math.random() * width;
+                this.y = initial ? Math.random() * height : height + 10;
+                this.size = Math.random() * 2 + 1;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.fade = Math.random() * 0.01 + 0.005;
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+                this.drift = Math.random() * 0.2;
+            }
+
+            update() {
+                this.y -= this.speed;
+                this.x += this.drift * this.direction;
+                
+                if (this.opacity <= 0.05 || this.opacity >= 0.6) {
+                    this.fade = -this.fade;
+                }
+                this.opacity += this.fade;
+
+                if (this.y < -10) {
+                    this.reset(false);
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 215, 0, ${this.opacity})`;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = "rgba(255, 215, 0, 0.8)";
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 70; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        initParticles();
+        animate();
+
+        const words = ["LUNA", "Hall of Fame"];
+        let i = 0;
+        let timer;
+
+        function typeWriter(text, i, fnCallback) {
+            if (i < text.length) {
+                document.title = text.substring(0, i + 1);
+                setTimeout(function() {
+                    typeWriter(text, i + 1, fnCallback)
+                }, 100);
+            } else if (typeof fnCallback == 'function') {
+                setTimeout(fnCallback, 2000);
+            }
+        }
+
+        function deleteWriter(text, i, fnCallback) {
+            if (i >= 0) {
+                document.title = text.substring(0, i);
+                setTimeout(function() {
+                    deleteWriter(text, i - 1, fnCallback)
+                }, 50);
+            } else if (typeof fnCallback == 'function') {
+                fnCallback();
+            }
+        }
+
+        function startTitleAnimation(i) {
+            if (i >= words.length) i = 0;
+            typeWriter(words[i], 0, function(){
+                deleteWriter(words[i], words[i].length, function(){
+                    startTitleAnimation(i + 1);
+                });
+            });
+        }
+
+        startTitleAnimation(0);
+    </script>
+</body>
+</html>
