@@ -62,8 +62,7 @@
         #ai-response {
             font-size: 16px;
             line-height: 1.5;
-            color: #0f0;
-            text-shadow: 0 0 5px #0f0;
+            color: #fff;
             width: 100%;
             max-width: 800px;
             text-align: left;
@@ -144,6 +143,7 @@
 <script>
     let turnstileToken = null;
     let conversationHistory = [];
+    let isTyping = false;
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
     const loadingScreen = document.getElementById('loading-screen');
@@ -173,12 +173,18 @@
     };
 
     function typeWriter(text, i = 0) {
+        if (i === 0) {
+            aiResponseDiv.innerHTML = '';
+            isTyping = true;
+        }
+        
         if (i < text.length) {
             aiResponseDiv.innerHTML += text.charAt(i);
-            setTimeout(() => typeWriter(text, i + 1), 30); 
             const container = document.getElementById('viz-container');
             container.scrollTop = container.scrollHeight;
+            setTimeout(() => typeWriter(text, i + 1), 30); 
         } else {
+            isTyping = false;
             userInput.disabled = false;
             userInput.placeholder = "Type here...";
             userInput.focus();
@@ -188,7 +194,7 @@
     userInput.onkeypress = async (e) => {
         if (e.key === 'Enter') {
             const text = userInput.value.trim();
-            if (!text) return;
+            if (!text || isTyping) return;
 
             aiResponseDiv.innerHTML = '';
             
@@ -219,14 +225,13 @@
                 if (data.error) throw new Error(data.error);
 
                 conversationHistory.push({ role: "assistant", content: data.text });
-                
                 typeWriter(data.text);
 
             } catch (err) {
                 console.error(err);
                 userInput.disabled = false;
                 userInput.placeholder = "Error. Try again.";
-                aiResponseDiv.innerText = "Connection Error.";
+                aiResponseDiv.innerText = "Connection Lost.";
             }
         }
     };
