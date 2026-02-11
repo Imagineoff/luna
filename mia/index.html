@@ -56,13 +56,25 @@
             display: flex; 
             flex-direction: column; 
             align-items: center;
-            animation: fadeBlur 4s forwards; 
+        }
+
+        .user-anim {
+            animation: fadeBlur 4s forwards;
+        }
+
+        .ai-anim {
+            animation: fadeInStable 1s forwards;
         }
 
         @keyframes fadeBlur {
             0% { opacity: 1; filter: blur(0); }
             70% { opacity: 1; filter: blur(0); }
             100% { opacity: 0; filter: blur(20px); pointer-events: none; }
+        }
+
+        @keyframes fadeInStable {
+            0% { opacity: 0; filter: blur(5px); }
+            100% { opacity: 1; filter: blur(0); }
         }
 
         .user-msg { 
@@ -222,7 +234,12 @@
     function appendMessage(role, text, isImage = false) {
         clearViz();
         const wrapper = document.createElement('div');
-        wrapper.className = 'message-wrapper';
+        
+        if (role === 'user') {
+            wrapper.className = 'message-wrapper user-anim';
+        } else {
+            wrapper.className = 'message-wrapper ai-anim';
+        }
         
         const msg = document.createElement('div');
         msg.className = role === 'user' ? 'user-msg' : 'ai-msg';
@@ -233,7 +250,7 @@
         if (role === 'assistant' && !isImage) {
             typeWriter(msg, text, 0);
         } else if (isImage) {
-            msg.appendChild(text); // text is the img container here
+            msg.appendChild(text); 
         } else {
             msg.innerText = text;
         }
@@ -276,7 +293,7 @@
 
         setTimeout(async () => {
             const wrapper = document.createElement('div');
-            wrapper.className = 'message-wrapper';
+            wrapper.className = 'message-wrapper ai-anim'; 
             const msg = document.createElement('div');
             msg.className = 'ai-msg';
             msg.innerText = "Creating...";
