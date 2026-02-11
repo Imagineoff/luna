@@ -44,7 +44,9 @@ export default async function handler(req, res) {
 
         BEHAVIOR:
         - Respond with clear text only.
-        - If users ask about your creator or the studio, provide the provided links and info.`;
+        - If users ask about your creator or the studio, provide the provided links and info.
+        - IMAGES: The user has an "IMAGE GENERATE" button. If they ask you to generate an image, tell them: "Describe your vision and click the IMAGE GENERATE button, darling."
+`;
 
         const messages = [
             { role: "system", content: systemPrompt },
