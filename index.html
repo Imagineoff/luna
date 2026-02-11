@@ -2,28 +2,159 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUNA</title>
-    <meta name="description" content="LUNA Development Studio">
-    <meta name="msvalidate.01" content="2590821D21473BEED519204B3864B5D3" />
-    <meta name="seznam-wmt" content="32iU9aqqjqZnjzMVwV98bILDkAmyDO5A" />
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Lunalogo.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mia</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Mia.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <style>
         :root { --accent: #810000; }
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
-        .track { height: 350vh; position: relative; }
-        #tr-team { height: 300vh; } 
-        .sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; align-items: center; justify-content: center; perspective: 2000px; padding: 20px; }
-        .sticky-view::-webkit-scrollbar { display: none; }
-        .text-gradient { background: linear-gradient(90deg, #4f46e5, #810000); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        #pop-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://raw.githubusercontent.com/Imagineoff/Imagineweb/main/Price%20of%20Pain.jpg') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
-        #mia-card { width: auto; height: 70vh; aspect-ratio: 2/3; background: url('https://github.com/Imagineoff/luna/blob/main/Miapposter.jpg?raw=true') center/cover; border-radius: 20px; box-shadow: 0 0 80px rgba(129, 0, 0, 0.4); transform-style: preserve-3d; will-change: transform; border: 1px solid rgba(255,255,255,0.1); }
-        .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s; font-size: 0.9rem; }
-        .panel:hover { border-color: #810000; background: rgba(255, 255, 255, 0.08); }
-        .btn-action { background: linear-gradient(90deg, #4f46e5, #810000); transition: transform 0.3s; padding: 10px 20px; border-radius: 99px; font-weight: 900; text-transform: uppercase; text-decoration: none; color: #fff; display: inline-block; font-size: 0.7rem; letter-spacing: 1px; text-align: center; }
-        .btn-action:hover { transform: scale(1.05); }
+        * { box-sizing: border-box; }
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: 'Inter', sans-serif;
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; 
+            overflow: hidden; 
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-text {
+            font-size: 14px; letter-spacing: 4px; color: #fff; text-transform: uppercase;
+            margin-bottom: 20px; animation: pulse 2s infinite; font-weight: 900;
+        }
+
+        #start-btn {
+            display: none;
+            background: linear-gradient(90deg, #4f46e5, #810000);
+            color: #fff; border: none;
+            padding: 15px 40px; font-size: 14px; letter-spacing: 2px;
+            font-weight: 900; cursor: pointer; text-transform: uppercase;
+            border-radius: 99px;
+            transition: transform 0.3s;
+        }
+        #start-btn:hover { transform: scale(1.05); }
+
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        #main-interface {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+
+        #viz-container { 
+            flex: 1;
+            display: flex; 
+            flex-direction: column;
+            align-items: flex-start; 
+            justify-content: center; 
+            position: relative;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            min-height: 300px;
+        }
+
+        .mia-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #810000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        #ai-response {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #fff;
+            width: 100%;
+            text-align: left;
+            font-weight: 400;
+        }
+
+        #chat-space {
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 10px;
+            pointer-events: none;
+        }
+
+        .user-message {
+            font-size: 1.2rem;
+            color: #gray-300;
+            font-style: italic;
+            animation: fadeBlur 4s forwards;
+            font-weight: 700;
+        }
+
+        @keyframes fadeBlur {
+            0% { opacity: 1; filter: blur(0); transform: translateY(0); }
+            70% { opacity: 1; filter: blur(0); transform: translateY(-5px); }
+            100% { opacity: 0; filter: blur(10px); transform: translateY(-15px); }
+        }
+
+        #input-container { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            justify-content: center; 
+            padding-bottom: 20px;
+        }
+        
+        input { 
+            width: 100%; 
+            background: transparent; 
+            border: none; 
+            color: #fff; 
+            padding: 15px 0; 
+            outline: none; 
+            font-size: 18px; 
+            border-bottom: 1px solid rgba(255,255,255,0.2); 
+            text-align: center;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+        }
+
+        input:focus { border-bottom-color: #810000; }
+        input:disabled { opacity: 0.5; cursor: wait; border-bottom-color: transparent; }
+        
+        input.pulsing::placeholder { animation: pulsePlaceholder 2s infinite ease-in-out; }
+        @keyframes pulsePlaceholder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
+
+        .turnstile-box { margin-bottom: 20px; }
+        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #810000; }
@@ -31,182 +162,166 @@
 </head>
 <body>
 
-    <section class="track" id="tr-hero">
-        <div class="sticky-view">
-            <h1 id="logo" class="font-black text-center" style="font-size: clamp(4rem, 20vw, 30rem);">LUNA</h1>
+<div id="loading-screen">
+    <div class="loading-text" id="status-text">INITIALIZING LUNA PROTOCOL</div>
+    <div class="turnstile-box">
+        <div class="cf-turnstile" 
+             data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" 
+             data-callback="onTurnstileSuccess" 
+             data-theme="dark">
         </div>
-    </section>
+    </div>
+    <button id="start-btn">INITIALIZE</button>
+</div>
 
-    <section class="track" id="tr-about">
-        <div class="sticky-view">
-            <div id="ab-cont" class="max-w-3xl text-center opacity-0 translate-y-10">
-                <h2 class="text-5xl md:text-7xl font-black mb-6 italic">ABOUT <span class="text-gradient">LUNA</span></h2>
-                <p class="text-lg md:text-xl text-gray-400 leading-relaxed">
-                    A passionate development studio creating unique digital experiences. From web games to immersive Roblox worlds and utility tools. Learning and evolving with every line of code led by Imagine.
-                </p>
-            </div>
-        </div>
-    </section>
+<div id="main-interface">
+    <div id="viz-container">
+        <div class="mia-header">LUNA / MIA AGENT</div>
+        <div id="ai-response"></div>
+    </div>
 
-    <section class="track" id="tr-game">
-        <div class="sticky-view flex-col md:flex-row gap-12">
-            <div id="pop-card" class="opacity-0"></div>
-            <div id="game-desc" class="max-w-md opacity-0 translate-x-20">
-                <h2 class="text-5xl font-black mb-2 italic">PRICE OF PAIN</h2>
-                <p class="text-[#810000] font-bold tracking-widest mb-6">PSYCHOLOGICAL HORROR</p>
-                <p class="text-gray-400 mb-8">Dive into a decaying world where the truth twists the deeper you descend.</p>
-                <a href="https://studioluna.dev/countdown.html" target="_blank" class="btn-action">Play Game</a>
-            </div>
-        </div>
-    </section>
+    <div id="chat-space"></div>
 
-    <section class="track" id="tr-mia">
-        <div class="sticky-view flex-col md:flex-row gap-12">
-            <div id="mia-card" class="opacity-0"></div>
-            <div id="mia-desc" class="max-w-md opacity-0 translate-x-20">
-                <h2 class="text-5xl font-black mb-2 italic">Mia</h2>
-                <p class="text-[#810000] font-bold tracking-widest mb-6">free personal AI agent</p>
-                <a href="https://studioluna.dev/mia" class="btn-action">let’s chat!</a>
-            </div>
-        </div>
-    </section>
+    <div id="input-container">
+        <input type="text" id="userInput" placeholder="Waiting for initialization..." class="pulsing" autocomplete="off" disabled>
+    </div>
+</div>
 
-    <section class="track" id="tr-comm">
-        <div class="sticky-view flex-col">
-            <h2 id="comm-h" class="text-4xl font-black mb-8 opacity-0 uppercase tracking-widest">Community</h2>
-            <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-6 items-start">
-                <div id="comm-grid" class="grid grid-cols-2 gap-3 opacity-0">
-                    <a href="https://studioluna.dev/blog" class="col-span-2 panel p-4 flex justify-center items-center font-black text-white no-underline uppercase tracking-widest" style="background: linear-gradient(90deg, #4f46e5, #810000); box-shadow: 0 0 20px rgba(129, 0, 0, 0.5);">DEV BLOG</a>
-                    <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">Patreon <span class="text-[#810000]">↗</span></a>
-                    <a href="https://studio-luna.itch.io/" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">Itch.io <span class="text-[#810000]">↗</span></a>
-                    <a href="https://x.com/project_luna_" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">Twitter (X) <span class="text-[#810000]">↗</span></a>
-                    <a href="https://ko-fi.com/project_luna" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">Ko-fi <span class="text-[#810000]">↗</span></a>
-                    <a href="https://m.youtube.com/@studioluna_ofc" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">YouTube <span class="text-[#810000]">↗</span></a>
-                    <a href="https://www.tiktok.com/@project_luna_" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">TikTok <span class="text-[#810000]">↗</span></a>
-                    <a href="https://www.instagram.com/_project_luna/" target="_blank" class="panel p-4 flex justify-between items-center font-bold text-white no-underline">Instagram <span class="text-[#810000]">↗</span></a>
-                    <div class="p-2">
-                        <span class="text-[10px] text-gray-500 block uppercase font-black">Contact</span>
-                        <a href="mailto:help@studioluna.dev" class="text-xs text-gradient font-bold">help@studioluna.dev</a>
-                    </div>
-                </div>
-                <div id="comm-disc" class="opacity-0 translate-y-10">
-                    <iframe src="https://discord.com/widget?id=1433738890421997600&theme=dark" width="100%" height="380" frameborder="0" class="rounded-xl border border-white/5"></iframe>
-                </div>
-            </div>
-        </div>
-    </section>
+<script>
+    let turnstileToken = null;
+    let conversationHistory = [];
+    let isTyping = false;
+    const statusText = document.getElementById('status-text');
+    const startBtn = document.getElementById('start-btn');
+    const loadingScreen = document.getElementById('loading-screen');
+    const userInput = document.getElementById('userInput');
+    const chatSpace = document.getElementById('chat-space');
+    const aiResponseDiv = document.getElementById('ai-response');
 
-    <section class="track" id="tr-team">
-        <div class="sticky-view flex-col">
-            <h2 id="team-h" class="text-4xl font-black mb-12 opacity-0 uppercase tracking-widest">Team Luna</h2>
-            <div id="team-container" class="w-full max-w-5xl flex flex-col gap-10 opacity-0 translate-y-10">
-                <div>
-                    <p class="text-[#810000] font-black uppercase tracking-[0.3em] text-[10px] text-center mb-4">Owner</p>
-                    <div class="panel p-6 flex flex-col md:flex-row items-center gap-6 max-w-2xl mx-auto border-[#810000]/30 shadow-[0_0_30px_rgba(129,0,0,0.1)]">
-                        <img src="https://github.com/Imagineoff/luna/blob/main/Imagine.jpg?raw=true" class="w-24 h-24 rounded-full border-2 border-[#810000] object-cover shrink-0">
-                        <div class="text-center md:text-left">
-                            <h4 class="text-xl font-black mb-2 text-white">Imagine</h4>
-                            <p class="text-xs text-gray-400 leading-relaxed mb-4">Hi! I’m Imagine, a developer from the Czech Republic. I’m a huge Resident Evil fan and I build Discord bots, websites and community tools. Also I am fan of Sabrina Carpenter . INFJ-A</p>
-                            <a href="mailto:imagine@studioluna.dev" class="btn-action">imagine@studioluna.dev</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full">
-                    <p class="text-[#810000] font-black uppercase tracking-[0.3em] text-[10px] text-center mb-6">Directors</p>
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div class="panel p-6 text-center">
-                            <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Storm.JPG" class="w-16 h-16 rounded-full border border-white/20 mx-auto mb-4 object-cover">
-                            <h4 class="text-lg font-black mb-2 text-white">Storm</h4>
-                            <p class="text-[11px] text-gray-400 leading-relaxed mb-4">Hey, I go by Storm. I’m incredibly passionate about our little game studio. My department focuses on the narrative and lore of our games.</p>
-                            <a href="mailto:storm@studioluna.dev" class="btn-action">storm@studioluna.dev</a>
-                        </div>
-                        <div class="panel p-6 text-center">
-                            <img src="https://github.com/Imagineoff/luna/blob/main/Potato.PNG?raw=true" class="w-16 h-16 rounded-full border border-white/20 mx-auto mb-4 object-cover">
-                            <h4 class="text-lg font-black mb-2 text-white">Potato</h4>
-                            <p class="text-[11px] text-gray-400 leading-relaxed mb-4">Hey, i go by Potato/Glitch/Pat. I am a director and a lead artist for Luna Studio. I focus on the visual direction, growth of the studio and promotion.</p>
-                            <a href="mailto:Potato@studioluna.dev" class="btn-action">Potato@studioluna.dev</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    window.onTurnstileSuccess = function(token) {
+        turnstileToken = token;
+        document.querySelector('.turnstile-box').style.display = 'none';
+        checkReady();
+    };
 
-    <footer class="py-10 text-center text-gray-600 text-[10px] tracking-widest font-black uppercase">
-        &copy; <span id="yr"></span> LUNA DEVELOPMENT
-    </footer>
+    function checkReady() {
+        if (turnstileToken) {
+            statusText.style.display = 'none';
+            startBtn.style.display = 'block';
+        }
+    }
 
-    <script>
-        const scroll = () => {
-            const y = window.scrollY;
-            const h = window.innerHeight;
-            const get = (id) => document.getElementById(id);
-            get('yr').textContent = new Date().getFullYear();
+    startBtn.onclick = () => {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => loadingScreen.style.display = 'none', 500);
+        
+        setTimeout(() => {
+            typeWriter("MIA: Online.\nFree personal AI agent ready.\nHow can I help you today?");
+        }, 600);
+    };
 
-            const p1 = Math.min(1, y / (h * 2));
-            get('logo').style.transform = `scale(${1 + p1 * 55})`;
-            get('logo').style.opacity = 1 - (p1 * 1.2);
-
-            const s2 = get('tr-hero').offsetHeight;
-            let p2 = (y - s2) / (h * 2);
-            p2 = Math.max(0, Math.min(1, p2));
-            get('ab-cont').style.opacity = p2 * 1.5;
-            get('ab-cont').style.transform = `translateY(${(1-p2)*50}px)`;
-
-            const s3 = s2 + get('tr-about').offsetHeight;
-            let p3 = (y - s3) / (h * 2.5);
-            p3 = Math.max(0, Math.min(1, p3));
-            if(p3 > 0) {
-                get('pop-card').style.opacity = p3 * 2;
-                get('pop-card').style.transform = `rotateY(${p3 * 360}deg) scale(${0.8 + p3 * 0.2})`;
-                get('game-desc').style.opacity = p3 * 2;
-                get('game-desc').style.transform = `translateX(${(1-p3)*50}px)`;
-            }
-
-            const s4 = s3 + get('tr-game').offsetHeight;
-            let pMia = (y - s4) / (h * 2.5);
-            pMia = Math.max(0, Math.min(1, pMia));
-            if(pMia > 0) {
-                get('mia-card').style.opacity = pMia * 2;
-                get('mia-card').style.transform = `rotateY(${pMia * 360}deg) scale(${0.8 + pMia * 0.2})`;
-                get('mia-desc').style.opacity = pMia * 2;
-                get('mia-desc').style.transform = `translateX(${(1-pMia)*50}px)`;
-            }
-
-            const s5 = s4 + get('tr-mia').offsetHeight;
-            let p4 = (y - s5) / (h * 2.5);
-            p4 = Math.max(0, Math.min(1, p4));
-            get('comm-h').style.opacity = p4 * 2;
-            get('comm-grid').style.opacity = p4 * 2;
-            get('comm-grid').style.transform = `translateY(${(1-p4)*30}px)`;
-            get('comm-disc').style.opacity = p4 * 2;
-
-            const s6 = s5 + get('tr-comm').offsetHeight;
-            let pt = (y - s6) / (h * 1.5);
-            pt = Math.max(0, Math.min(1, pt));
-            
-            get('team-h').style.opacity = pt * 2;
-            get('team-container').style.opacity = pt * 2.5;
-            get('team-container').style.transform = `translateY(${(1-pt)*30}px)`;
-        };
-        window.addEventListener('scroll', scroll);
-        scroll();
-
-        let originalTitle = "LUNA";
-        let titleIndex = 0;
-        let deleting = false;
-        function animateTitle() {
-            if (!deleting) {
-                document.title = originalTitle.substring(0, titleIndex);
-                titleIndex++;
-                if (titleIndex > originalTitle.length) { deleting = true; titleIndex = originalTitle.length; }
+    function typeWriter(text, i = 0) {
+        if (i === 0) {
+            aiResponseDiv.innerHTML = '';
+            isTyping = true;
+            userInput.disabled = true;
+            userInput.placeholder = "Mia is typing...";
+        }
+        
+        if (i < text.length) {
+            if (text.charAt(i) === '\n') {
+                aiResponseDiv.innerHTML += '<br>';
             } else {
-                document.title = originalTitle.substring(0, titleIndex);
-                titleIndex--;
-                if (titleIndex < 0) { deleting = false; titleIndex = 0; }
+                aiResponseDiv.innerHTML += text.charAt(i);
+            }
+            const container = document.getElementById('viz-container');
+            container.scrollTop = container.scrollHeight;
+            setTimeout(() => typeWriter(text, i + 1), 30); 
+        } else {
+            isTyping = false;
+            userInput.disabled = false;
+            userInput.placeholder = "Type here...";
+            userInput.focus();
+        }
+    }
+
+    userInput.onkeypress = async (e) => {
+        if (e.key === 'Enter') {
+            const text = userInput.value.trim();
+            if (!text || isTyping) return;
+
+            aiResponseDiv.innerHTML = '';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'user-message';
+            msgDiv.innerText = text;
+            chatSpace.innerHTML = ''; 
+            chatSpace.appendChild(msgDiv);
+
+            userInput.value = '';
+            userInput.disabled = true;
+            userInput.placeholder = "Processing...";
+            
+            conversationHistory.push({ role: "user", content: text });
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        history: conversationHistory,
+                        turnstileToken: turnstileToken
+                    })
+                });
+
+                const data = await res.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                conversationHistory.push({ role: "assistant", content: data.text });
+                typeWriter(data.text);
+
+            } catch (err) {
+                console.error(err);
+                userInput.disabled = false;
+                userInput.placeholder = "Error. Try again.";
+                aiResponseDiv.innerHTML = "Connection to LUNA server failed.";
             }
         }
-        setInterval(animateTitle, 300);
+    };
+
+    let titleWords = ["Mia", "Free personal AI agent", "LUNA System"];
+    let wordIdx = 0;
+    let charIdx = 0;
+    let isDeletingWord = false;
+
+    function animateTitle() {
+        const currentFullText = titleWords[wordIdx];
+        
+        if (isDeletingWord) {
+            document.title = currentFullText.substring(0, charIdx - 1);
+            charIdx--;
+        } else {
+            document.title = currentFullText.substring(0, charIdx + 1);
+            charIdx++;
+        }
+
+        let typeSpeed = isDeletingWord ? 100 : 150;
+
+        if (!isDeletingWord && charIdx === currentFullText.length) {
+            typeSpeed = 2000; 
+            isDeletingWord = true;
+        } else if (isDeletingWord && charIdx === 0) {
+            isDeletingWord = false;
+            wordIdx = (wordIdx + 1) % titleWords.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(animateTitle, typeSpeed);
+    }
+
+    animateTitle();
+
 </script>
 </body>
 </html>
