@@ -45,17 +45,44 @@
 
         #viz-container { 
             flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start; 
-            position: relative; margin-top: 20px; padding: 20px;
-            overflow-y: auto; gap: 20px; width: 100%;
+            align-items: center; justify-content: center; 
+            position: relative; padding: 20px;
+            overflow: hidden; width: 100%;
         }
 
-        .message-wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 10px; }
-        .user-msg { align-self: flex-end; text-align: right; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
-        .ai-msg { align-self: flex-start; text-align: left; color: #fff; font-size: 1rem; line-height: 1.5; }
+        .message-wrapper { 
+            width: 100%; 
+            max-width: 800px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            animation: fadeBlur 4s forwards; 
+        }
+
+        @keyframes fadeBlur {
+            0% { opacity: 1; filter: blur(0); }
+            70% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; filter: blur(20px); pointer-events: none; }
+        }
+
+        .user-msg { 
+            font-size: 1.5rem; 
+            color: #fff; 
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+        }
+
+        .ai-msg { 
+            font-size: 1.2rem; 
+            line-height: 1.5; 
+            color: #fff; 
+            text-align: center;
+            max-width: 100%;
+        }
         
-        .generated-image-container { position: relative; display: inline-block; margin-top: 10px; }
-        .generated-image { max-width: 100%; border: 1px solid #333; border-radius: 4px; }
+        .generated-image-container { position: relative; display: inline-block; margin-top: 15px; }
+        .generated-image { max-width: 100%; max-height: 50dvh; border: 1px solid #333; border-radius: 4px; }
+        
         .download-btn {
             display: block; width: 100%; background: #222; color: #fff; border: 1px solid #444;
             padding: 10px; text-align: center; cursor: pointer; font-family: inherit; margin-top: 5px;
@@ -64,70 +91,66 @@
         .download-btn:hover { background: #fff; color: #000; }
 
         #input-area { 
-            padding: 20px; display: flex; flex-direction: column; gap: 10px; 
-            background: #000; border-top: 1px solid #111;
+            padding: 30px; display: flex; flex-direction: column; gap: 10px; 
+            background: #000;
         }
         
-        #controls-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 800px; margin: 0 auto; }
+        #controls-row { display: flex; align-items: center; gap: 15px; width: 100%; max-width: 800px; margin: 0 auto; }
         
-        input { 
+        input[type="text"] { 
             flex: 1; background: transparent; border: none; color: #fff; 
-            padding: 15px; outline: none; font-size: 16px; 
-            border-bottom: 1px solid #333; transition: border-color 0.3s;
+            padding: 15px 0; outline: none; font-size: 18px; 
+            border-bottom: 1px solid #222; text-align: center;
+            transition: border-color 0.3s;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
         }
-        input:focus { border-bottom-color: #fff; }
-        input:disabled { opacity: 0.3; cursor: wait; }
+        input[type="text"]:focus { border-bottom-color: #fff; }
+        input[type="text"]:disabled { opacity: 0.3; cursor: wait; border-bottom-color: transparent; }
 
         .icon-btn {
-            background: transparent; border: 1px solid #333; color: #fff;
+            background: transparent; border: 1px solid #222; color: #fff;
             width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 20px; transition: all 0.2s;
+            cursor: pointer; font-size: 24px; transition: all 0.2s;
         }
-        .icon-btn:hover { border-color: #fff; background: #111; }
+        .icon-btn:hover { border-color: #fff; }
         
         #gen-btn {
-            background: #111; border: 1px solid #333; color: #fff;
+            background: transparent; border: 1px solid #222; color: #fff;
             height: 45px; padding: 0 15px; cursor: pointer; font-family: inherit;
-            font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+            font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
         }
         #gen-btn:hover { border-color: #fff; }
 
-        /* Modal Support */
         #support-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 10000;
+            background: rgba(0,0,0,0.95); z-index: 10000;
             align-items: center; justify-content: center;
         }
         .modal-content {
-            background: #111; border: 1px solid #333; padding: 30px; text-align: center; max-width: 400px;
+            background: #000; border: 1px solid #222; padding: 40px; text-align: center; max-width: 400px;
         }
-        .modal-title { font-size: 18px; margin-bottom: 20px; text-transform: uppercase; }
-        .support-links { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .modal-title { font-size: 14px; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
+        .support-links { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
         .support-btn {
-            display: block; padding: 12px; background: #fff; color: #000; text-decoration: none;
-            font-weight: bold; text-transform: uppercase; font-size: 12px;
+            display: block; padding: 15px; background: #fff; color: #000; text-decoration: none;
+            font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;
         }
         .no-thanks {
-            background: transparent; border: 1px solid #333; color: #888; cursor: pointer;
+            background: transparent; border: none; color: #444; cursor: pointer;
             padding: 10px; width: 100%; font-family: inherit; text-transform: uppercase; font-size: 10px;
         }
-        .no-thanks:hover { color: #fff; border-color: #fff; }
+        .no-thanks:hover { color: #fff; }
 
-        .uploaded-file-tag {
-            font-size: 10px; color: #0f0; margin-top: 5px; display: none;
-        }
+        #file-indicator { font-size: 10px; color: #444; text-align: center; text-transform: uppercase; letter-spacing: 1px; height: 12px; }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
 <div id="loading-screen">
     <div class="loading-text" id="status-text">System Initialization</div>
-    <div class="turnstile-box" style="margin-bottom: 20px;">
+    <div class="turnstile-box">
         <div class="cf-turnstile" 
              data-sitekey="0x4AAAAAACY_ilRmHF1IfQfP" 
              data-callback="onTurnstileSuccess" 
@@ -140,12 +163,12 @@
 <div id="viz-container"></div>
 
 <div id="input-area">
-    <div class="uploaded-file-tag" id="file-indicator">FILE UPLOADED</div>
+    <div id="file-indicator"></div>
     <div id="controls-row">
         <input type="file" id="file-input" hidden>
-        <button class="icon-btn" id="upload-btn" title="Upload File">+</button>
-        <input type="text" id="userInput" placeholder="Waiting for start..." autocomplete="off" disabled>
-        <button id="gen-btn">GENERATE</button>
+        <button class="icon-btn" id="upload-btn">+</button>
+        <input type="text" id="userInput" placeholder="Waiting..." autocomplete="off" disabled>
+        <button id="gen-btn">IMAGE GENERATE</button>
     </div>
 </div>
 
@@ -156,7 +179,7 @@
             <a href="https://www.patreon.com/Silent_Studio" target="_blank" class="support-btn">Patreon</a>
             <a href="https://ko-fi.com/project_luna" target="_blank" class="support-btn">Ko-fi</a>
         </div>
-        <button class="no-thanks" id="no-thanks-btn">No, thanks (Download)</button>
+        <button class="no-thanks" id="no-thanks-btn">No, thanks</button>
     </div>
 </div>
 
@@ -166,7 +189,6 @@
     let currentUploadedFile = null;
     let pendingDownloadUrl = null;
 
-    const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
     const loadingScreen = document.getElementById('loading-screen');
     const userInput = document.getElementById('userInput');
@@ -175,23 +197,15 @@
     const uploadBtn = document.getElementById('upload-btn');
     const genBtn = document.getElementById('gen-btn');
     const fileIndicator = document.getElementById('file-indicator');
-    
-    // Modal elements
     const supportModal = document.getElementById('support-modal');
     const noThanksBtn = document.getElementById('no-thanks-btn');
 
-    window.onTurnstileSuccess = function(token) {
+    window.onTurnstileSuccess = (token) => {
         turnstileToken = token;
         document.querySelector('.turnstile-box').style.display = 'none';
-        checkReady();
+        document.getElementById('status-text').style.display = 'none';
+        startBtn.style.display = 'block';
     };
-
-    function checkReady() {
-        if (turnstileToken) {
-            statusText.style.display = 'none';
-            startBtn.style.display = 'block';
-        }
-    }
 
     startBtn.onclick = () => {
         loadingScreen.style.opacity = '0';
@@ -201,204 +215,154 @@
         userInput.focus();
     };
 
-    function appendMessage(role, text) {
+    function clearViz() {
+        vizContainer.innerHTML = '';
+    }
+
+    function appendMessage(role, text, isImage = false) {
+        clearViz();
         const wrapper = document.createElement('div');
         wrapper.className = 'message-wrapper';
         
         const msg = document.createElement('div');
         msg.className = role === 'user' ? 'user-msg' : 'ai-msg';
         
-        if (role === 'assistant') {
-            msg.innerHTML = ''; 
-            wrapper.appendChild(msg);
-            vizContainer.appendChild(wrapper);
+        wrapper.appendChild(msg);
+        vizContainer.appendChild(wrapper);
+
+        if (role === 'assistant' && !isImage) {
             typeWriter(msg, text, 0);
+        } else if (isImage) {
+            msg.appendChild(text); // text is the img container here
         } else {
             msg.innerText = text;
-            wrapper.appendChild(msg);
-            vizContainer.appendChild(wrapper);
-            vizContainer.scrollTop = vizContainer.scrollHeight;
         }
     }
 
     function typeWriter(element, text, i) {
         if (i < text.length) {
             element.innerHTML += text.charAt(i);
-            vizContainer.scrollTop = vizContainer.scrollHeight;
-            setTimeout(() => typeWriter(element, text, i + 1), 20); 
+            setTimeout(() => typeWriter(element, text, i + 1), 30); 
         } else {
             userInput.disabled = false;
-            userInput.placeholder = "Type here...";
             userInput.focus();
         }
     }
 
-    // --- FILE UPLOAD LOGIC ---
     uploadBtn.onclick = () => fileInput.click();
 
     fileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        userInput.disabled = true;
-        userInput.placeholder = "Uploading...";
-        
+        fileIndicator.innerText = "UPLOADING...";
         try {
             const uploaded = await puter.fs.upload(file);
             currentUploadedFile = uploaded;
-            fileIndicator.style.display = 'block';
-            fileIndicator.innerText = `ATTACHED: ${file.name}`;
-            userInput.placeholder = "Type message or Generate...";
+            fileIndicator.innerText = `READY: ${file.name}`;
         } catch (err) {
-            console.error(err);
-            alert("Upload failed.");
-        } finally {
-            userInput.disabled = false;
+            fileIndicator.innerText = "UPLOAD FAILED";
         }
     };
 
-    // --- IMAGE GENERATION LOGIC ---
     genBtn.onclick = async () => {
         const prompt = userInput.value.trim();
-        if (!prompt) return alert("Enter a prompt for the image.");
+        if (!prompt) return;
 
         userInput.value = '';
-        appendMessage('user', `[GENERATE]: ${prompt}` + (currentUploadedFile ? ` (Ref: ${currentUploadedFile.name})` : ''));
+        userInput.disabled = true;
+        appendMessage('user', prompt);
         
-        const wrapper = document.createElement('div');
-        wrapper.className = 'message-wrapper';
-        const msg = document.createElement('div');
-        msg.className = 'ai-msg';
-        msg.innerText = "Generating visual...";
-        wrapper.appendChild(msg);
-        vizContainer.appendChild(wrapper);
+        fileIndicator.innerText = "";
 
-        try {
-            // Using Puter AI to generate image
-            const imageElement = await puter.ai.txt2img(prompt);
-            
-            msg.innerHTML = ''; // Clear loading text
-            
-            const imgContainer = document.createElement('div');
-            imgContainer.className = 'generated-image-container';
-            
-            imageElement.className = 'generated-image';
-            imgContainer.appendChild(imageElement);
-            
-            const dwnBtn = document.createElement('button');
-            dwnBtn.className = 'download-btn';
-            dwnBtn.innerText = 'DOWNLOAD';
-            dwnBtn.onclick = () => triggerDownloadFlow(imageElement.src);
-            
-            imgContainer.appendChild(dwnBtn);
-            msg.appendChild(imgContainer);
-            vizContainer.scrollTop = vizContainer.scrollHeight;
+        setTimeout(async () => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            const msg = document.createElement('div');
+            msg.className = 'ai-msg';
+            msg.innerText = "Creating...";
+            wrapper.appendChild(msg);
+            clearViz();
+            vizContainer.appendChild(wrapper);
 
-        } catch (err) {
-            console.error(err);
-            msg.innerText = "Generation failed. Try again.";
-        }
-        
-        // Reset file after generation
-        currentUploadedFile = null;
-        fileIndicator.style.display = 'none';
-        userInput.disabled = false;
-        userInput.focus();
+            try {
+                const imageElement = await puter.ai.txt2img(prompt);
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'generated-image-container';
+                imageElement.className = 'generated-image';
+                
+                const dwnBtn = document.createElement('button');
+                dwnBtn.className = 'download-btn';
+                dwnBtn.innerText = 'DOWNLOAD';
+                dwnBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    pendingDownloadUrl = imageElement.src;
+                    supportModal.style.display = 'flex';
+                };
+
+                imgContainer.appendChild(imageElement);
+                imgContainer.appendChild(dwnBtn);
+                appendMessage('assistant', imgContainer, true);
+            } catch (err) {
+                appendMessage('assistant', "Failed to generate.");
+            }
+            userInput.disabled = false;
+            currentUploadedFile = null;
+        }, 4000);
     };
-
-    // --- DOWNLOAD & SUPPORT FLOW ---
-    function triggerDownloadFlow(url) {
-        pendingDownloadUrl = url;
-        supportModal.style.display = 'flex';
-    }
 
     noThanksBtn.onclick = () => {
         supportModal.style.display = 'none';
-        if (pendingDownloadUrl) {
-            const a = document.createElement('a');
-            a.href = pendingDownloadUrl;
-            a.download = `mia_generated_${Date.now()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
+        const a = document.createElement('a');
+        a.href = pendingDownloadUrl;
+        a.download = `mia_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
-    // --- CHAT LOGIC ---
     userInput.onkeypress = async (e) => {
         if (e.key === 'Enter') {
             const text = userInput.value.trim();
             if (!text) return;
 
-            // Handle Chat
             userInput.value = '';
             userInput.disabled = true;
-            userInput.placeholder = "Processing...";
+            appendMessage('user', text);
             
-            let userContent = text;
-            if (currentUploadedFile) {
-                userContent += ` [User attached file: ${currentUploadedFile.name} at ${currentUploadedFile.path}]`;
-            }
+            let fullContent = text;
+            if (currentUploadedFile) fullContent += ` [File: ${currentUploadedFile.path}]`;
+            conversationHistory.push({ role: "user", content: fullContent });
 
-            appendMessage('user', text); // Show clean text to user
-            conversationHistory.push({ role: "user", content: userContent });
-
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        history: conversationHistory,
-                        turnstileToken: turnstileToken
-                    })
-                });
-
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
-
-                conversationHistory.push({ role: "assistant", content: data.text });
-                appendMessage('assistant', data.text);
-
-                // Clear attachment after sending
+            setTimeout(async () => {
+                try {
+                    const res = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversationHistory, turnstileToken })
+                    });
+                    const data = await res.json();
+                    conversationHistory.push({ role: "assistant", content: data.text });
+                    appendMessage('assistant', data.text);
+                } catch (err) {
+                    appendMessage('assistant', "System error.");
+                    userInput.disabled = false;
+                }
                 currentUploadedFile = null;
-                fileIndicator.style.display = 'none';
-
-            } catch (err) {
-                console.error(err);
-                userInput.disabled = false;
-                appendMessage('assistant', "Connection error.");
-            }
+                fileIndicator.innerText = "";
+            }, 4000);
         }
     };
 
-    // Title Animation
     let titleWords = ["Mia", "Free personal AI agent"];
-    let wordIdx = 0;
-    let charIdx = 0;
-    let isDeletingWord = false;
-
+    let wordIdx = 0, charIdx = 0, isDeleting = false;
     function animateTitle() {
-        const currentFullText = titleWords[wordIdx];
-        if (isDeletingWord) {
-            document.title = currentFullText.substring(0, charIdx - 1);
-            charIdx--;
-        } else {
-            document.title = currentFullText.substring(0, charIdx + 1);
-            charIdx++;
-        }
-        let typeSpeed = isDeletingWord ? 100 : 150;
-        if (!isDeletingWord && charIdx === currentFullText.length) {
-            typeSpeed = 2000; 
-            isDeletingWord = true;
-        } else if (isDeletingWord && charIdx === 0) {
-            isDeletingWord = false;
-            wordIdx = (wordIdx + 1) % titleWords.length;
-            typeSpeed = 500;
-        }
-        setTimeout(animateTitle, typeSpeed);
+        const cur = titleWords[wordIdx];
+        document.title = isDeleting ? cur.substring(0, charIdx--) : cur.substring(0, charIdx++);
+        if (!isDeleting && charIdx > cur.length) { isDeleting = true; setTimeout(animateTitle, 2000); }
+        else if (isDeleting && charIdx < 0) { isDeleting = false; wordIdx = (wordIdx + 1) % titleWords.length; setTimeout(animateTitle, 500); }
+        else setTimeout(animateTitle, 150);
     }
     animateTitle();
-
 </script>
 </body>
 </html>
