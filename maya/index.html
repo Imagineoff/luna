@@ -103,6 +103,33 @@
             width: 100%;
         }
         
+        .copy-btn {
+            background: #111;
+            border: 1px solid #333;
+            color: #666;
+            margin-top: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: #555;
+            color: #888;
+        }
+
+        .copy-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
         .generated-image-container { position: relative; display: inline-block; margin-top: 15px; }
         .generated-image { max-width: 100%; max-height: 50dvh; border: 1px solid #333; border-radius: 4px; }
         
@@ -112,32 +139,6 @@
             text-decoration: none; font-size: 12px; text-transform: uppercase;
         }
         .download-btn:hover { background: #fff; color: #000; }
-
-        .copy-btn {
-            background: #111; 
-            border: 1px solid #222; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            margin-top: 10px; 
-            padding: 6px 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            transition: all 0.3s ease;
-            opacity: 0;
-            animation: fadeInBtn 0.5s forwards;
-            animation-delay: 0.5s;
-        }
-
-        @keyframes fadeInBtn { to { opacity: 1; } }
-
-        .copy-btn svg { width: 16px; height: 16px; fill: #666; transition: fill 0.3s ease; }
-        
-        .copy-btn:hover { background: #222; border-color: #444; }
-        .copy-btn:hover svg { fill: #ccc; }
-
-        .copy-btn.copied { background: #fff; border-color: #fff; }
-        .copy-btn.copied svg { fill: #000; }
 
         #input-area { 
             padding: 30px; display: flex; flex-direction: column; gap: 10px; 
@@ -155,13 +156,6 @@
         }
         input[type="text"]:focus { border-bottom-color: #fff; }
         input[type="text"]:disabled { opacity: 0.3; cursor: wait; border-bottom-color: transparent; }
-
-        .icon-btn {
-            background: transparent; border: 1px solid #222; color: #fff;
-            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 24px; transition: all 0.2s;
-        }
-        .icon-btn:hover { border-color: #fff; }
         
         #gen-btn {
             background: transparent; border: 1px solid #222; color: #fff;
@@ -190,8 +184,6 @@
         }
         .no-thanks:hover { color: #fff; }
 
-        #file-indicator { font-size: 10px; color: #444; text-align: center; text-transform: uppercase; letter-spacing: 1px; height: 12px; }
-
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -212,10 +204,7 @@
 <div id="viz-container"></div>
 
 <div id="input-area">
-    <div id="file-indicator"></div>
     <div id="controls-row">
-        <input type="file" id="file-input" hidden>
-        <button class="icon-btn" id="upload-btn">+</button>
         <input type="text" id="userInput" placeholder="Waiting..." autocomplete="off" disabled>
         <button id="gen-btn">IMAGE GENERATE</button>
     </div>
@@ -235,17 +224,13 @@
 <script>
     let turnstileToken = null;
     let conversationHistory = [];
-    let currentUploadedFile = null;
     let pendingDownloadUrl = null;
 
     const startBtn = document.getElementById('start-btn');
     const loadingScreen = document.getElementById('loading-screen');
     const userInput = document.getElementById('userInput');
     const vizContainer = document.getElementById('viz-container');
-    const fileInput = document.getElementById('file-input');
-    const uploadBtn = document.getElementById('upload-btn');
     const genBtn = document.getElementById('gen-btn');
-    const fileIndicator = document.getElementById('file-indicator');
     const supportModal = document.getElementById('support-modal');
     const noThanksBtn = document.getElementById('no-thanks-btn');
 
@@ -268,21 +253,6 @@
         vizContainer.innerHTML = '';
     }
 
-    function createCopyButton(text, wrapper) {
-        const btn = document.createElement('button');
-        btn.className = 'copy-btn';
-        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
-        
-        btn.onclick = () => {
-            navigator.clipboard.writeText(text);
-            btn.classList.add('copied');
-            setTimeout(() => {
-                btn.classList.remove('copied');
-            }, 3000);
-        };
-        wrapper.appendChild(btn);
-    }
-
     function appendMessage(role, text, isImage = false) {
         clearViz();
         const wrapper = document.createElement('div');
@@ -297,60 +267,47 @@
         msg.className = role === 'user' ? 'user-msg' : 'ai-msg';
         
         wrapper.appendChild(msg);
-        vizContainer.appendChild(wrapper);
 
         if (role === 'assistant' && !isImage) {
-            typeWriter(msg, text, 0, () => {
-                createCopyButton(text, wrapper);
-            });
+            typeWriter(msg, text, 0);
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(text);
+                copyBtn.classList.add('active');
+                setTimeout(() => copyBtn.classList.remove('active'), 3000);
+            };
+            wrapper.appendChild(copyBtn);
+
         } else if (isImage) {
             msg.appendChild(text); 
         } else {
             msg.innerText = text;
         }
+
+        vizContainer.appendChild(wrapper);
     }
 
-    function typeWriter(element, text, i, callback) {
+    function typeWriter(element, text, i) {
         if (i < text.length) {
             element.innerHTML += text.charAt(i);
-            setTimeout(() => typeWriter(element, text, i + 1, callback), 30); 
+            setTimeout(() => typeWriter(element, text, i + 1), 30); 
         } else {
             userInput.disabled = false;
             userInput.focus();
-            if (callback) callback();
         }
     }
-
-    uploadBtn.onclick = () => fileInput.click();
-
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        fileIndicator.innerText = "UPLOADING...";
-        try {
-            const uploaded = await puter.fs.upload(file);
-            currentUploadedFile = uploaded;
-            fileIndicator.innerText = `READY: ${file.name}`;
-        } catch (err) {
-            fileIndicator.innerText = "UPLOAD FAILED";
-        }
-    };
 
     genBtn.onclick = async () => {
         const prompt = userInput.value.trim();
         if (!prompt) return;
 
-        if (currentUploadedFile) {
-            currentUploadedFile = null;
-            fileIndicator.innerText = "";
-        }
-
         userInput.value = '';
         userInput.disabled = true;
         appendMessage('user', prompt);
         
-        fileIndicator.innerText = "";
-
         setTimeout(async () => {
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper ai-anim'; 
@@ -383,7 +340,6 @@
                 appendMessage('assistant', "Failed to generate.");
             }
             userInput.disabled = false;
-            currentUploadedFile = null;
         }, 4000);
     };
 
@@ -406,9 +362,7 @@
             userInput.disabled = true;
             appendMessage('user', text);
             
-            let fullContent = text;
-            if (currentUploadedFile) fullContent += ` [File: ${currentUploadedFile.path}]`;
-            conversationHistory.push({ role: "user", content: fullContent });
+            conversationHistory.push({ role: "user", content: text });
 
             setTimeout(async () => {
                 try {
@@ -424,8 +378,6 @@
                     appendMessage('assistant', "System error.");
                     userInput.disabled = false;
                 }
-                currentUploadedFile = null;
-                fileIndicator.innerText = "";
             }, 4000);
         }
     };
