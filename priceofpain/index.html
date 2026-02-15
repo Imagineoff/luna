@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price of Pain</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/Imagineoff/luna/main/Poplogo.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #d3d3d3;
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+
+        .blood-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(138, 3, 3, 0.15) 0%, rgba(10, 0, 0, 0.8) 40%, #050505 100%);
+            z-index: 1;
+        }
+
+        .blood-drip {
+            position: absolute;
+            top: -50px;
+            width: 2px;
+            background: linear-gradient(to bottom, #8a0303, #1a0000);
+            animation: drip linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes drip {
+            0% { transform: translateY(0) scaleY(1); opacity: 0.7; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(80vh) scaleY(3); opacity: 0; }
+        }
+
+        .banner-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+        }
+
+        .banner-container img {
+            width: 100%;
+            height: auto;
+            opacity: 0.8;
+            filter: contrast(1.2) brightness(0.8) grayscale(0.2);
+        }
+
+        .content {
+            max-width: 600px;
+            text-align: center;
+            padding: 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .main-title {
+            color: #8a0303;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin: 20px 0 10px 0;
+            text-shadow: 2px 2px 10px rgba(138, 3, 3, 0.5);
+            font-weight: 700;
+        }
+
+        .platforms {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .platforms img {
+            height: 15px;
+            width: auto;
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        .highlight {
+            font-style: italic;
+            color: #a0a0a0;
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 15px 40px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            border-color: #8a0303;
+            color: #8a0303;
+            background-color: rgba(138, 3, 3, 0.1);
+            box-shadow: 0 0 15px rgba(138, 3, 3, 0.3);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 1);
+        }
+
+        .modal-text {
+            margin-bottom: 30px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .modal-links {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .modal-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-bottom: 1px dotted #555;
+            transition: color 0.3s;
+        }
+
+        .modal-links a:hover {
+            color: #fff;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #555;
+            font-size: 2rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        footer {
+            margin-top: 80px;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        footer a {
+            color: #555;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #8a0303;
+        }
+
+        .watermark {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #333;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blood-overlay" id="bloodContainer"></div>
+
+    <div class="banner-container">
+        <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Background%20.PNG" alt="Monster Banner">
+    </div>
+
+    <div class="content">
+        <div class="main-title">
+            Pr<span class="glitch-i">i</span>ce of Pa<span class="glitch-i">i</span>n
+        </div>
+
+        <div class="platforms">
+            Android <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Android.PNG" alt="Android"> |
+            Windows <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Win.PNG" alt="Windows"> |
+            Linux <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Linux.PNG" alt="Linux"> |
+            MacOS <img src="https://raw.githubusercontent.com/Imagineoff/luna/main/Apple.PNG" alt="MacOS">
+        </div>
+
+        <div class="description">
+            A horror game created by Indie studio Luna. Development started from an absolute minimum—initially, we didn't even have a computer at our disposal. Despite this, we managed to create a game that changed our studio forever. We present to you our first psychological horror.<br><br>
+            Immerse yourself in Brian's story and discover the dark truth.
+            <span class="highlight">Recommended for players aged 16 and up</span>
+        </div>
+
+        <button class="btn" id="downloadBtn">Download</button>
+    </div>
+
+    <div class="modal-overlay" id="downloadModal">
+        <div class="modal-box">
+            <a class="close-btn" id="closeModal">&times;</a>
+            <div class="modal-text">
+                This game was developed at our own expense and is completely free to play. Any donation helps us pay for the domain, game assets, and other studio purchases necessary for its continued operation. We are deeply grateful for any support.
+            </div>
+            <button class="btn" onclick="window.location.href='https://studioluna.dev/countdown.html'">Continue</button>
+            <div class="modal-links">
+                <a href="https://www.patreon.com/Silent_Studio" target="_blank">Patreon</a>
+                <a href="https://ko-fi.com/project_luna" target="_blank">Ko-fi</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <a href="https://studioluna.dev/">&#8592; Back</a>
+        <div class="watermark">LUNA &copy; 2026</div>
+    </footer>
+
+    <script>
+        let titleWords = ["Price of Pain", "Luna"];
+        let wordIdx = 0, charIdx = 0, isDeleting = false;
+        function animateTitle() {
+            const cur = titleWords[wordIdx];
+            document.title = isDeleting ? cur.substring(0, charIdx--) : cur.substring(0, charIdx++);
+            if (!isDeleting && charIdx > cur.length) { isDeleting = true; setTimeout(animateTitle, 2000); }
+            else if (isDeleting && charIdx < 0) { isDeleting = false; wordIdx = (wordIdx + 1) % titleWords.length; setTimeout(animateTitle, 500); }
+            else setTimeout(animateTitle, 150);
+        }
+        animateTitle();
+
+        setInterval(() => {
+            const is = document.querySelectorAll('.glitch-i');
+            is.forEach(el => {
+                if (Math.random() > 0.85) {
+                    el.innerText = '𐕣';
+                    setTimeout(() => {
+                        el.innerText = 'i';
+                    }, 50 + Math.random() * 150);
+                }
+            });
+        }, 800);
+
+        const bloodContainer = document.getElementById('bloodContainer');
+        for (let i = 0; i < 15; i++) {
+            let drop = document.createElement('div');
+            drop.classList.add('blood-drip');
+            drop.style.left = Math.random() * 100 + 'vw';
+            drop.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            drop.style.animationDelay = (Math.random() * 5) + 's';
+            bloodContainer.appendChild(drop);
+        }
+
+        const modal = document.getElementById('downloadModal');
+        const btn = document.getElementById('downloadBtn');
+        const closeBtn = document.getElementById('closeModal');
+
+        btn.onclick = function() {
+            modal.style.display = "flex";
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
