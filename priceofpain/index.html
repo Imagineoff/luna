@@ -25,7 +25,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            cursor: crosshair; /* Gaming feel */
+            cursor: crosshair;
         }
 
         body {
@@ -37,7 +37,6 @@
             position: relative;
         }
 
-        /* --- BACKGROUND FX --- */
         #canvas-overlay {
             position: fixed;
             top: 0;
@@ -74,7 +73,6 @@
             pointer-events: none;
         }
 
-        /* --- LAYOUT --- */
         .container {
             position: relative;
             z-index: 10;
@@ -87,11 +85,10 @@
             text-align: center;
         }
 
-        /* --- MONSTER HERO --- */
         .monster-wrapper {
             width: 100%;
             max-width: 600px;
-            margin-bottom: -50px; /* Overlap with title */
+            margin-bottom: -50px;
             position: relative;
             mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
@@ -105,7 +102,6 @@
             filter: contrast(1.2) brightness(0.8) grayscale(0.2);
         }
 
-        /* --- TITLE --- */
         .main-title {
             font-family: var(--font-head);
             font-size: 5rem;
@@ -124,7 +120,6 @@
             display: inline-block;
         }
 
-        /* Glitch Effect Classes */
         .glitch-char {
             display: inline-block;
             position: relative;
@@ -136,7 +131,6 @@
             text-shadow: 2px 0 #000 -2px 0 #fff;
         }
 
-        /* --- PLATFORMS --- */
         .platforms {
             display: flex;
             justify-content: center;
@@ -156,6 +150,7 @@
             opacity: 0.5;
             transition: all 0.3s ease;
             filter: grayscale(100%);
+            pointer-events: auto;
         }
 
         .platform-icon:hover {
@@ -164,7 +159,6 @@
             transform: scale(1.1);
         }
 
-        /* --- CONTENT --- */
         .description-box {
             background: rgba(10, 10, 10, 0.85);
             border-left: 2px solid var(--color-blood);
@@ -210,7 +204,6 @@
             letter-spacing: 1px;
         }
 
-        /* --- BUTTONS --- */
         .btn-main {
             background: transparent;
             color: var(--color-text);
@@ -251,7 +244,6 @@
             transform-origin: left;
         }
 
-        /* --- MODAL --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -323,7 +315,6 @@
             color: var(--color-blood);
         }
 
-        /* --- FOOTER --- */
         footer {
             margin-top: 5rem;
             padding-bottom: 2rem;
@@ -354,7 +345,6 @@
             letter-spacing: 3px;
         }
 
-        /* --- ANIMATIONS --- */
         @keyframes fadeInSlow {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 0.9; transform: translateY(0); }
@@ -372,7 +362,6 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* --- MEDIA QUERIES --- */
         @media (max-width: 768px) {
             .main-title {
                 font-size: 3rem;
@@ -414,18 +403,10 @@
         </h1>
 
         <div class="platforms">
-            <a href="https://github.com/Imagineoff/luna/raw/main/Android.PNG" target="_blank">
-                <img src="https://github.com/Imagineoff/luna/raw/main/Android.PNG" alt="Android" class="platform-icon">
-            </a>
-            <a href="https://github.com/Imagineoff/luna/raw/main/Win.PNG" target="_blank">
-                <img src="https://github.com/Imagineoff/luna/raw/main/Win.PNG" alt="Windows" class="platform-icon">
-            </a>
-            <a href="https://github.com/Imagineoff/luna/raw/main/Linux.PNG" target="_blank">
-                <img src="https://github.com/Imagineoff/luna/raw/main/Linux.PNG" alt="Linux" class="platform-icon">
-            </a>
-            <a href="https://github.com/Imagineoff/luna/raw/main/Apple.PNG" target="_blank">
-                <img src="https://github.com/Imagineoff/luna/raw/main/Apple.PNG" alt="MacOS" class="platform-icon">
-            </a>
+            <img src="https://github.com/Imagineoff/luna/raw/main/Android.PNG" alt="Android" class="platform-icon">
+            <img src="https://github.com/Imagineoff/luna/raw/main/Win.PNG" alt="Windows" class="platform-icon">
+            <img src="https://github.com/Imagineoff/luna/raw/main/Linux.PNG" alt="Linux" class="platform-icon">
+            <img src="https://github.com/Imagineoff/luna/raw/main/Apple.PNG" alt="MacOS" class="platform-icon">
         </div>
 
         <div class="description-box">
@@ -476,7 +457,6 @@
     </div>
 
     <script>
-        // --- 1. Title Typewriter Effect (Provided by user) ---
         let titleWords = ["Price of Pain", "Luna"];
         let wordIdx = 0, charIdx = 0, isDeleting = false;
         function animateTitle() {
@@ -488,33 +468,27 @@
         }
         animateTitle();
 
-        // --- 2. Set Year ---
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // --- 3. Glitch Effect Logic ---
         const glitchTarget = document.getElementById('glitch-target');
         const glitchSymbol = '𐕣';
         const originalChar = 'i';
 
         function triggerGlitch() {
-            // Random chance to glitch
             if(Math.random() > 0.7) {
                 glitchTarget.textContent = glitchSymbol;
                 glitchTarget.classList.add('is-glitching');
                 
-                // Revert back quickly
                 setTimeout(() => {
                     glitchTarget.textContent = originalChar;
                     glitchTarget.classList.remove('is-glitching');
                 }, 100 + Math.random() * 200);
             }
             
-            // Schedule next check
             setTimeout(triggerGlitch, 500 + Math.random() * 2000);
         }
         triggerGlitch();
 
-        // --- 4. Modal Logic ---
         const modal = document.getElementById('downloadModal');
 
         function openModal(e) {
@@ -526,14 +500,12 @@
             modal.style.display = 'none';
         }
 
-        // Close modal if clicking outside content
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 closeModal();
             }
         });
 
-        // --- 5. Canvas Rain/Blood Effect ---
         const canvas = document.getElementById('canvas-overlay');
         const ctx = canvas.getContext('2d');
 
@@ -551,8 +523,8 @@
         class Drop {
             constructor() {
                 this.x = Math.random() * w;
-                this.y = Math.random() * h - h; // Start above screen randomly
-                this.speed = Math.random() * 2 + 1; // Slower, thicker speed
+                this.y = Math.random() * h - h;
+                this.speed = Math.random() * 2 + 1;
                 this.len = Math.random() * 20 + 10;
                 this.opacity = Math.random() * 0.5 + 0.1;
                 this.width = Math.random() * 2 + 1;
@@ -568,7 +540,6 @@
 
             draw() {
                 ctx.beginPath();
-                // Gradient for fading tail
                 let grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.len);
                 grad.addColorStop(0, 'rgba(138, 3, 3, 0)');
                 grad.addColorStop(1, `rgba(138, 3, 3, ${this.opacity})`);
@@ -578,7 +549,6 @@
             }
         }
 
-        // Create drops
         for(let i = 0; i < 80; i++) {
             drops.push(new Drop());
         }
@@ -586,7 +556,6 @@
         function animateCanvas() {
             ctx.clearRect(0, 0, w, h);
             
-            // Draw drops
             drops.forEach(drop => {
                 drop.update();
                 drop.draw();
